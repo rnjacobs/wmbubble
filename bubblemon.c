@@ -338,7 +338,7 @@ int main(int argc, char **argv)
     /* set default things, from Xresources or compiled-in defaults. Must come after initwmX11pixmap and we have a DISPLAY */
     bubblemon_session_defaults(x_resource_db);
 
-    if (do_help || argv[1][0] == '-') { /* That's gotta be wrong. */
+    if (do_help || (argv[1] && argv[1][0] == '-')) { /* That's gotta be wrong. */
 	    print_usage();
 	    exit(0);
     }
