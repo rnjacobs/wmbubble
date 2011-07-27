@@ -133,7 +133,10 @@ int shifttime = 0;
 
 int do_help = 0;
 
-int duck_colors[4];
+int delay_time = 100000;
+
+/* duck_colors[0] is always transparent */
+int duck_colors[4] = {0,0xF8FC00,0xF8B040,0};
 
 XrmOptionDescRec x_resource_options[] = {
 	{"-maxbubbles",    "*maxbubbles",     XrmoptionSepArg, (XPointer) NULL},
@@ -144,6 +147,7 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-duckbody",      "*duckbody",       XrmoptionSepArg, (XPointer) NULL},
 	{"-duckbill",      "*duckbill",       XrmoptionSepArg, (XPointer) NULL},
 	{"-duckeye",       "*duckeye",        XrmoptionSepArg, (XPointer) NULL},
+	{"-delay",         "*delay",          XrmoptionSepArg, (XPointer) NULL},
 	{"-ripples",       "*ripples",        XrmoptionSepArg, (XPointer) NULL},
 	{"-gravity",       "*gravity",        XrmoptionSepArg, (XPointer) NULL},
 	{"-volatility",    "*volatility",     XrmoptionSepArg, (XPointer) NULL},
@@ -180,6 +184,7 @@ const struct XrmExtras {
 	{"-duckbody",       Is_Color, &duck_colors[1], "Color of duck's body" },
 	{"-duckbill",       Is_Color, &duck_colors[2], "Color of duck's bill" },
 	{"-duckeye",        Is_Color, &duck_colors[3], "Color of duck's eye" },
+	{"-delay",          Is_Int,   &delay_time, "delay this number of microseconds between redraws" },
 	{"-ripples",        Is_Float, &bm.ripples, "Pixels to disturb the surface when a bubble is formed/pops" },
 	{"-gravity",        Is_Float, &bm.gravity, "Pixels/refresh/refresh to accelerate bubbles upwards" },
 	{"-volatility",     Is_Float, &bm.volatility, "Restorative force on water surface in proportion/refresh"},
@@ -219,11 +224,6 @@ static void bubblemon_session_defaults(XrmDatabase x_resource_database)
 	bm.liquid_noswap = 0x0055ff;
 	bm.air_maxswap = 0xff0000;
 	bm.liquid_maxswap = 0xaa0000;
-
-	/* duck_colors[0] is always transparent */
-	duck_colors[1] = 0xF8FC00;
-	duck_colors[2] = 0xF8B040;
-	duck_colors[3] = 0x000000;
 
 	/* default bubble engine parameters.  Changeable from Xdefaults */
 	bm.maxbubbles = 100;
@@ -404,7 +404,7 @@ int main(int argc, char **argv) {
 			}
 		}
 #ifndef PRO
-		usleep(33000);
+		usleep(delay_time);
 #endif
 		/* get system statistics */
 		get_memory_load_percentage();
