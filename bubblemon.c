@@ -1187,8 +1187,9 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 			pos = (y + POSY) * BOX_SIZE * 3 + (POSX * 3);
 			bob = 75;		/* 25 * 3 */
 			while (bob--) {
-				bm.rgb_buf[pos++] =
+				bm.rgb_buf[pos] =
 					(blend * bm.rgb_buf[pos] + (256 - blend) * *kitptr++) >> 8;
+				pos++;
 			}
 		}
 	}
