@@ -1013,26 +1013,26 @@ static void draw_dtchr(const char letter, unsigned char * rgbbuf) {
   if (letter>='0' && letter<='9') {
     for (y=0;y<7;y++)
       for (x=0;x<5;x++) 
-	if (clockdigit[x+(y*10+(letter-'0'))*6]=='M') {
-	  rgbbuf[(x+y*BOX_SIZE)*3  ]>>=1;
- 	  rgbbuf[(x+y*BOX_SIZE)*3+1]>>=1;
- 	  rgbbuf[(x+y*BOX_SIZE)*3+2]>>=1;
-	}
+	      if (clockdigit[x+(y*10+(letter-'0'))*6]=='M') {
+		      rgbbuf[(x+y*BOX_SIZE)*3  ]>>=1;
+		      rgbbuf[(x+y*BOX_SIZE)*3+1]>>=1;
+		      rgbbuf[(x+y*BOX_SIZE)*3+2]>>=1;
+	      }
   } else if (letter>='@' && letter<='~') {
-    for (y=0;y<7;y++)
-      for (x=0;x<4;x++) 
-	if (clockalpha[x+(y*63+(letter-'@'))*5]=='M') {
-	  rgbbuf[(x+y*BOX_SIZE)*3  ]>>=1;
- 	  rgbbuf[(x+y*BOX_SIZE)*3+1]>>=1;
- 	  rgbbuf[(x+y*BOX_SIZE)*3+2]>>=1;
-	}
+	  for (y=0;y<7;y++)
+		  for (x=0;x<4;x++) 
+			  if (clockalpha[x+(y*63+(letter-'@'))*5]=='M') {
+				  rgbbuf[(x+y*BOX_SIZE)*3  ]>>=1;
+				  rgbbuf[(x+y*BOX_SIZE)*3+1]>>=1;
+				  rgbbuf[(x+y*BOX_SIZE)*3+2]>>=1;
+			  }
   } else if (letter==':') {
-    rgbbuf[3*BOX_SIZE*3  ]>>=1;
-    rgbbuf[3*BOX_SIZE*3+1]>>=1;
-    rgbbuf[3*BOX_SIZE*3+2]>>=1;
-    rgbbuf[5*BOX_SIZE*3  ]>>=1;
-    rgbbuf[5*BOX_SIZE*3+1]>>=1;
-    rgbbuf[5*BOX_SIZE*3+2]>>=1;
+	  rgbbuf[3*BOX_SIZE*3  ]>>=1;
+	  rgbbuf[3*BOX_SIZE*3+1]>>=1;
+	  rgbbuf[3*BOX_SIZE*3+2]>>=1;
+	  rgbbuf[5*BOX_SIZE*3  ]>>=1;
+	  rgbbuf[5*BOX_SIZE*3+1]>>=1;
+	  rgbbuf[5*BOX_SIZE*3+2]>>=1;
   }
 }
 
@@ -1102,8 +1102,8 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 	int bob;
 
 	/* memory window */
-	static int blend = MAXBLEND;
-	static int memblend = 256;
+	static int blend = CPUMAXBLEND;
+	static int memblend = GRAPHMAXBLEND;
 	static int showmem = 0;
 	static int yoh;
 	static int avg;
@@ -1145,9 +1145,9 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 
 	/* sexy fade effect */
 	if (proximity) {
-		blend -= 4*6;
-		if (blend < MINBLEND) {
-			blend = MINBLEND;
+		blend -= 24;
+		if (blend < CPUMINBLEND) {
+			blend = CPUMINBLEND;
 			if (memscreen_enabled) {
 				if (!showmem) {
 					/* first time here, update memory stats */
@@ -1155,10 +1155,10 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 				}
 				showmem = 1;
 				if (!bm.picture_lock)
-					memblend -= 6*6;
-				if (memblend < 40) {
+					memblend -= 36;
+				if (memblend < GRAPHMINBLEND) {
 					roll_membuffer();
-					memblend = 40;
+					memblend = GRAPHMINBLEND;
 				}
 			}
 		}
@@ -1168,12 +1168,12 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 			roll_membuffer();
 
 		if (memscreen_enabled && !bm.picture_lock)
-			memblend += 10*6;
-		if (blend > MAXBLEND) {
-			blend = MAXBLEND;
+			memblend += 60;
+		if (blend > CPUMAXBLEND) {
+			blend = CPUMAXBLEND;
 		}
-		if (memscreen_enabled && memblend > 256) {
-			memblend = 256;
+		if (memscreen_enabled && memblend > GRAPHMAXBLEND) {
+			memblend = GRAPHMAXBLEND;
 			showmem = 0;
 		}
 	}

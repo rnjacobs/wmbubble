@@ -27,8 +27,10 @@
  * maxblend = mousein 
  * min = 0
  * max = 256 */
-#define MINBLEND 80
-#define MAXBLEND 190
+#define CPUMINBLEND 80
+#define CPUMAXBLEND 190
+#define GRAPHMINBLEND 40
+#define GRAPHMAXBLEND 256
 
 #define DUCKBLEND 100
 
