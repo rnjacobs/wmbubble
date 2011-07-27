@@ -287,8 +287,7 @@ static void bubblemon_session_defaults(XrmDatabase x_resource_database)
 #undef COLOR_VAL
 
 /* *INDENT-OFF* */
-static void print_usage(void)
-{
+static void print_usage(void) {
 	int i;
 	printf("BubbleMon version "VERSION"\n"
 	       "Usage: "NAME" [switches] [program_1] [program_2]\n\n"
@@ -298,230 +297,220 @@ static void print_usage(void)
 }
 /* *INDENT-ON* */
 
-int main(int argc, char **argv)
-{
-    char execute[256];
-    char * x_resources_as_string;
-    int proximity = 0;
+int main(int argc, char **argv) {
+	char execute[256];
+	char * x_resources_as_string;
+	int proximity = 0;
 #ifdef FPS
-    int f, o;
-    time_t y;
+	int f, o;
+	time_t y;
 #endif
 #ifdef PRO
-    time_t start, end;
-    int cnt = 10000;
+	time_t start, end;
+	int cnt = 10000;
 #endif
-    XEvent event;
-    XrmDatabase x_resource_db;
+	XEvent event;
+	XrmDatabase x_resource_db;
 
 #ifdef FPS
-    o = f = y = 0;
+	o = f = y = 0;
 #endif
 
-    if (mem_screen.width != mem_screen.height || mem_screen.width != BOX_SIZE ||
-        load_screen.width != load_screen.height || load_screen.width != BOX_SIZE) {
-	    fprintf(stderr, "compilation time error: mem_screen (%dx%d) or load_screen (%dx%d) dimensions don't match applet dimensions (%dx%d)",
-	            mem_screen.width,mem_screen.height,load_screen.width,load_screen.height,BOX_SIZE,BOX_SIZE);
-	    abort();
-    }
+	if (mem_screen.width != mem_screen.height || mem_screen.width != BOX_SIZE ||
+	    load_screen.width != load_screen.height || load_screen.width != BOX_SIZE) {
+		fprintf(stderr, "compilation time error: mem_screen (%dx%d) or load_screen (%dx%d) dimensions don't match applet dimensions (%dx%d)",
+		        mem_screen.width,mem_screen.height,load_screen.width,load_screen.height,BOX_SIZE,BOX_SIZE);
+		abort();
+	}
 
-    /* VERY first thing: zero data structure */
-    memset(&bm, 0, sizeof(bm));
+	/* VERY first thing: zero data structure */
+	memset(&bm, 0, sizeof(bm));
 
-    /* initialize Ximage */
-    bm.xim = initwmX11pixmap(argc,argv);
-    XrmInitialize();
-    x_resources_as_string = XResourceManagerString(wmxp_display);
-    x_resource_db = XrmGetStringDatabase(x_resources_as_string);
-    XrmParseCommand(&x_resource_db, x_resource_options, 
-                    sizeof(x_resource_options)/sizeof(x_resource_options[0]), 
-                    NAME, &argc, argv);
-    /* set default things, from Xresources or compiled-in defaults. Must come after initwmX11pixmap and we have a DISPLAY */
-    bubblemon_session_defaults(x_resource_db);
+	/* initialize Ximage */
+	bm.xim = initwmX11pixmap(argc,argv);
+	XrmInitialize();
+	x_resources_as_string = XResourceManagerString(wmxp_display);
+	x_resource_db = XrmGetStringDatabase(x_resources_as_string);
+	XrmParseCommand(&x_resource_db, x_resource_options, 
+	                sizeof(x_resource_options)/sizeof(x_resource_options[0]), 
+	                NAME, &argc, argv);
+	/* set default things, from Xresources or compiled-in defaults. Must come after initwmX11pixmap and we have a DISPLAY */
+	bubblemon_session_defaults(x_resource_db);
 
-    if (do_help || (argv[1] && argv[1][0] == '-')) { /* That's gotta be wrong. */
-	    print_usage();
-	    exit(0);
-    }
+	if (do_help || (argv[1] && argv[1][0] == '-')) { /* That's gotta be wrong. */
+		print_usage();
+		exit(0);
+	}
 
 #if defined(__FreeBSD__) || defined(__linux__)
-    if (init_stuff())
-	exit(-1);
+	if (init_stuff())
+		exit(-1);
 #endif
 
 
-    /* create dockapp window. creates windows, allocates memory, etc */
-    make_new_bubblemon_dockapp();
+	/* create dockapp window. creates windows, allocates memory, etc */
+	make_new_bubblemon_dockapp();
 
 #ifdef PRO
-    start = time(NULL);
-    while (cnt--) {
+	start = time(NULL);
+	while (cnt--) {
 #else
-    while (1) {
+		while (1) {
 #endif
-	    while (XPending(wmxp_display)) {
-		XNextEvent(wmxp_display,&event);
-		switch (event.type) {
-		case ButtonPress:
-		    if (event.xbutton.button == 3) {
-			bm.picture_lock = bm.picture_lock ? 0 : 1;
-			break;
-		    }
-		    if (event.xbutton.button <= argc) {
-			snprintf(execute, 250, "%s &",
-				 argv[event.xbutton.button - 1]);
-			system(execute);
-		    }
-		    break;
-		case EnterNotify:
-		    /* mouse in: make it darker, and eventually bring up
-		     * meminfo */
-		    proximity = 1;
+			while (XPending(wmxp_display)) {
+				XNextEvent(wmxp_display,&event);
+				switch (event.type) {
+				case ButtonPress:
+					if (event.xbutton.button == 3) {
+						bm.picture_lock = bm.picture_lock ? 0 : 1;
+						break;
+					}
+					if (event.xbutton.button <= argc) {
+						snprintf(execute, 250, "%s &",
+						         argv[event.xbutton.button - 1]);
+						system(execute);
+					}
+					break;
+				case EnterNotify:
+					/* mouse in: make it darker, and eventually bring up
+					 * meminfo */
+					proximity = 1;
 
-		    if (!bm.picture_lock)
-			bm.screen_type = get_screen_selection();
-		    break;
-		    case LeaveNotify:
-		    /* mouse out: back to light */
-		    proximity = 0;
-		    break;
-		default:
-		    break;
-		}
-	    }
-#ifndef PRO
-	usleep(33000);
-#else
-	/* amazingly enough just calling this function takes insane
-	 * amount of time.
-	 usleep(0); */
-#endif
-	/* get system statistics */
-	get_memory_load_percentage();
-	/* update main rgb buffer: bm.rgb_buf */
-	bubblemon_update(proximity);
-
-/* *INDENT-OFF* */
-#ifdef FPS
-	/* render frames per second on bottom-right corner :)
-	 * This is GCC-specific (functions inside functions)
-	 * and very unoptimized. this is obfuscated 'cause its ugly */
-    	f++;
-		int b;
-		void q(int sx,int sy,int dx,int dy){
-			int i,j;
-			char *from,*to;
-			for(j=0;j<8;j++) { 
-				from=NUMBERS+BOX_SIZE*3*(sy+j)+sx*3;
-				to=bm.rgb_buf+BOX_SIZE*3*(dy+j)+dx*3;
-				i=12;
-				while(i--) *to++=*from++;
+					if (!bm.picture_lock)
+						bm.screen_type = get_screen_selection();
+					break;
+				case LeaveNotify:
+					/* mouse out: back to light */
+					proximity = 0;
+					break;
+				default:
+					break;
+				}
 			}
-		}
-		b=o;
-		if (b>=100) {
-			q((b/100)*4,60,43,46);
-			b=b%100;
-		}
-		q((b/10)*4,60,47,46);
-		q((b%10)*4,60,51,46);}
-	if(time(NULL)!=y) {
-		o=f;
-		f=0;
-		y=time(NULL);
-	}
+#ifndef PRO
+			usleep(33000);
 #endif
-/* *INDENT-ON* */
+			/* get system statistics */
+			get_memory_load_percentage();
+			/* update main rgb buffer: bm.rgb_buf */
+			bubblemon_update(proximity);
 
-	/* actually draw the screen */
-	int xx,yy;
-	unsigned char * from=bm.rgb_buf;
+#ifdef FPS
+			/* render frames per second on bottom-right corner :)
+			 * This is GCC-specific (functions inside functions)
+			 * and very unoptimized. this is obfuscated 'cause its ugly */
+			f++;
+			int b;
+			void q(int sx,int sy,int dx,int dy){
+				int i,j;
+				char *from,*to;
+				for(j=0;j<8;j++) { 
+					from=NUMBERS+BOX_SIZE*3*(sy+j)+sx*3;
+					to=bm.rgb_buf+BOX_SIZE*3*(dy+j)+dx*3;
+					i=12;
+					while(i--) *to++=*from++;
+				}
+			}
+			b=o;
+			if (b>=100) {
+				q((b/100)*4,60,43,46);
+				b=b%100;
+			}
+			q((b/10)*4,60,47,46);
+			q((b%10)*4,60,51,46);}
+		if(time(NULL)!=y) {
+			o=f;
+			f=0;
+			y=time(NULL);
+		}
+#endif
 
-	for (xx=0;xx<BOX_SIZE*3;xx++) {
-		from[xx]/=4;
-		from[xx+BOX_SIZE*(BOX_SIZE-1)*3]=(255+from[xx+BOX_SIZE*(BOX_SIZE-1)*3])/2;
+		/* actually draw the screen */
+		int xx,yy;
+		unsigned char * from=bm.rgb_buf;
+
+		for (xx=0;xx<BOX_SIZE*3;xx++) {
+			from[xx]/=4;
+			from[xx+BOX_SIZE*(BOX_SIZE-1)*3]=(255+from[xx+BOX_SIZE*(BOX_SIZE-1)*3])/2;
+		}
+
+		for (yy=0;yy<BOX_SIZE*BOX_SIZE*3;yy+=BOX_SIZE*3) {
+			from[yy  ]/=4; from[yy+1]/=4; from[yy+2]/=4;
+			from[yy+(BOX_SIZE-1)*3  ]=(255+from[yy+(BOX_SIZE-1)*3]  )/2;
+			from[yy+(BOX_SIZE-1)*3+1]=(255+from[yy+(BOX_SIZE-1)*3]+1)/2;
+			from[yy+(BOX_SIZE-1)*3+2]=(255+from[yy+(BOX_SIZE-1)*3]+2)/2;
+		}
+
+		for (yy=0;yy<BOX_SIZE;yy++)
+			for (xx=0;xx<BOX_SIZE;xx++,from+=3)
+				wmPutPixel(bm.xim,xx,yy,from[0],from[1],from[2]);
+
+		RedrawWindow(bm.xim);
+
+		/* update graph histories */
+		if (memscreen_enabled)
+			roll_history();
 	}
-
-	for (yy=0;yy<BOX_SIZE*BOX_SIZE*3;yy+=BOX_SIZE*3) {
-		from[yy  ]/=4; from[yy+1]/=4; from[yy+2]/=4;
-		from[yy+(BOX_SIZE-1)*3  ]=(255+from[yy+(BOX_SIZE-1)*3]  )/2;
-		from[yy+(BOX_SIZE-1)*3+1]=(255+from[yy+(BOX_SIZE-1)*3]+1)/2;
-		from[yy+(BOX_SIZE-1)*3+2]=(255+from[yy+(BOX_SIZE-1)*3]+2)/2;
-	}
-
-	for (yy=0;yy<BOX_SIZE;yy++)
-		for (xx=0;xx<BOX_SIZE;xx++,from+=3)
-			wmPutPixel(bm.xim,xx,yy,from[0],from[1],from[2]);
-
-	RedrawWindow(bm.xim);
-
-	/* update graph histories */
-	if (memscreen_enabled)
-	    roll_history();
-    }
 #ifdef PRO
-    end=time(NULL);
-    fprintf(stderr,"10000 redraws in %d seconds = %f fps\n",end-start,10000.0/(end-start));
+	end=time(NULL);
+	fprintf(stderr,"10000 redraws in %d seconds = %f fps\n",end-start,10000.0/(end-start));
 #endif
-    return 0;
-}				/* main */
+	return 0;
+}	/* main */
 
 /*
  * This determines if the left or right shift keys are depressed.
  */
-static int get_screen_selection(void)
-{
-    static KeyCode lshift_code, rshift_code;
-    static int first_time = 1;
-    char keys[32];
+static int get_screen_selection(void) {
+	static KeyCode lshift_code, rshift_code;
+	static int first_time = 1;
+	char keys[32];
 
-    if (first_time) {
-	first_time = 0;
-	lshift_code = XKeysymToKeycode(wmxp_display,
-				       XStringToKeysym("Shift_L"));
-	rshift_code = XKeysymToKeycode(wmxp_display,
-				       XStringToKeysym("Shift_R"));
-    }
+	if (first_time) {
+		first_time = 0;
+		lshift_code = XKeysymToKeycode(wmxp_display,
+		                               XStringToKeysym("Shift_L"));
+		rshift_code = XKeysymToKeycode(wmxp_display,
+		                               XStringToKeysym("Shift_R"));
+	}
 
-    XQueryKeymap(wmxp_display, keys);
+	XQueryKeymap(wmxp_display, keys);
 
 #if 0
-    if (0) {			/* debug */
-	int i = 0;
-	printf("lshift_code = 0x%x (index = %d, bit = %d\n", lshift_code,
-	       lshift_code >> 3, lshift_code % 8);
-	printf("rshift_code = 0x%x (index = %d, bit = %d\n", rshift_code,
-	       rshift_code >> 3, rshift_code % 8);
-	for (i = 0; i < (sizeof(keys) / sizeof(keys[0])); i++) {
-	    if (0 == (i % 8)) {
-		printf("\n%2d:", i);
-	    }
-	    printf(" %2d", keys[i]);
+	if (0) {			/* debug */
+		int i = 0;
+		printf("lshift_code = 0x%x (index = %d, bit = %d\n", lshift_code,
+		       lshift_code >> 3, lshift_code % 8);
+		printf("rshift_code = 0x%x (index = %d, bit = %d\n", rshift_code,
+		       rshift_code >> 3, rshift_code % 8);
+		for (i = 0; i < (sizeof(keys) / sizeof(keys[0])); i++) {
+			if (0 == (i % 8)) {
+				printf("\n%2d:", i);
+			}
+			printf(" %2d", keys[i]);
+		}
+		printf("\n");
 	}
-	printf("\n");
-    }
 #endif
 
-    if ((keys[lshift_code >> 3] == (1 << (lshift_code % 8))) ||
-	(keys[rshift_code >> 3] == (1 << (rshift_code % 8)))) {
-	return 0;
-    } else {
-	return 1;
-    }
+	if ((keys[lshift_code >> 3] == (1 << (lshift_code % 8))) ||
+	    (keys[rshift_code >> 3] == (1 << (rshift_code % 8)))) {
+		return 0;
+	} else {
+		return 1;
+	}
 }
 
 /* This is the function that actually creates the display widgets */
-static void make_new_bubblemon_dockapp(void)
-{
-    /* We begin with zero bubbles */
-    bm.n_bubbles = 0;
+static void make_new_bubblemon_dockapp(void) {
+	/* We begin with zero bubbles */
+	bm.n_bubbles = 0;
 
-    /* Allocate memory for calculations */
-    bubblemon_allocate_buffers();
+	/* Allocate memory for calculations */
+	bubblemon_allocate_buffers();
 
-    bubblemon_setup_samples();
-#undef MASK
-}				/* make_new_bubblemon_dockapp */
+	bubblemon_setup_samples();
+}	/* make_new_bubblemon_dockapp */
 
 /*
  * This function, bubblemon_update, gets the CPU usage and updates
@@ -844,8 +833,8 @@ static void bubblemon_update(int proximity) {
 
 
 /* draws 4x8 digits for the memory/swap panel */
-static void draw_digit(int num, unsigned char * whither, unsigned char red, unsigned char grn, unsigned char blu)
-{
+static void draw_digit(int num, unsigned char * whither, 
+                       unsigned char red, unsigned char grn, unsigned char blu) {
 	int xx, yy;
 	char *from;
 	unsigned char *to;
@@ -864,8 +853,7 @@ static void draw_digit(int num, unsigned char * whither, unsigned char red, unsi
 }
 
 /* draws a string using previous function. non-digits and non-K/M = space */
-static void draw_string(char *string, int x, int y, int color)
-{
+static void draw_string(char *string, int x, int y, int color) {
 	unsigned char c;
 	const unsigned char reds[4]={ 48,237,158,  0};
 	const unsigned char grns[4]={140, 23,196,255};
@@ -887,19 +875,17 @@ static void draw_string(char *string, int x, int y, int color)
 	}
 }
 
-static void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c)
-{
-    unsigned char *ptr;
-    ptr = buf + y * BOX_SIZE * 3 + x * 3 + 6;	/* +6 = x + 2 */
-    *ptr++ = *c++;
-    *ptr++ = *c++;
-    *ptr++ = *c++;
+static void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c) {
+	unsigned char *ptr;
+	ptr = buf + y * BOX_SIZE * 3 + x * 3 + 6;	/* +6 = x + 2 */
+	*ptr++ = *c++;
+	*ptr++ = *c++;
+	*ptr++ = *c++;
 }
 
 /* draw graph num x size, data taken from history, into rgb buffer buf.
  * this is called not very often: only 1 time out of 250 */
-static void draw_history(int num, int size, unsigned int *history, unsigned char *buf)
-{
+static void draw_history(int num, int size, unsigned int *history, unsigned char *buf) {
 	int pixels_per_byte;
 	int j, k;
 	int d;
@@ -931,8 +917,7 @@ static void draw_history(int num, int size, unsigned int *history, unsigned char
 }
 
 /* refreshes memory/swap screen */
-static void render_secondary(void)
-{
+static void render_secondary(void) {
 	char percent[4];
 	char number[8];
 	int i;
@@ -1134,8 +1119,7 @@ static void draw_datetime(unsigned char * rgbbuf) {
   draw_largedigit(mytime->tm_min%10,rgbbuf+3*(43+BOX_SIZE*13));
 }
 
-static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
-{
+static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 	/* where is the text going to be (now, bottom-center) */
 #define POSX (BOX_SIZE/2-12)
 #define POSY (BOX_SIZE-10)
@@ -1253,79 +1237,76 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 #undef POSX
 }
 
-static void duck_set(int x, int y, int nr, int rev, int upsidedown)
-{
-    int w, h;
-    int rw;
-    int rh;
-    int pos;
-    int dw, di, dh, ds;
-    int cmap;			/* index into duck colors */
+static void duck_set(int x, int y, int nr, int rev, int upsidedown) {
+	int w, h;
+	int rw;
+	int rh;
+	int pos;
+	int dw, di, dh, ds;
+	int cmap;			/* index into duck colors */
 #define _R(idx) ((int)duck_cmap[idx][0])
 #define _G(idx) ((int)duck_cmap[idx][1])
 #define _B(idx) ((int)duck_cmap[idx][2])
 #define GETME(x, y, idx) ((int)duck_data[idx][y * 18 + x])
-    ds = 0;
-    if (y < 0)
-	ds = -(y);
-    dh = 17;
-    if ((y + 17) > BOX_SIZE)
-	dh = BOX_SIZE - y;
-    dw = 18;
-    if (x > BOX_SIZE-18)
-	    dw = 18 - (x - (BOX_SIZE-18));
-    di = 0;
-    if (x < 0)
-	di = -(x);
-    for (h = ds; h < dh; h++) {
-	/* calculate this only once */
-	int ypos = (h + y) * BOX_SIZE;
-	rh = (upsidedown && upside_down_duck_enabled) ? 16 - h : h;
-	for (w = di; w < dw; w++) {
-	    rw = (rev) ? 17 - w : w;
-	    if ((cmap = GETME(rw, rh, nr)) != 0) {
-		unsigned char r, g, b;
-		pos = (ypos + w + x) * 3;
+	ds = 0;
+	if (y < 0)
+		ds = -(y);
+	dh = 17;
+	if ((y + 17) > BOX_SIZE)
+		dh = BOX_SIZE - y;
+	dw = 18;
+	if (x > BOX_SIZE-18)
+		dw = 18 - (x - (BOX_SIZE-18));
+	di = 0;
+	if (x < 0)
+		di = -(x);
+	for (h = ds; h < dh; h++) {
+		/* calculate this only once */
+		int ypos = (h + y) * BOX_SIZE;
+		rh = (upsidedown && upside_down_duck_enabled) ? 16 - h : h;
+		for (w = di; w < dw; w++) {
+			rw = (rev) ? 17 - w : w;
+			if ((cmap = GETME(rw, rh, nr)) != 0) {
+				unsigned char r, g, b;
+				pos = (ypos + w + x) * 3;
 
-		r = _R(cmap);
-		g = _G(cmap);
-		b = _B(cmap);
+				r = _R(cmap);
+				g = _G(cmap);
+				b = _B(cmap);
 
-		/* and now we'll blend the duck part that in water */
-		/* if we use integers here we speed up this function about
-		 * 40%. */
-		if (h + y < REALY(bm.waterlevels[w + x])) {
-		    bm.rgb_buf[pos++] = r;
-		    bm.rgb_buf[pos++] = g;
-		    bm.rgb_buf[pos] = b;
-		} else {
-		    bm.rgb_buf[pos] = (DUCKBLEND * (int) bm.rgb_buf[pos]
-				       + (256 - DUCKBLEND) * (int) r) >> 8;
-		    bm.rgb_buf[pos + 1] =
-			(DUCKBLEND * (int) bm.rgb_buf[pos + 1]
-			 + (256 - DUCKBLEND) * (int) g) >> 8;
-		    bm.rgb_buf[pos + 2] =
-			(DUCKBLEND * (int) bm.rgb_buf[pos + 2]
-			 + (256 - DUCKBLEND) * (int) b) >> 8;
+				/* and now we'll blend the duck part that in water */
+				/* if we use integers here we speed up this function about
+				 * 40%. */
+				if (h + y < REALY(bm.waterlevels[w + x])) {
+					bm.rgb_buf[pos++] = r;
+					bm.rgb_buf[pos++] = g;
+					bm.rgb_buf[pos] = b;
+				} else {
+					bm.rgb_buf[pos] = (DUCKBLEND * (int) bm.rgb_buf[pos]
+					                   + (256 - DUCKBLEND) * (int) r) >> 8;
+					bm.rgb_buf[pos + 1] =
+						(DUCKBLEND * (int) bm.rgb_buf[pos + 1]
+						 + (256 - DUCKBLEND) * (int) g) >> 8;
+					bm.rgb_buf[pos + 2] =
+						(DUCKBLEND * (int) bm.rgb_buf[pos + 2]
+						 + (256 - DUCKBLEND) * (int) b) >> 8;
+				}
+			}
 		}
-	    }
 	}
-    }
 #undef _R
 #undef _G
 #undef _B
 #undef GETME
 }
 
-static int animate_correctly(void)
-{
+static int animate_correctly(void) {
 	/* returns the correct order of framenumber 0,1,2,1,0,1,2...
 	   instead of 0,1,2,0,1,2 <- this way the duck looks really ugly
 	   instead of keeping 2 counters we just made it longer */
 
 	const int outp[16] =
-		{ 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1
-		};
+		{ 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1 };
 	static int totalcounter = -1;
 
 	if (++totalcounter > 15)
@@ -1334,41 +1315,40 @@ static int animate_correctly(void)
 	return outp[totalcounter];
 }
 
-static void duck_swimmer(int posy)
-{
-    static int tx = -19;
-    static int rp;
-    static int rev = 1;
-    static int upsidedown = 0;
+static void duck_swimmer(int posy) {
+	static int tx = -19;
+	static int rp;
+	static int rev = 1;
+	static int upsidedown = 0;
 
-    /* dive */
-    if (upside_down_duck_enabled) {
-	if (upsidedown == 0 && posy < 2)
-	    upsidedown = 1;
-	else if (upsidedown == 1 && posy > 5)	/* jump out */
-	    upsidedown = 0;
+	/* dive */
+	if (upside_down_duck_enabled) {
+		if (upsidedown == 0 && posy < 2)
+			upsidedown = 1;
+		else if (upsidedown == 1 && posy > 5)	/* jump out */
+			upsidedown = 0;
 
-	if (upsidedown)
-	    posy += 10;
-    }
-    if (rp++ < 10) {
+		if (upsidedown)
+			posy += 10;
+	}
+	if (rp++ < 10) {
+		duck_set(tx, posy, animate_correctly(), rev, upsidedown);
+		return;
+	}
+
+	rp = 0;
+	if (!rev) {
+		if (tx-- < -18) {
+			tx = -18;
+			rev = 1;
+		}
+	} else {
+		if (tx++ > BOX_SIZE+1) {
+			tx = BOX_SIZE+1;
+			rev = 0;
+		}
+	}
 	duck_set(tx, posy, animate_correctly(), rev, upsidedown);
-	return;
-    }
-
-    rp = 0;
-    if (!rev) {
-	if (tx-- < -18) {
-	    tx = -18;
-	    rev = 1;
-	}
-    } else {
-	if (tx++ > BOX_SIZE+1) {
-	    tx = BOX_SIZE+1;
-	    rev = 0;
-	}
-    }
-    duck_set(tx, posy, animate_correctly(), rev, upsidedown);
 }
 
 static void bubblemon_setup_samples(void) {
@@ -1377,8 +1357,7 @@ static void bubblemon_setup_samples(void) {
 	bm.total = calloc(bm.samples, sizeof(u_int64_t));
 }
 
-static void bubblemon_allocate_buffers(void)
-{
+static void bubblemon_allocate_buffers(void) {
 	int i;
 
 	/* storage for bubbles */
@@ -1406,21 +1385,18 @@ static void bubblemon_allocate_buffers(void)
 	bm.waterlevels_dy = calloc(BOX_SIZE, sizeof(int));
 }
 
-static void get_memory_load_percentage(void)
-{
-    /* system_memory() will return true on initial run so that we get
-     * correct memory info, but may subsequently return 0 if memory
-     * is not changing */
-    if (system_memory()) {
-	/* new memory/swap data is in, calculate things */
-	bm.mem_percent = (100 * bm.mem_used) / bm.mem_max;
+static void get_memory_load_percentage(void) {
+	/* system_memory() will return true on initial run so that we get
+	 * correct memory info, but may subsequently return 0 if memory
+	 * is not changing */
+	if (system_memory()) {
+		/* new memory/swap data is in, calculate things */
+		bm.mem_percent = (100 * bm.mem_used) / bm.mem_max;
 
-	if (bm.swap_max != 0) {
-	    bm.swap_percent = (100 * bm.swap_used) / bm.swap_max;
-	} else {
-	    bm.swap_percent = 0;
+		if (bm.swap_max != 0) {
+			bm.swap_percent = (100 * bm.swap_used) / bm.swap_max;
+		} else {
+			bm.swap_percent = 0;
+		}
 	}
-    }
 }
-
-/* ex:set ts=8: */
