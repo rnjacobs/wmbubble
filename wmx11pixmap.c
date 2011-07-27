@@ -40,8 +40,9 @@ void RedrawWindow(XImage * xim) {
 
 /* initX11pixmap */
 
-XImage * initwmX11pixmap(char * cwname, int argc, char *argv[]) {
+XImage * initwmX11pixmap(int argc, char *argv[]) {
 	unsigned long	gcm;
+	char * wname = argv[0];
 	XTextProperty	name;
 	XClassHint classHint;
 	XGCValues gcv;
@@ -54,7 +55,7 @@ XImage * initwmX11pixmap(char * cwname, int argc, char *argv[]) {
 	XImage * xim;
 
 	if (!(wmxp_display = XOpenDisplay(NULL))) {
-		fprintf(stderr, "%s: can't open display %s\n", cwname, XDisplayName(NULL));
+		fprintf(stderr, "%s: can't open display %s\n", wname, XDisplayName(NULL));
 		exit(1);
 	}
 	screen  = DefaultScreen(wmxp_display);
@@ -84,12 +85,12 @@ XImage * initwmX11pixmap(char * cwname, int argc, char *argv[]) {
 		(wmxp_display, wmxp_win,  0,0,  BOX_SIZE, BOX_SIZE,  0,
 		 BlackPixel(wmxp_display,screen), WhitePixel(wmxp_display,screen));
 
-	XStoreName(wmxp_display, wmxp_win, cwname);
-	XStoreName(wmxp_display, wmxp_iconwin, cwname);
+	XStoreName(wmxp_display, wmxp_win, wname);
+	XStoreName(wmxp_display, wmxp_iconwin, wname);
 
 	/* Activate hints */
-	classHint.res_name = cwname;
-	classHint.res_class = cwname;
+	classHint.res_name = wname;
+	classHint.res_class = wname;
 	XSetClassHint(wmxp_display, wmxp_win, &classHint);
 
 	/* Select acceptable input events */
@@ -100,8 +101,8 @@ XImage * initwmX11pixmap(char * cwname, int argc, char *argv[]) {
 	XSelectInput(wmxp_display, wmxp_win, InterestingEvents);
 	XSelectInput(wmxp_display, wmxp_iconwin, InterestingEvents);
 
-	if (XStringListToTextProperty(&cwname, 1, &name) == 0) {
-		fprintf(stderr, "%s: can't allocate window name\n", cwname);
+	if (XStringListToTextProperty(&wname, 1, &name) == 0) {
+		fprintf(stderr, "%s: can't allocate window name\n", wname);
 		exit(3);
 	}
 

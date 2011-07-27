@@ -9,7 +9,7 @@
 
 /* Function Prototypes */
 
-XImage * initwmX11pixmap(char * cwname, int argc, char *argv[]);
+XImage * initwmX11pixmap(int argc, char *argv[]);
 void RedrawWindow(XImage * xim);
 void wmPutPixel(XImage *, int x, int y, unsigned char r, unsigned char g, unsigned char b);
 

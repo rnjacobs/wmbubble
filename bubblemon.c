@@ -53,6 +53,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h> /* I know tolower isn't i18n, I'm sorry */
 
 /* x11 includes */
 #include "wmx11pixmap.h"
@@ -88,7 +89,7 @@ static void bubblemon_allocate_buffers(void);
 static void bubblemon_update(int proximity);
 static void make_new_bubblemon_dockapp(void);
 static void get_memory_load_percentage(void);
-static void bubblemon_session_defaults(void);
+static void bubblemon_session_defaults(XrmDatabase x_resource_database);
 static int get_screen_selection(void);
 #if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
 /* draw functions for load average / memory screens */
@@ -123,9 +124,6 @@ extern char * optarg;
 /* global variables */
 BubbleMonData bm;
 
-/* compiled-in options string */
-char options[1024];
-
 #ifdef ENABLE_DUCK
 int duck_enabled = 1;
 #ifdef UPSIDE_DOWN_DUCK
@@ -138,44 +136,102 @@ int cpu_enabled = 1;
 #ifdef ENABLE_MEMSCREEN
 int memscreen_enabled = 1;
 int memscreen_megabytes = 0;
+int graph_digit_color;
+int graph_digit_warning_color;
+int pale = 0;
 #endif				/* ENABLE_MEMSCREEN */
 
 int shifttime = 0;
 
-int pale = 0;
+int do_help = 0;
 
-#define INT_VAL 0
-#define DOUBLE_VAL 1
- #define COLOR_VAL 2
 
-static void bubblemon_session_defaults(void)
+
+XrmOptionDescRec x_resource_options[] = {
+	{"-maxbubbles",    "*maxbubbles",     XrmoptionSepArg, (XPointer) NULL},
+	{"-air_noswap",    "*air_noswap",     XrmoptionSepArg, (XPointer) NULL},
+	{"-air_maxswap",   "*air_maxswap",    XrmoptionSepArg, (XPointer) NULL},
+	{"-liquid_noswap", "*liquid_noswap",  XrmoptionSepArg, (XPointer) NULL},
+	{"-liquid_maxswap","*liquid_maxswap", XrmoptionSepArg, (XPointer) NULL},
+	{"-ripples",       "*ripples",        XrmoptionSepArg, (XPointer) NULL},
+	{"-gravity",       "*gravity",        XrmoptionSepArg, (XPointer) NULL},
+	{"-volatility",    "*volatility",     XrmoptionSepArg, (XPointer) NULL},
+	{"-viscosity",     "*viscosity",      XrmoptionSepArg, (XPointer) NULL},
+	{"-speed_limit",   "*speed_limit",    XrmoptionSepArg, (XPointer) NULL},
+	{"-help",          ".help",           XrmoptionNoArg,  (XPointer) "1"},
+#ifdef ENABLE_DUCK
+	{"-duck",          "*duck",           XrmoptionSepArg, (XPointer) NULL},
+	{"-d",             "*duck",           XrmoptionNoArg,  (XPointer) "no"}, /* disable duck */
+#ifdef UPSIDE_DOWN_DUCK
+	{"-upsidedown",    "*upsidedown",     XrmoptionSepArg, (XPointer) NULL},
+	{"-u",             "*upsidedown",     XrmoptionNoArg,  (XPointer) "no"}, /* disable upside-down-ifying */
+#endif /* UPSIDE_DOWN_DUCK*/
+#endif /* ENABLE_DUCK */
+#ifdef ENABLE_CPU
+	{"-cpumeter",      "*cpumeter",       XrmoptionSepArg, (XPointer) NULL},
+	{"-c",             "*cpumeter",       XrmoptionNoArg,  (XPointer) "no"}, /* disable numeric cpu gauge */
+#endif /* ENABLE_CPU */
+#ifdef ENABLE_MEMSCREEN
+	{"-graphdigitcolor","*graphdigitcolor",XrmoptionSepArg,(XPointer) NULL},
+	{"-graphwarncolor","*graphwarncolor", XrmoptionSepArg, (XPointer) NULL},
+	{"-p",             ".graphdigitpale", XrmoptionIsArg,  (XPointer) NULL},
+	{"-graphs",        "*graphs",         XrmoptionSepArg, (XPointer) NULL}, /* disable graphs */
+	{"-m",             "*graphs",         XrmoptionIsArg,  (XPointer) "no"},
+	{"-units",         "*units",          XrmoptionSepArg, (XPointer) NULL}, /* kB or MB */
+	{"-k",             "*units",          XrmoptionIsArg,  (XPointer) "m"},
+#endif
+	{"-shifttime",     "*shifttime",      XrmoptionSepArg, (XPointer) NULL},
+};	
+
+const struct XrmExtras {
+	const char const * option; /* same as XrmOptionDescRec option */
+	const enum { Is_Int, Is_Color, Is_Float, Is_Bool, No_Param } parse_as;
+	void * write_to;
+	const char * description;
+} x_resource_extras[] = {
+	{"-maxbubbles",     Is_Int, &bm.maxbubbles, "Maximum number of simultaneous bubbles in the dockapp" },
+	{"-air_noswap",     Is_Color, &bm.air_noswap, "Color of air and bubbles when swap is at 0%" },
+	{"-air_maxswap",    Is_Color, &bm.air_maxswap, "Color of air and bubbles when swap is at 100%" },
+	{"-liquid_noswap",  Is_Color, &bm.liquid_noswap, "Color of water when swap is at 0%" },
+	{"-liquid_maxswap", Is_Color, &bm.liquid_maxswap, "Color of water when swap is at 100%" },
+	{"-ripples",        Is_Float, &bm.ripples, "Pixels to disturb the surface when a bubble is formed/pops" },
+	{"-gravity",        Is_Float, &bm.gravity, "Pixels/refresh/refresh to accelerate bubbles upwards" },
+	{"-volatility",     Is_Float, &bm.volatility, "Restorative force on water surface in proportion/refresh"},
+	{"-viscosity",      Is_Float, &bm.viscosity, "Attenuation of surface velocity in proportion/refresh"},
+	{"-speed_limit",    Is_Float, &bm.speed_limit, "Maximum water surface velocity in pixels/refresh" },
+	{"-help",           Is_Bool, &do_help, "Displays this help" },
+#ifdef ENABLE_DUCK
+	{"-duck",           Is_Bool, &duck_enabled, "Draw the duck?"},
+	{"-d",              No_Param, &duck_enabled, "Just don't draw the duck" },
+#ifdef UPSIDE_DOWN_DUCK
+	{"-upsidedown",     Is_Bool, &upside_down_duck_enabled, "Can the duck flip when the tank is overfull?" },
+	{"-u",              No_Param, &upside_down_duck_enabled, "The duck can never flip" },
+#endif /* UPSIDE_DOWN_DUCK*/
+#endif /* ENABLE_DUCK */
+#ifdef ENABLE_CPU
+	{"-cpumeter",       Is_Bool, &cpu_enabled, "Show the current load at the bottom"},
+	{"-c",              No_Param, &cpu_enabled, "Don't show the current load"},
+#endif /* ENABLE_CPU */
+#ifdef ENABLE_MEMSCREEN
+	{"-graphdigitcolor",Is_Color, &graph_digit_color, "The color for the digits on the graphs"},
+	{"-graphwarncolor", Is_Color, &graph_digit_warning_color, "The color for the digits on the memory graph when above 90%" },
+	{"-p",              No_Param, &pale, "Adjust the digit colors to pale blue and cyan"},
+	{"-graphs",         Is_Bool, &memscreen_enabled, "Does hovering show the graphs" },
+	{"-m",              No_Param, &memscreen_enabled, "Graphs are never shown"},
+	{"-units",          Is_Bool, &memscreen_megabytes, "Units for memory in KB or MB"},
+	{"-k",              No_Param, &memscreen_megabytes, "Memory graphs use MB" },
+#endif
+	{"-shifttime",      Is_Int, &shifttime, "Number of hours after midnight that are drawn as part of the previous day" }
+};	
+
+static void bubblemon_session_defaults(XrmDatabase x_resource_database)
 {
-	/* handy way to collect all this stuff in one place */
-	typedef struct {
-		char *name;		/* name as appears in Xdefaults */
-		int type;		/* int, double, or color, see up */
-		void *var;		/* pointer to value - only handles INT atm */
-	} xrm_vars;
-
 	/* XResource stuff */
-	char name[BUFSIZ] = "", *ptr;
-	XrmDatabase db = NULL;
+	char name[BUFSIZ] = "";
 	XrmValue val;
+	XColor colorparsing;
 	char *type;
 	int i;
-
-	xrm_vars tab[] = {
-		{NAME".maxbubbles", INT_VAL, &bm.maxbubbles},
-		{NAME".air_noswap", COLOR_VAL, &bm.air_noswap},
-		{NAME".air_maxswap", COLOR_VAL, &bm.air_maxswap},
-		{NAME".liquid_noswap", COLOR_VAL, &bm.liquid_noswap},
-		{NAME".liquid_maxswap", COLOR_VAL, &bm.liquid_maxswap},
-		{NAME".ripples", DOUBLE_VAL, &bm.ripples},
-		{NAME".gravity", DOUBLE_VAL, &bm.gravity},
-		{NAME".volatility", DOUBLE_VAL, &bm.volatility},
-		{NAME".viscosity", DOUBLE_VAL, &bm.viscosity},
-		{NAME".speed_limit", DOUBLE_VAL, &bm.speed_limit}
-	};
 
 	/* number of CPU load samples */
 	bm.samples = 16;
@@ -194,49 +250,62 @@ static void bubblemon_session_defaults(void)
 	bm.viscosity = .98;
 	bm.speed_limit = 6.0;
 
-	db = NULL;
-	XrmInitialize();
-
-	/* get users's local Xdefaults */
-	if ((ptr = getenv("HOME")) != NULL) {
-		snprintf(name, sizeof(name), "%s/.Xdefaults", ptr);
+	if (sizeof(x_resource_options) / sizeof(x_resource_options[0]) != 
+	    sizeof(x_resource_extras) / sizeof(x_resource_extras[0])) {
+		fprintf(stderr, "Compilation time error: X resource parser controls arrays don't match (%d, %d entries)\n",
+		        sizeof(x_resource_options) / sizeof(x_resource_options[0]),
+		        sizeof(x_resource_extras) / sizeof(x_resource_extras[0]));
+		abort();
 	}
 
-	/* get the database and parse resources if we have some */
-	if ((db = XrmGetFileDatabase(name)) != NULL) {
-		for (i = 0; i < (sizeof(tab) / sizeof(tab[0])); i++) {
-			if (XrmGetResource(db, tab[i].name, tab[i].name, &type, &val)) {
-				if (val.size > 0)	/* no empty strings and shit like that */
-					switch (tab[i].type) {
-					case INT_VAL:
-						*(int *) tab[i].var = atoi(val.addr);
-						break;
-					case DOUBLE_VAL:
-						*(double *) tab[i].var = atof(val.addr);
-						break;
-					case COLOR_VAL:
-						sscanf(val.addr, "#%x", (int *) tab[i].var);
-						break;
-					default:
-						/* WTF? */
-						break;
+	for (i = 0; i < (sizeof(x_resource_options) / sizeof(x_resource_options[0])); i++) {
+		if (strcmp(x_resource_options[i].option,x_resource_extras[i].option) != 0) {
+			fprintf(stderr, "Compilation time error: element #%d doesn't match between arrays (%s != %s)\n",
+			        i,x_resource_options[i].option,x_resource_extras[i].option);
+			abort();
+		}
+		strncpy(name,NAME,BUFSIZ), strncat(name,x_resource_options[i].specifier,BUFSIZ-strlen(name));
+		if (XrmGetResource(x_resource_database, name, name, &type, &val)) {
+			/* Type returned by XrmGetResource is useless, it seems to always return "String" */
+			if (val.size > 0)	/* prevent empty strings */
+				switch (x_resource_extras[i].parse_as) {
+				case Is_Int:
+					*(int *) x_resource_extras[i].write_to = strtol(val.addr,NULL,0);
+					break;
+				case Is_Float:
+					*(double *) x_resource_extras[i].write_to = strtod(val.addr,NULL);
+					break;
+				case Is_Color:
+					XParseColor(wmxp_display,DefaultColormap(wmxp_display,DefaultScreen(wmxp_display)),
+					            val.addr, &colorparsing);
+					*(int *) x_resource_extras[i].write_to = 
+						((colorparsing.red & 0xFF00) << 8) | 
+						((colorparsing.green & 0xFF00)) |
+						((colorparsing.blue & 0xFF00) >> 8);
+					break;
+				case Is_Bool:
+					/* yes, on, 1, megabytes   vs  no, off, 0, kilobytes */
+					if (tolower(val.addr[0]) == 'y' ||
+					    tolower(val.addr[0]) == 'm' ||
+					    val.addr[0] == '1' ||
+					    (tolower(val.addr[0]) == 'o' && tolower(val.addr[1]) == 'n'))
+						*(int *) x_resource_extras[i].write_to = 1; /* bools are stored in ints, sorry */
+					else if (tolower(val.addr[0]) == 'n' ||
+					         tolower(val.addr[0]) == 'k' ||
+					         val.addr[0] == '0' ||
+					         (tolower(val.addr[0]) == 'o' && tolower(val.addr[1]) == 'f'))
+						*(int *) x_resource_extras[i].write_to = 0;
+					else {
+						fprintf(stderr,"Couldn't parse %s as a boolean for resource %s\n",val.addr,name);
+						exit(-2);
 					}
-			}
+					break;
+				default:
+					/* fail soft */
+					break;
+				}
 		}
 	}
-#define RANGE_CHECK(x, min, max, def) \
-	if ((x) > (max) || (x) < (min)) { \
-		fprintf(stderr, #x" value is out of range. Using default value ("#def")\n"); \
-		(x) = (def); \
-	}
-
-	/* range validation. 3l33t hackerz NO PASARAN */
-	RANGE_CHECK(bm.air_noswap, 0, 0xffffff, 0x2299ff);
-	RANGE_CHECK(bm.liquid_noswap, 0, 0xffffff, 0x0055ff);
-	RANGE_CHECK(bm.air_maxswap, 0, 0xffffff, 0xff0000);
-	RANGE_CHECK(bm.liquid_maxswap, 0, 0xffffff, 0xaa0000);
-
-#undef RANGE_CHECK
 
 	/* convert doubles into integer representation */
 	bm.ripples_int = MAKE_INTEGER(bm.ripples);
@@ -253,39 +322,20 @@ static void bubblemon_session_defaults(void)
 /* *INDENT-OFF* */
 static void print_usage(void)
 {
-    char *usage;
-    usage = "BubbleMon version "VERSION", features: %s\n"
-	    "Usage: "NAME" [switches] [program_1] [program_2]\n\n"
-	    "Disable compiled-in features\n"
-#ifdef ENABLE_DUCK
-	    " -d\tdisable swimming duck\n"
-#ifdef UPSIDE_DOWN_DUCK
-	    " -u\tdisable upside-down duck\n"
-#endif /* UPSIDE_DOWN_DUCK */
-#endif /* ENABLE_DUCK */
-#ifdef ENABLE_CPU
-	    " -c\tdisable CPU meter\n"
-#endif /* ENABLE_CPU */
-#ifdef ENABLE_MEMSCREEN
-	    " -m\tdisable memory screen\n"
-#endif /* ENABLE_MEMSCREEN */
-	    "\nGeneral options\n"
-#ifdef ENABLE_MEMSCREEN
-	    " -p\tuse alternative color scheme in memory info screen\n"
-	    " -k\tdisplay memory and swap statistics in megabytes\n"
-#endif
-	    " -h\tdisplay this help\n";
-    printf(usage,
-	    options /* this is the global static string with compiled features */
-    );
+	int i;
+	printf("BubbleMon version "VERSION"\n"
+	       "Usage: "NAME" [switches] [program_1] [program_2]\n\n"
+	       "Permitted options are:\n");
+	for (i=0; i < sizeof(x_resource_extras) / sizeof(x_resource_extras[0]); i++)
+		printf("%-20s %s\n",x_resource_extras[i].option,x_resource_extras[i].description);
 }
 /* *INDENT-ON* */
 
 int main(int argc, char **argv)
 {
     char execute[256];
+    char * x_resources_as_string;
     int proximity = 0;
-    int ch;
 #ifdef FPS
     int f, o;
     time_t y;
@@ -294,103 +344,43 @@ int main(int argc, char **argv)
     int cnt = 25000;
 #endif
     XEvent event;
+    XrmDatabase x_resource_db;
 
 #ifdef FPS
     o = f = y = 0;
 #endif
 
-    /* dynamically generate getopt string depending on compile options
-     * we are going to borrow 256 char string from exec function, and
-     * also build up the "compiled features" string */
-    memset(execute, 0, 256);
-    strcat(execute, "h");	/* help, always in */
-#ifdef ENABLE_DUCK
-    strcat(options, "DUCK ");
-    strcat(execute, "d");
-#ifdef UPSIDE_DOWN_DUCK
-    strcat(options, "INVERT ");
-    strcat(execute, "u");
-#endif				/* UPSIDE_DOWN_DUCK */
-#endif				/* ENABLE_DUCK */
-#ifdef ENABLE_CPU
-    strcat(options, "CPU ");
-    strcat(execute, "c");
-#endif				/* ENABLE_CPU */
-#ifdef ENABLE_MEMSCREEN
-    strcat(options, "MEMSCREEN ");
-    strcat(execute, "pmk");
-#endif				/* ENABLE_MEMSCREEN */
-    strcat(options, "SHIFTTIME ");
-    strcat(execute, "t:");
-
-    /* command line options */
-    while ((ch = getopt(argc, argv, execute)) != -1) {
-	switch (ch) {
-#ifdef ENABLE_DUCK
-	case 'd':
-	    duck_enabled = 0;
-	    break;
-#ifdef UPSIDE_DOWN_DUCK
-	case 'u':
-	    upside_down_duck_enabled = 0;
-	    break;
-#endif				/* UPSIDE_DOWN_DUCK */
-#endif				/* ENABLE_DUCK */
-#ifdef ENABLE_CPU
-	case 'c':
-	    cpu_enabled = 0;
-	    break;
-#endif				/* ENABLE_CPU */
-#ifdef ENABLE_MEMSCREEN
-	case 'm':
-	    memscreen_enabled = 0;
-	    break;
-	case 'p':
-		/* p stands for PALE changes the colors from BLUE and RED to PERIWINKLE and CYAN */
-		/* no sense having -p if memscreen isn't compiled in, right?
-		 * what we are going to do is to change the colors as follows:
-		 * 
-		 * normal numbers- (48,140,240) replaced with (158,196,237) - more pale blue
-		 * was red, now cyan? (237,23,23) replaced with (0,255,233) */
-		pale = 1;
-	    break;
-	case 'k':
-	    memscreen_megabytes = 1;
-	    break;
-#endif				/* ENABLE_MEMSCREEN */
-	case 't':
-	    shifttime = atoi(optarg);
-	    break;
-	default:
-	    print_usage();
-	    exit(-1);
-	    break;
-	}
-    }
-
     if (mem_screen.width != mem_screen.height || mem_screen.width != BOX_SIZE ||
         load_screen.width != load_screen.height || load_screen.width != BOX_SIZE) {
-	    fprintf(stderr, "mem_screen (%dx%d) or load_screen (%dx%d) dimensions don't match applet dimensions (%dx%d)",
+	    fprintf(stderr, "compilation time error: mem_screen (%dx%d) or load_screen (%dx%d) dimensions don't match applet dimensions (%dx%d)",
 	            mem_screen.width,mem_screen.height,load_screen.width,load_screen.height,BOX_SIZE,BOX_SIZE);
-	    return 1;
+	    abort();
     }
 
-    /* zero data structure */
+    /* VERY first thing: zero data structure */
     memset(&bm, 0, sizeof(bm));
 
     /* initialize Ximage */
-    bm.xim = initwmX11pixmap(NAME,argc,argv);
+    bm.xim = initwmX11pixmap(argc,argv);
+    XrmInitialize();
+    x_resources_as_string = XResourceManagerString(wmxp_display);
+    x_resource_db = XrmGetStringDatabase(x_resources_as_string);
+    XrmParseCommand(&x_resource_db, x_resource_options, 
+                    sizeof(x_resource_options)/sizeof(x_resource_options[0]), 
+                    NAME, &argc, argv);
+    /* set default things, from Xresources or compiled-in defaults. Must come after initwmX11pixmap and we have a DISPLAY */
+    bubblemon_session_defaults(x_resource_db);
 
-    argc -= optind;
-    argv += optind;
+    if (do_help || argv[1][0] == '-') { /* That's gotta be wrong. */
+	    print_usage();
+	    exit(0);
+    }
 
 #if defined(__FreeBSD__) || defined(__linux__)
     if (init_stuff())
 	exit(-1);
 #endif
 
-    /* set default things, from Xresources or compiled-in defaults */
-    bubblemon_session_defaults();
 
     /* create dockapp window. creates windows, allocates memory, etc */
     make_new_bubblemon_dockapp();
@@ -433,7 +423,7 @@ int main(int argc, char **argv)
 		}
 	    }
 #ifndef PRO
-	usleep(100000);
+	usleep(33000);
 #else
 	/* amazingly enough just calling this function takes insane
 	 * amount of time.
@@ -617,8 +607,8 @@ static void bubblemon_update(int proximity) {
 	for (x = 1; x < BOX_SIZE-1; x++) {
 		/* Accelerate the current waterlevel towards its correct value */
 		bm.waterlevels_dy[x] +=
-			(((bm.waterlevels[x - 1] + bm.waterlevels[x + 1] -
-			   2 * bm.waterlevels[x]) * bm.volatility_int) >> (POWER2 + 1));
+			(((bm.waterlevels[x - 1] + bm.waterlevels[x + 1] - 2 * bm.waterlevels[x])
+			  * bm.volatility_int) >> (POWER2 + 1));
 
 		bm.waterlevels_dy[x] *= bm.viscosity_int;
 		bm.waterlevels_dy[x] >>= POWER2;
