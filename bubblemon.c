@@ -1224,7 +1224,7 @@ static void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 	int pos;
 	int dw, di, dh, ds;
 	int cmap;			/* index into duck colors */
-#define GETME(x, y, idx) ((int)duck_data[idx][y * 18 + x])
+#define GETME(x, y, idx) ((int))
 	ds = 0;
 	if (y < 0)
 		ds = -(y);
@@ -1243,7 +1243,7 @@ static void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 		rh = (flipy && upside_down_duck_enabled) ? 16 - h : h;
 		for (w = di; w < dw; w++) {
 			rw = flipx ? 17 - w : w;
-			if ((cmap = GETME(rw, rh, nr)) != 0) {
+			if ((cmap = duck_data[nr][rh * 18 + rw]) != 0) {
 				unsigned char r, g, b;
 				pos = (ypos + w + x) * 3;
 
@@ -1271,9 +1271,6 @@ static void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 			}
 		}
 	}
-#undef _R
-#undef _G
-#undef _B
 #undef GETME
 }
 
