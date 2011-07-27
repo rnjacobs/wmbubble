@@ -478,8 +478,8 @@ static int get_screen_selection(void) {
 
 	XQueryKeymap(wmxp_display, keys);
 
-	if ((keys[lshift_code >> 3] == (1 << (lshift_code % 8))) ||
-	    (keys[rshift_code >> 3] == (1 << (rshift_code % 8)))) {
+	if ((keys[lshift_code >> 3] & (1 << (lshift_code % 8))) ||
+	    (keys[rshift_code >> 3] & (1 << (rshift_code % 8)))) {
 		return 0;
 	} else {
 		return 1;
