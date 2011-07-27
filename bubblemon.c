@@ -308,7 +308,8 @@ int main(int argc, char **argv)
     time_t y;
 #endif
 #ifdef PRO
-    int cnt = 25000;
+    time_t start, end;
+    int cnt = 10000;
 #endif
     XEvent event;
     XrmDatabase x_resource_db;
@@ -353,6 +354,7 @@ int main(int argc, char **argv)
     make_new_bubblemon_dockapp();
 
 #ifdef PRO
+    start = time(NULL);
     while (cnt--) {
 #else
     while (1) {
@@ -452,10 +454,15 @@ int main(int argc, char **argv)
 			wmPutPixel(bm.xim,xx,yy,from[0],from[1],from[2]);
 
 	RedrawWindow(bm.xim);
+
 	/* update graph histories */
 	if (memscreen_enabled)
 	    roll_history();
     }
+#ifdef PRO
+    end=time(NULL);
+    fprintf(stderr,"10000 redraws in %d seconds = %f fps\n",end-start,10000.0/(end-start));
+#endif
     return 0;
 }				/* main */
 
@@ -689,7 +696,7 @@ static void bubblemon_update(int proximity) {
 			bubbles[i].x = bubbles[bm.n_bubbles - 1].x;
 			bubbles[i].y = bubbles[bm.n_bubbles - 1].y;
 			bubbles[i].dy = bubbles[bm.n_bubbles - 1].dy;
-	    bm.n_bubbles--;
+			bm.n_bubbles--; /* XXX this can't be right */
 
 	    /*
 	      We must check the previously last bubble, which is
@@ -820,6 +827,7 @@ static void bubblemon_update(int proximity) {
 		*ptr++ = blus[*bubblebuf_ptr];
 		bubblebuf_ptr++;
 	}
+
 	if (duck_enabled) {
 		duck_swimmer((last_action_min < action_min) ? 
 		             last_action_min - 14 : 
