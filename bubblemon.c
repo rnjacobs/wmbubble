@@ -125,8 +125,7 @@ int upside_down_duck_enabled = 1;
 int cpu_enabled = 1;
 int memscreen_enabled = 1;
 int memscreen_megabytes = 0;
-int graph_digit_color;
-int graph_digit_warning_color;
+int graph_digit_colors[2] = {0x308cf0,0xed1717};
 int pale = 0;
 
 int shifttime = 0;
@@ -162,7 +161,7 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-c",             "*cpumeter",       XrmoptionNoArg,  (XPointer) "no"}, /* disable numeric cpu gauge */
 	{"-graphdigitcolor","*graphdigitcolor",XrmoptionSepArg,(XPointer) NULL},
 	{"-graphwarncolor","*graphwarncolor", XrmoptionSepArg, (XPointer) NULL},
-	{"-p",             ".graphdigitpale", XrmoptionIsArg,  (XPointer) NULL},
+	{"-p",             ".graphdigitpale", XrmoptionNoArg,  (XPointer) "1"},
 	{"-graphs",        "*graphs",         XrmoptionSepArg, (XPointer) NULL}, /* disable graphs */
 	{"-m",             "*graphs",         XrmoptionIsArg,  (XPointer) "no"},
 	{"-units",         "*units",          XrmoptionSepArg, (XPointer) NULL}, /* kB or MB */
@@ -192,18 +191,18 @@ const struct XrmExtras {
 	{"-speed_limit",    Is_Float, &bm.speed_limit, "Maximum water surface velocity in pixels/refresh" },
 	{"-help",           Is_Bool, &do_help, "Displays this help" },
 	{"-duck",           Is_Bool, &duck_enabled, "Draw the duck?"},
-	{"-d",              No_Param, &duck_enabled, "Just don't draw the duck" },
+	{"-d",              Is_Bool, &duck_enabled, "Just don't draw the duck" },
 	{"-upsidedown",     Is_Bool, &upside_down_duck_enabled, "Can the duck flip when the tank is overfull?" },
-	{"-u",              No_Param, &upside_down_duck_enabled, "The duck can never flip" },
+	{"-u",              Is_Bool, &upside_down_duck_enabled, "The duck can never flip" },
 	{"-cpumeter",       Is_Bool, &cpu_enabled, "Show the current load at the bottom"},
-	{"-c",              No_Param, &cpu_enabled, "Don't show the current load"},
-	{"-graphdigitcolor",Is_Color, &graph_digit_color, "The color for the digits on the graphs"},
-	{"-graphwarncolor", Is_Color, &graph_digit_warning_color, "The color for the digits on the memory graph when above 90%" },
-	{"-p",              No_Param, &pale, "Adjust the digit colors to pale blue and cyan"},
+	{"-c",              Is_Bool, &cpu_enabled, "Don't show the current load"},
+	{"-graphdigitcolor",Is_Color, &graph_digit_colors[0], "The color for the digits on the graphs"},
+	{"-graphwarncolor", Is_Color, &graph_digit_colors[1], "The color for the digits on the memory graph when above 90%" },
+	{"-p",              Is_Bool, &pale, "Adjust the digit colors to pale blue and cyan"},
 	{"-graphs",         Is_Bool, &memscreen_enabled, "Does hovering show the graphs" },
-	{"-m",              No_Param, &memscreen_enabled, "Graphs are never shown"},
+	{"-m",              Is_Bool, &memscreen_enabled, "Graphs are never shown"},
 	{"-units",          Is_Bool, &memscreen_megabytes, "Units for memory in KB or MB"},
-	{"-k",              No_Param, &memscreen_megabytes, "Memory graphs use MB" },
+	{"-k",              Is_Bool, &memscreen_megabytes, "Memory graphs use MB" },
 	{"-shifttime",      Is_Int, &shifttime, "Number of hours after midnight that are drawn as part of the previous day" }
 };	
 
@@ -290,6 +289,11 @@ static void bubblemon_session_defaults(XrmDatabase x_resource_database)
 		}
 	}
 
+	if (pale) {
+		graph_digit_colors[0] = 0x9ec4ed;
+		graph_digit_colors[1] = 0x00ffe9;
+	}
+
 	/* convert doubles into integer representation */
 	bm.ripples_int = MAKE_INTEGER(bm.ripples);
 	bm.gravity_int = MAKE_INTEGER(bm.gravity);
@@ -298,11 +302,6 @@ static void bubblemon_session_defaults(XrmDatabase x_resource_database)
 	bm.speed_limit_int = MAKE_INTEGER(bm.speed_limit);
 }
 
-#undef INT_VAL
-#undef DOUBLE_VAL
-#undef COLOR_VAL
-
-/* *INDENT-OFF* */
 static void print_usage(void) {
 	int i;
 	printf("BubbleMon version "VERSION"\n"
@@ -311,7 +310,6 @@ static void print_usage(void) {
 	for (i=0; i < sizeof(x_resource_extras) / sizeof(x_resource_extras[0]); i++)
 		printf("%-20s %s\n",x_resource_extras[i].option,x_resource_extras[i].description);
 }
-/* *INDENT-ON* */
 
 int main(int argc, char **argv) {
 	char execute[256];
@@ -835,11 +833,6 @@ static void draw_digit(int num, unsigned char * whither,
 /* draws a string using previous function. non-digits and non-K/M = space */
 static void draw_string(char *string, int x, int y, int color) {
 	unsigned char c;
-	const unsigned char reds[4]={ 48,237,158,  0};
-	const unsigned char grns[4]={140, 23,196,255};
-	const unsigned char blus[4]={240, 23,237,233};
-
-	if (pale) color += 2;
 
 	/* bluish rgb:48,140,240  pale rgb:158,196,237
 	   reddish rgb:237,23,23  pale(cyan) rgb:0,255,233 */
@@ -850,7 +843,10 @@ static void draw_string(char *string, int x, int y, int color) {
 		else if (c >= '0' && c <= '9') c -= '0';
 
 		if (c <= 11)
-			draw_digit(c, &bm.mem_buf[3*(y*BOX_SIZE+x)], reds[color], grns[color], blus[color]);
+			draw_digit(c, &bm.mem_buf[3*(y*BOX_SIZE+x)], 
+			           GET_RED(graph_digit_colors[color]),
+			           GET_GRN(graph_digit_colors[color]),
+			           GET_BLU(graph_digit_colors[color]));
 		x += 4;
 	}
 }
@@ -1111,7 +1107,7 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 	static int showmem = 0;
 	static int yoh;
 	static int avg;
-	int hibyte, y, pos;
+	int hibyte, y, pos, ratio;
 
 	/* CPU load buffer */
 	static unsigned char kit[25 * 3 * 9 + 1]; /* 9 high, 25 wide, 3bpp */
@@ -1125,9 +1121,13 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 	 * effects. */
 	avg += cpu;
 
-	/* 2 here is adjusted to mean 100ms*2=5Hz. Originally it was 15ms*10 meaning 7Hz */
-	while (++yoh > 2) {
-		cpu = avg / 2;
+	ratio = 200000/delay_time;
+	if (ratio==0) ratio=1;
+
+	/* the math below makes it vaguely try to update at 5 Hz.
+	   Originally it was 15ms*10 meaning 7Hz */
+	while (++yoh > ratio) {
+		cpu = avg / ratio;
 		avg = yoh = 0;
 		hibyte = cpu / 10;
 		if (hibyte == 10) {
@@ -1184,17 +1184,11 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 		 */
 		kitptr = kit;
 		for (y = 0; y < 9; y++) {
-			unsigned char src;
 			pos = (y + POSY) * BOX_SIZE * 3 + (POSX * 3);
 			bob = 75;		/* 25 * 3 */
 			while (bob--) {
-				src = bm.rgb_buf[pos];
-				
-				if (!src)
-					bm.rgb_buf[pos++] = *kitptr++;
-				else
-					bm.rgb_buf[pos++] =
-						(blend * src + (256 - blend) * *kitptr++) >> 8;
+				bm.rgb_buf[pos++] =
+					(blend * bm.rgb_buf[pos] + (256 - blend) * *kitptr++) >> 8;
 			}
 		}
 	}
