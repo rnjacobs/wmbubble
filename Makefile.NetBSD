@@ -1,8 +1,4 @@
 # bubblemon configuration
-EXTRA = -DENABLE_DUCK
-EXTRA += -DENABLE_CPU 
-EXTRA += -DENABLE_MEMSCREEN
-#EXTRA += -DUPSIDE_DOWN_DUCK
 
 EXTRA += $(WMAN)
 

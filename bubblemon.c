@@ -65,17 +65,11 @@
 #include "include/clockfont.h"
 #include "include/numbers-2.h"
 
-#ifdef ENABLE_DUCK
 #include "include/ducks.h"
-#endif
-#if defined(ENABLE_CPU)
 #include "include/digits.h"
-#endif
-#if defined(ENABLE_MEMSCREEN)
 #include "misc/load_58.c"
 #include "misc/mem_58.c"
 #include "misc/numbers.xpm"
-#endif
 
 /* #define DEBUG_DUCK 1 */
 
@@ -91,7 +85,6 @@ static void make_new_bubblemon_dockapp(void);
 static void get_memory_load_percentage(void);
 static void bubblemon_session_defaults(XrmDatabase x_resource_database);
 static int get_screen_selection(void);
-#if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
 /* draw functions for load average / memory screens */
 static void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c);
 static void draw_history(int num, int size, unsigned int *history,
@@ -104,16 +97,14 @@ static void render_secondary(void);
 static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity);
 static void roll_membuffer(void);
 static void roll_history(void);
-#endif
 
 static void draw_datetime(unsigned char *display);
 static void draw_dtchr(const char letter, unsigned char *where);
 
-#ifdef ENABLE_DUCK
 static int animate_correctly(void);
 static void duck_set(int x, int y, int nr, int rev, int upsidedown);
 static void duck_swimmer(int posy);
-#endif
+
 #if defined(__FreeBSD__) || defined(__linux__)
 extern int init_stuff();	/* defined in sys_{freebsd,linux}.c */
 #endif
@@ -124,22 +115,14 @@ extern char * optarg;
 /* global variables */
 BubbleMonData bm;
 
-#ifdef ENABLE_DUCK
 int duck_enabled = 1;
-#ifdef UPSIDE_DOWN_DUCK
 int upside_down_duck_enabled = 1;
-#endif				/* UPSIDE_DOWN_DUCK */
-#endif				/* ENABLE_DUCK */
-#ifdef ENABLE_CPU
 int cpu_enabled = 1;
-#endif				/* ENABLE_CPU */
-#ifdef ENABLE_MEMSCREEN
 int memscreen_enabled = 1;
 int memscreen_megabytes = 0;
 int graph_digit_color;
 int graph_digit_warning_color;
 int pale = 0;
-#endif				/* ENABLE_MEMSCREEN */
 
 int shifttime = 0;
 
@@ -159,19 +142,12 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-viscosity",     "*viscosity",      XrmoptionSepArg, (XPointer) NULL},
 	{"-speed_limit",   "*speed_limit",    XrmoptionSepArg, (XPointer) NULL},
 	{"-help",          ".help",           XrmoptionNoArg,  (XPointer) "1"},
-#ifdef ENABLE_DUCK
 	{"-duck",          "*duck",           XrmoptionSepArg, (XPointer) NULL},
 	{"-d",             "*duck",           XrmoptionNoArg,  (XPointer) "no"}, /* disable duck */
-#ifdef UPSIDE_DOWN_DUCK
 	{"-upsidedown",    "*upsidedown",     XrmoptionSepArg, (XPointer) NULL},
 	{"-u",             "*upsidedown",     XrmoptionNoArg,  (XPointer) "no"}, /* disable upside-down-ifying */
-#endif /* UPSIDE_DOWN_DUCK*/
-#endif /* ENABLE_DUCK */
-#ifdef ENABLE_CPU
 	{"-cpumeter",      "*cpumeter",       XrmoptionSepArg, (XPointer) NULL},
 	{"-c",             "*cpumeter",       XrmoptionNoArg,  (XPointer) "no"}, /* disable numeric cpu gauge */
-#endif /* ENABLE_CPU */
-#ifdef ENABLE_MEMSCREEN
 	{"-graphdigitcolor","*graphdigitcolor",XrmoptionSepArg,(XPointer) NULL},
 	{"-graphwarncolor","*graphwarncolor", XrmoptionSepArg, (XPointer) NULL},
 	{"-p",             ".graphdigitpale", XrmoptionIsArg,  (XPointer) NULL},
@@ -179,7 +155,6 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-m",             "*graphs",         XrmoptionIsArg,  (XPointer) "no"},
 	{"-units",         "*units",          XrmoptionSepArg, (XPointer) NULL}, /* kB or MB */
 	{"-k",             "*units",          XrmoptionIsArg,  (XPointer) "m"},
-#endif
 	{"-shifttime",     "*shifttime",      XrmoptionSepArg, (XPointer) NULL},
 };	
 
@@ -200,19 +175,12 @@ const struct XrmExtras {
 	{"-viscosity",      Is_Float, &bm.viscosity, "Attenuation of surface velocity in proportion/refresh"},
 	{"-speed_limit",    Is_Float, &bm.speed_limit, "Maximum water surface velocity in pixels/refresh" },
 	{"-help",           Is_Bool, &do_help, "Displays this help" },
-#ifdef ENABLE_DUCK
 	{"-duck",           Is_Bool, &duck_enabled, "Draw the duck?"},
 	{"-d",              No_Param, &duck_enabled, "Just don't draw the duck" },
-#ifdef UPSIDE_DOWN_DUCK
 	{"-upsidedown",     Is_Bool, &upside_down_duck_enabled, "Can the duck flip when the tank is overfull?" },
 	{"-u",              No_Param, &upside_down_duck_enabled, "The duck can never flip" },
-#endif /* UPSIDE_DOWN_DUCK*/
-#endif /* ENABLE_DUCK */
-#ifdef ENABLE_CPU
 	{"-cpumeter",       Is_Bool, &cpu_enabled, "Show the current load at the bottom"},
 	{"-c",              No_Param, &cpu_enabled, "Don't show the current load"},
-#endif /* ENABLE_CPU */
-#ifdef ENABLE_MEMSCREEN
 	{"-graphdigitcolor",Is_Color, &graph_digit_color, "The color for the digits on the graphs"},
 	{"-graphwarncolor", Is_Color, &graph_digit_warning_color, "The color for the digits on the memory graph when above 90%" },
 	{"-p",              No_Param, &pale, "Adjust the digit colors to pale blue and cyan"},
@@ -220,7 +188,6 @@ const struct XrmExtras {
 	{"-m",              No_Param, &memscreen_enabled, "Graphs are never shown"},
 	{"-units",          Is_Bool, &memscreen_megabytes, "Units for memory in KB or MB"},
 	{"-k",              No_Param, &memscreen_megabytes, "Memory graphs use MB" },
-#endif
 	{"-shifttime",      Is_Int, &shifttime, "Number of hours after midnight that are drawn as part of the previous day" }
 };	
 
@@ -404,7 +371,6 @@ int main(int argc, char **argv)
 			system(execute);
 		    }
 		    break;
-#if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
 		case EnterNotify:
 		    /* mouse in: make it darker, and eventually bring up
 		     * meminfo */
@@ -417,7 +383,6 @@ int main(int argc, char **argv)
 		    /* mouse out: back to light */
 		    proximity = 0;
 		    break;
-#endif				/* ENABLE_CPU || ENABLE_MEMSCREEN */
 		default:
 		    break;
 		}
@@ -487,11 +452,9 @@ int main(int argc, char **argv)
 			wmPutPixel(bm.xim,xx,yy,from[0],from[1],from[2]);
 
 	RedrawWindow(bm.xim);
-#ifdef ENABLE_MEMSCREEN
 	/* update graph histories */
 	if (memscreen_enabled)
 	    roll_history();
-#endif				/* ENABLE_MEMSCREEN */
     }
     return 0;
 }				/* main */
@@ -577,11 +540,9 @@ static void bubblemon_update(int proximity) {
 	/* Find out the CPU load */
 	loadPercentage = system_cpu();
 
-#ifdef ENABLE_MEMSCREEN
 	/* get loadavg */
 	if (memscreen_enabled)
 		system_loadavg();
-#endif				/* ENABLE_MEMSCREEN */
 
 	/*
 	  The bubblebuf is made up of int8s (0..2), correspodning to the enum. A
@@ -859,36 +820,21 @@ static void bubblemon_update(int proximity) {
 		*ptr++ = blus[*bubblebuf_ptr];
 		bubblebuf_ptr++;
 	}
-#ifdef ENABLE_DUCK
 	if (duck_enabled) {
 		duck_swimmer((last_action_min < action_min) ? 
 		             last_action_min - 14 : 
 		             action_min - 14);
 	}
-#endif
 
-#if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
-	if (
-#ifdef ENABLE_CPU
-	    cpu_enabled
-#endif
-#if defined(ENABLE_CPU) && defined(ENABLE_MEMSCREEN)
-	    ||
-#endif
-#ifdef ENABLE_MEMSCREEN
-	    memscreen_enabled
-#endif
-	    ) {
+	if (cpu_enabled || memscreen_enabled) {
 		realtime_alpha_blend_of_cpu_usage(loadPercentage, proximity);
 	}
-#endif
 
 	/* Remember where we have been poking around this round */
 	last_action_min = action_min;
 }	/* bubblemon_update */
 
 
-#ifdef ENABLE_MEMSCREEN
 /* draws 4x8 digits for the memory/swap panel */
 static void draw_digit(int num, unsigned char * whither, unsigned char red, unsigned char grn, unsigned char blu)
 {
@@ -1079,9 +1025,7 @@ static void roll_history(void)  {
 		bm.memadd++;
 	}
 }
-#endif				/* ENABLE_MEMSCREEN */
 
-#ifdef ENABLE_CPU
 static void draw_cpudigit(int what, unsigned char *whither) {
 	unsigned int len, y;
 	unsigned char *to, *from;
@@ -1093,7 +1037,6 @@ static void draw_cpudigit(int what, unsigned char *whither) {
 			*to++ = *from++;
 	}
 }
-#endif				/* ENABLE_CPU */
 
 static void draw_dtchr(const char letter, unsigned char * rgbbuf) {
   int x,y;
@@ -1183,7 +1126,6 @@ static void draw_datetime(unsigned char * rgbbuf) {
   draw_largedigit(mytime->tm_min%10,rgbbuf+3*(43+BOX_SIZE*13));
 }
 
-#if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
 static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 {
 	/* where is the text going to be (now, bottom-center) */
@@ -1193,11 +1135,8 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 
 	/* memory window */
 	static int blend = MAXBLEND;
-#ifdef ENABLE_MEMSCREEN
 	static int memblend = 256;
 	static int showmem = 0;
-#endif				/* ENABLE_MEMSCREEN */
-#ifdef ENABLE_CPU
 	static int yoh;
 	static int avg;
 	int hibyte, y, pos;
@@ -1231,14 +1170,12 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 		/* percent sign is always there */
 		draw_cpudigit(10, &kit[3*18]);
 	}
-#endif /* ENABLE_CPU */
 
 	/* sexy fade effect */
 	if (proximity) {
 		blend -= 4*6;
 		if (blend < MINBLEND) {
 			blend = MINBLEND;
-#ifdef ENABLE_MEMSCREEN
 			if (memscreen_enabled) {
 				if (!showmem) {
 					/* first time here, update memory stats */
@@ -1252,29 +1189,23 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 					memblend = 40;
 				}
 			}
-#endif				/* ENABLE_MEMSCREEN */
 		}
 	} else {
 		blend += 4*6;
-#ifdef ENABLE_MEMSCREEN
 		if (bm.picture_lock)
 			roll_membuffer();
 
 		if (memscreen_enabled && !bm.picture_lock)
 			memblend += 10*6;
-#endif				/* ENABLE_MEMSCREEN */
 		if (blend > MAXBLEND) {
 			blend = MAXBLEND;
 		}
-#ifdef ENABLE_MEMSCREEN
 		if (memscreen_enabled && memblend > 256) {
 			memblend = 256;
 			showmem = 0;
 		}
-#endif				/* ENABLE_MEMSCREEN */
 	}
 
-#ifdef ENABLE_CPU
 	if (cpu_enabled) {
 		/* bit shifts result in smaller and faster code without an extra jns
 		 * which appears if we / 128 instead of >> 7. 
@@ -1295,12 +1226,10 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 			}
 		}
 	}
-#endif /* ENABLE_CPU */
 
 	draw_datetime(bm.rgb_buf);
 
 
-#ifdef ENABLE_MEMSCREEN
 	/* we hovered long enough to print some memory info */
 	if (memscreen_enabled && showmem) {
 		unsigned char *ptr, *ptr2, src;
@@ -1312,20 +1241,15 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 			*ptr2++ = (memblend * src + (256 - memblend) * *ptr++) >> 8;
 		}
 	}
-#endif /* ENABLE_MEMSCREEN */
 #undef POSY
 #undef POSX
 }
-#endif
 
-#ifdef ENABLE_DUCK
 static void duck_set(int x, int y, int nr, int rev, int upsidedown)
 {
     int w, h;
     int rw;
-#ifdef UPSIDE_DOWN_DUCK
     int rh;
-#endif
     int pos;
     int dw, di, dh, ds;
     int cmap;			/* index into duck colors */
@@ -1348,16 +1272,10 @@ static void duck_set(int x, int y, int nr, int rev, int upsidedown)
     for (h = ds; h < dh; h++) {
 	/* calculate this only once */
 	int ypos = (h + y) * BOX_SIZE;
-#ifdef UPSIDE_DOWN_DUCK
 	rh = (upsidedown && upside_down_duck_enabled) ? 16 - h : h;
-#endif
 	for (w = di; w < dw; w++) {
 	    rw = (rev) ? 17 - w : w;
-#ifdef UPSIDE_DOWN_DUCK
 	    if ((cmap = GETME(rw, rh, nr)) != 0) {
-#else
-	    if ((cmap = GETME(rw, h, nr)) != 0) {
-#endif
 		unsigned char r, g, b;
 		pos = (ypos + w + x) * 3;
 
@@ -1415,7 +1333,6 @@ static void duck_swimmer(int posy)
     static int rev = 1;
     static int upsidedown = 0;
 
-#ifdef UPSIDE_DOWN_DUCK
     /* dive */
     if (upside_down_duck_enabled) {
 	if (upsidedown == 0 && posy < 2)
@@ -1426,7 +1343,6 @@ static void duck_swimmer(int posy)
 	if (upsidedown)
 	    posy += 10;
     }
-#endif
     if (rp++ < 10) {
 	duck_set(tx, posy, animate_correctly(), rev, upsidedown);
 	return;
@@ -1446,7 +1362,6 @@ static void duck_swimmer(int posy)
     }
     duck_set(tx, posy, animate_correctly(), rev, upsidedown);
 }
-#endif				/* ENABLE_DUCK */
 
 static void bubblemon_setup_samples(void) {
 	int i;

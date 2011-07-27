@@ -27,14 +27,10 @@
  * maxblend = mousein 
  * min = 0
  * max = 256 */
-#if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
-# define MINBLEND 80
-# define MAXBLEND 190
-#endif
+#define MINBLEND 80
+#define MAXBLEND 190
 
-#ifdef ENABLE_DUCK
 #define DUCKBLEND 100
-#endif
 
 #define MULTIPLIER 4096.0
 #define POWER2 12
@@ -73,7 +69,6 @@ typedef struct {
     /* main image buffer */
     unsigned char rgb_buf[BOX_SIZE * BOX_SIZE * 3 + 1];
 
-#ifdef ENABLE_MEMSCREEN
     /* memory / swap screen buffer */
     unsigned char mem_buf[BOX_SIZE * BOX_SIZE * 3 + 1];
     /* memory screen graph buffer */
@@ -83,7 +78,6 @@ typedef struct {
 
     int screen_type;		/* 0 - memory, 1 - cpu */
     int picture_lock;		/* blend coeff not changed when this is not 0 */
-#endif
 
     /* bubble stuff */
     int samples;

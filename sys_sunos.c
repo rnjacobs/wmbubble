@@ -213,7 +213,6 @@ int system_memory(void)
 	return rc;
 }
 
-#ifdef ENABLE_MEMSCREEN
 void system_loadavg(void)
 {
 	static int avg_delay = 0;
@@ -246,7 +245,6 @@ void system_loadavg(void)
 		avg_delay = ROLLVALUE;
 	}
 }
-#endif				/* ENABLE_MEMSCREEN */
 
 static void GetMemoryStats(u_int64_t *pMemMax, u_int64_t *pMemFree)
 {

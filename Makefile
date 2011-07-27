@@ -1,9 +1,5 @@
 # bubblemon configuration
-EXTRA = -DENABLE_DUCK
-EXTRA += -DENABLE_CPU
-EXTRA += -DENABLE_MEMSCREEN
-EXTRA += -DKDE_DOCKAPP
-EXTRA += -DUPSIDE_DOWN_DUCK
+EXTRA =
 
 # where to install this program
 PREFIX = /usr/local

@@ -181,7 +181,6 @@ int system_memory(void)
     return 1;
 }
 
-#ifdef ENABLE_MEMSCREEN
 void system_loadavg(void)
 {
     static int avg_delay;
@@ -205,6 +204,5 @@ void system_loadavg(void)
 	avg_delay = ROLLVALUE;
     }
 }
-#endif				/* ENABLE_MEMSCREEN */
 
 /* ex:set ts=8: */
