@@ -77,6 +77,11 @@
 #define NAME "wmbubble"
 #endif
 
+/* Want a better way to work with these. But we use them in two places now, so... */
+#define GET_RED(x) (((x)>>16)&255)
+#define GET_GRN(x) (((x)>> 8)&255)
+#define GET_BLU(x) (((x)    )&255)
+
 /* local prototypes *INDENT-OFF* */
 static void bubblemon_setup_samples(void);
 static void bubblemon_allocate_buffers(void);
@@ -128,7 +133,7 @@ int shifttime = 0;
 
 int do_help = 0;
 
-
+int duck_colors[4];
 
 XrmOptionDescRec x_resource_options[] = {
 	{"-maxbubbles",    "*maxbubbles",     XrmoptionSepArg, (XPointer) NULL},
@@ -136,6 +141,9 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-air_maxswap",   "*air_maxswap",    XrmoptionSepArg, (XPointer) NULL},
 	{"-liquid_noswap", "*liquid_noswap",  XrmoptionSepArg, (XPointer) NULL},
 	{"-liquid_maxswap","*liquid_maxswap", XrmoptionSepArg, (XPointer) NULL},
+	{"-duckbody",      "*duckbody",       XrmoptionSepArg, (XPointer) NULL},
+	{"-duckbill",      "*duckbill",       XrmoptionSepArg, (XPointer) NULL},
+	{"-duckeye",       "*duckeye",        XrmoptionSepArg, (XPointer) NULL},
 	{"-ripples",       "*ripples",        XrmoptionSepArg, (XPointer) NULL},
 	{"-gravity",       "*gravity",        XrmoptionSepArg, (XPointer) NULL},
 	{"-volatility",    "*volatility",     XrmoptionSepArg, (XPointer) NULL},
@@ -169,6 +177,9 @@ const struct XrmExtras {
 	{"-air_maxswap",    Is_Color, &bm.air_maxswap, "Color of air and bubbles when swap is at 100%" },
 	{"-liquid_noswap",  Is_Color, &bm.liquid_noswap, "Color of water when swap is at 0%" },
 	{"-liquid_maxswap", Is_Color, &bm.liquid_maxswap, "Color of water when swap is at 100%" },
+	{"-duckbody",       Is_Color, &duck_colors[1], "Color of duck's body" },
+	{"-duckbill",       Is_Color, &duck_colors[2], "Color of duck's bill" },
+	{"-duckeye",        Is_Color, &duck_colors[3], "Color of duck's eye" },
 	{"-ripples",        Is_Float, &bm.ripples, "Pixels to disturb the surface when a bubble is formed/pops" },
 	{"-gravity",        Is_Float, &bm.gravity, "Pixels/refresh/refresh to accelerate bubbles upwards" },
 	{"-volatility",     Is_Float, &bm.volatility, "Restorative force on water surface in proportion/refresh"},
@@ -208,6 +219,11 @@ static void bubblemon_session_defaults(XrmDatabase x_resource_database)
 	bm.liquid_noswap = 0x0055ff;
 	bm.air_maxswap = 0xff0000;
 	bm.liquid_maxswap = 0xaa0000;
+
+	/* duck_colors[0] is always transparent */
+	duck_colors[1] = 0xF8FC00;
+	duck_colors[2] = 0xF8B040;
+	duck_colors[3] = 0x000000;
 
 	/* default bubble engine parameters.  Changeable from Xdefaults */
 	bm.maxbubbles = 100;
@@ -745,9 +761,6 @@ static void bubblemon_update(int proximity) {
 	  Vary the colors of air and water with how many percent of the available
 	  swap space that is in use.
 	*/
-#define GET_RED(x) (((x)>>16)&255)
-#define GET_GRN(x) (((x)>> 8)&255)
-#define GET_BLU(x) (((x)    )&255)
 
 	reds[watercolor] = 
 		(GET_RED(bm.liquid_maxswap) * bm.swap_percent +
@@ -772,10 +785,6 @@ static void bubblemon_update(int proximity) {
 		(GET_BLU(bm.air_maxswap) * bm.swap_percent +
 		 GET_BLU(bm.air_noswap) * (100 - bm.swap_percent)) / 100;
 	blus[antialiascolor] = ((int)blus[watercolor] + blus[aircolor])/2;
-
-#undef GET_RED
-#undef GET_GRN
-#undef GET_BLU
 
 	ptr = bm.rgb_buf;
 	bubblebuf_ptr = bm.bubblebuf;
@@ -1215,9 +1224,6 @@ static void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 	int pos;
 	int dw, di, dh, ds;
 	int cmap;			/* index into duck colors */
-#define _R(idx) ((int)duck_cmap[idx][0])
-#define _G(idx) ((int)duck_cmap[idx][1])
-#define _B(idx) ((int)duck_cmap[idx][2])
 #define GETME(x, y, idx) ((int)duck_data[idx][y * 18 + x])
 	ds = 0;
 	if (y < 0)
@@ -1241,9 +1247,9 @@ static void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 				unsigned char r, g, b;
 				pos = (ypos + w + x) * 3;
 
-				r = _R(cmap);
-				g = _G(cmap);
-				b = _B(cmap);
+				r = GET_RED(duck_colors[cmap]);
+				g = GET_GRN(duck_colors[cmap]);
+				b = GET_BLU(duck_colors[cmap]);
 
 				/* and now we'll blend the duck part that in water */
 				/* if we use integers here we speed up this function about
