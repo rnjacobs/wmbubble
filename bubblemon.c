@@ -1372,26 +1372,9 @@ static void duck_swimmer(int posy)
 }
 
 static void bubblemon_setup_samples(void) {
-	int i;
-	u_int64_t load = 0, total = 0;
-
-	if (bm.load) {
-		load = bm.load[bm.loadIndex];
-		free(bm.load);
-	}
-
-	if (bm.total) {
-		total = bm.total[bm.loadIndex];
-		free(bm.total);
-	}
-
 	bm.loadIndex = 0;
-	bm.load = malloc(bm.samples * sizeof(u_int64_t));
-	bm.total = malloc(bm.samples * sizeof(u_int64_t));
-	for (i = 0; i < bm.samples; i++) {
-		bm.load[i] = load;
-		bm.total[i] = total;
-	}
+	bm.load = calloc(bm.samples, sizeof(u_int64_t));
+	bm.total = calloc(bm.samples, sizeof(u_int64_t));
 }
 
 static void bubblemon_allocate_buffers(void)
