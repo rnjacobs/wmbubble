@@ -128,13 +128,3 @@ XImage * initwmX11pixmap(int argc, char *argv[]) {
 
 	return xim;
 }
-
-void wmPutPixel(XImage * xim, int x, int y, unsigned char r, unsigned char g, unsigned char b) {
-	unsigned long pxl;
-
-	pxl = ((r*xim->red_mask/255)&xim->red_mask) |
-		((g*xim->green_mask/255)&xim->green_mask) |
-		((b*xim->blue_mask/255)&xim->blue_mask);
-
-	XPutPixel(xim, x, y, pxl);
-};

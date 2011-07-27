@@ -11,7 +11,16 @@
 
 XImage * initwmX11pixmap(int argc, char *argv[]);
 void RedrawWindow(XImage * xim);
-void wmPutPixel(XImage *, int x, int y, unsigned char r, unsigned char g, unsigned char b);
+
+#define wmPutPixel(xim, x, y, r, g, b) {\
+	unsigned long pxl;\
+\
+	pxl = ((r*xim->red_mask/255)&xim->red_mask) |\
+		((g*xim->green_mask/255)&xim->green_mask) |\
+		((b*xim->blue_mask/255)&xim->blue_mask);\
+\
+	XPutPixel(xim, x, y, pxl);\
+}
 
 /* Global variables necessary for the event handlers */
 Display *wmxp_display;
