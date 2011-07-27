@@ -476,23 +476,6 @@ static int get_screen_selection(void) {
 
 	XQueryKeymap(wmxp_display, keys);
 
-#if 0
-	if (0) {			/* debug */
-		int i = 0;
-		printf("lshift_code = 0x%x (index = %d, bit = %d\n", lshift_code,
-		       lshift_code >> 3, lshift_code % 8);
-		printf("rshift_code = 0x%x (index = %d, bit = %d\n", rshift_code,
-		       rshift_code >> 3, rshift_code % 8);
-		for (i = 0; i < (sizeof(keys) / sizeof(keys[0])); i++) {
-			if (0 == (i % 8)) {
-				printf("\n%2d:", i);
-			}
-			printf(" %2d", keys[i]);
-		}
-		printf("\n");
-	}
-#endif
-
 	if ((keys[lshift_code >> 3] == (1 << (lshift_code % 8))) ||
 	    (keys[rshift_code >> 3] == (1 << (rshift_code % 8)))) {
 		return 0;
@@ -1364,24 +1347,15 @@ static void bubblemon_allocate_buffers(void) {
 	bm.bubbles = (Bubble *) malloc(sizeof(Bubble) * bm.maxbubbles);
 
 	/* Allocate (zeroed) bubble memory */
-	if (bm.bubblebuf)
-		free(bm.bubblebuf);
-
 	bm.bubblebuf = calloc(BOX_SIZE * (BOX_SIZE+4), sizeof(char));
 
 	/* Allocate water level memory */
-	if (bm.waterlevels)
-		free(bm.waterlevels);
-
 	bm.waterlevels = malloc(BOX_SIZE * sizeof(int));
 	for (i = 0; i < BOX_SIZE; i++) {
 		bm.waterlevels[i] = MAKEY(BOX_SIZE);
 	}
 
 	/* Allocate water level velocity memory */
-	if (bm.waterlevels_dy)
-		free(bm.waterlevels_dy);
-
 	bm.waterlevels_dy = calloc(BOX_SIZE, sizeof(int));
 }
 
