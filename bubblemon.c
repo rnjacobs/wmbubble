@@ -110,7 +110,7 @@ static int animate_correctly(void);
 static void draw_duck(int x, int y, int nr, int flipx, int flipy);
 static void duck_swimmer(int posy);
 
-#if defined(__FreeBSD__) || defined(__linux__)
+#ifdef __FreeBSD__
 extern int init_stuff();	/* defined in sys_{freebsd,linux}.c */
 #endif
 /* local prototypes end *INDENT-ON* */
@@ -356,7 +356,7 @@ int main(int argc, char **argv) {
 		exit(0);
 	}
 
-#if defined(__FreeBSD__) || defined(__linux__)
+#ifdef __FreeBSD__
 	if (init_stuff())
 		exit(-1);
 #endif

@@ -25,37 +25,6 @@
 
 extern BubbleMonData bm;
 
-#define LINUX_2_4 1
-#define LINUX_2_6 2
-
-static unsigned char ver;
-
-int init_stuff()
-{
-    struct utsname u;
-
-    ver = 0;
-    
-    if (uname(&u) == -1) {
-	puts("Error getting kernel version: uname returned -1");
-	return 1;
-    }
-
-    if (strncmp(u.release, "2.4", 3) == 0) {
-	ver = LINUX_2_4;
-    } else if ((strncmp(u.release, "2.5", 3) == 0) ||
-	    (strncmp(u.release, "2.6", 3) == 0)) {
-	ver = LINUX_2_6;
-    }
-
-    if (!ver) {
-	/* Default to Linux 2.4 format. */
-	ver = LINUX_2_4;
-    }
-
-    return 0;
-}
-
 /* returns current CPU load in percent, 0 to 100 */
 int system_cpu(void)
 {
@@ -116,7 +85,6 @@ void system_memory(void)
 
     /* we might as well get both swap and memory at the same time.
      * sure beats opening the same file twice */
-	if (ver == LINUX_2_6) {
 	    mem = fopen("/proc/meminfo", "r");
 	    memset(shit, 0, sizeof(shit));
 	    fread(shit, 2048, 1, mem);
@@ -149,33 +117,6 @@ void system_memory(void)
 		}
 	    }
 	    fclose(mem);
-	} else if (ver == LINUX_2_4) {
-	    mem = fopen("/proc/meminfo", "r");
-	    fgets(shit, 2048, mem);
-	
-	    fscanf(mem, "%*s %Ld %Ld %Ld %Ld %Ld %Ld", &aa, &ab, &ac,
-		&ad, &ae, &af);
-	    fscanf(mem, "%*s %Ld %Ld", &ag, &ah);
-	    fclose(mem);
-
-	    /* calculate it */
-	    my_mem_max = aa;	/* memory.total; */
-	    my_swap_max = ag;	/* swap.total; */
-
-	    my_mem_used = ah + ab - af - ae;	/* swap.used + memory.used - memory.cached - memory.buffer; */
-
-	    if (my_mem_used > my_mem_max) {
-		my_swap_used = my_mem_used - my_mem_max;
-		my_mem_used = my_mem_max;
-	    } else {
-		my_swap_used = 0;
-	    }
-
-	    bm.mem_used = my_mem_used;
-	    bm.mem_max = my_mem_max;
-	    bm.swap_used = my_swap_used;
-	    bm.swap_max = my_swap_max;
-	}
 }
 
 void system_loadavg(void)
