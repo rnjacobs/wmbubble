@@ -108,23 +108,17 @@ int system_memory(void)
 
 void system_loadavg(void)
 {
-	static int avg_delay;
+	struct loadavg loadinfo;
+	int i;
+	int mib[] = { CTL_VM, VM_LOADAVG };
+	size_t size = sizeof (loadinfo);
 
-	if (avg_delay-- <= 0) {
-		struct loadavg loadinfo;
-		int i;
-		int mib[] = { CTL_VM, VM_LOADAVG };
-		size_t size = sizeof (loadinfo);
-
-		if (sysctl(mib, 2, &loadinfo, &size, NULL, 0) >= 0)
-			for (i = 0; i < 3; i++) {
-				bm.loadavg[i].i = loadinfo.ldavg[i] / loadinfo.fscale;
-				bm.loadavg[i].f = ((loadinfo.ldavg[i] * 100 + 
-				loadinfo.fscale / 2) / loadinfo.fscale) % 100;
-			}
-
-		avg_delay = ROLLVALUE;
-	}
+	if (sysctl(mib, 2, &loadinfo, &size, NULL, 0) >= 0)
+		for (i = 0; i < 3; i++) {
+			bm.loadavg[i].i = loadinfo.ldavg[i] / loadinfo.fscale;
+			bm.loadavg[i].f = ((loadinfo.ldavg[i] * 100 + 
+			                    loadinfo.fscale / 2) / loadinfo.fscale) % 100;
+		}
 }
 
 /* ex:set sw=4 ts=4: */

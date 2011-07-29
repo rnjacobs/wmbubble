@@ -225,25 +225,22 @@ void system_loadavg(void)
 		return;
 	}
 
-	if (avg_delay-- <= 0) {
-		GetCPULoadAverage(&one_m, &five_m, &fift_m);
+	GetCPULoadAverage(&one_m, &five_m, &fift_m);
 
-		if (dbg_print_cpu) {
-			static int i = 0;
-			if (0 == (i % dbg_print_cpu))
-				printf("loadavg: %0.2f %0.2f %0.2f\n",
-				    one_m, five_m, fift_m);
-			i++;
-		}
-
-		bm.loadavg[0].i = floor(one_m);
-		bm.loadavg[0].f = 100 * (one_m - floor(one_m));
-		bm.loadavg[1].i = floor(five_m);
-		bm.loadavg[1].f = 100 * (five_m - floor(five_m));
-		bm.loadavg[2].i = floor(fift_m);
-		bm.loadavg[2].f = 100 * (fift_m - floor(fift_m));
-		avg_delay = ROLLVALUE;
+	if (dbg_print_cpu) {
+		static int i = 0;
+		if (0 == (i % dbg_print_cpu))
+			printf("loadavg: %0.2f %0.2f %0.2f\n",
+			       one_m, five_m, fift_m);
+		i++;
 	}
+
+	bm.loadavg[0].i = floor(one_m);
+	bm.loadavg[0].f = 100 * (one_m - floor(one_m));
+	bm.loadavg[1].i = floor(five_m);
+	bm.loadavg[1].f = 100 * (five_m - floor(five_m));
+	bm.loadavg[2].i = floor(fift_m);
+	bm.loadavg[2].f = 100 * (fift_m - floor(fift_m));
 }
 
 static void GetMemoryStats(u_int64_t *pMemMax, u_int64_t *pMemFree)

@@ -100,7 +100,7 @@ static void draw_cpudigit(int what, unsigned char *whither);
 
 static void render_secondary(void);
 static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity);
-static void roll_membuffer(void);
+static void rarely_render_secondary(void);
 static void roll_history(void);
 
 static void draw_datetime(unsigned char *display);
@@ -367,10 +367,14 @@ int main(int argc, char **argv) {
 
 #ifdef PRO
 	start = time(NULL);
-	while (cnt--) {
-#else
-	while (1) {
 #endif
+	while (
+#ifdef PRO
+	       cnt--
+#else
+	       1
+#endif
+	       ) {
 		while (XPending(wmxp_display)) {
 			XNextEvent(wmxp_display,&event);
 			switch (event.type) {
@@ -521,18 +525,14 @@ static void bubblemon_update(int proximity) {
 	/* Find out the CPU load */
 	loadPercentage = system_cpu();
 
-	/* get loadavg */
-	if (memscreen_enabled)
-		system_loadavg();
-
 	/*
 	  The bubblebuf is made up of int8s (0..2), correspodning to the enum. A
 	  pixel in the bubblebuf is accessed using the formula bubblebuf[row * w
 	  + column].
 	*/
 
-	/* y coordinates are counted from here multiplied by 256
-	   to get actual screen coordinate, divide by 256 */
+	/* y coordinates are counted from here multiplied by MULTIPLIER
+	   to get actual screen coordinate, use REALY */
 
 	waterlevel_max = 0;
 	waterlevel_min = MAKEY(BOX_SIZE);
@@ -897,11 +897,6 @@ static void render_secondary(void) {
 	char percent[4];
 	char number[8];
 	int i;
-	/* mem: 2, 24
-	 * mem %: 38, 24
-	 * swap: 2, 43
-	 * 38, 43
-	 * digits: 0, 60 and 0, 69 */
 
 	/* make a clean buffer with blank spaces. */
 	memcpy(bm.mem_buf, bm.screen_type ? load_screen.pixel_data : mem_screen.pixel_data,
@@ -914,11 +909,11 @@ static void render_secondary(void) {
 			sprintf(number, "%02d", bm.loadavg[i].f);
 			draw_string(number, 1+(4*4+2+1)*i + 4*2 + 2, 9, 0);
 		}
-		/* copy history graph from previous rollover */
-		memcpy(bm.mem_buf + 19 * BOX_SIZE * 3, bm.his_bufb, BOX_SIZE * 33 * 3);
+		/* render memory graph */
+		draw_history(BOX_SIZE-4, 31, bm.memhist, &bm.mem_buf[19*BOX_SIZE*3]);
 	} else {
 		/* draw memory */
-		if (memscreen_megabytes)
+		if (memscreen_megabytes || bm.mem_used > (999999<<10))
 			snprintf(number, 8, "%6lluM", bm.mem_used >> 20);
 		else
 			snprintf(number, 8, "%6lluK", bm.mem_used >> 10);
@@ -927,7 +922,7 @@ static void render_secondary(void) {
 		draw_string(percent, 39, 2, (bm.mem_percent > 90) ? 1 : 0);
 
 		/* draw swap */
-		if (memscreen_megabytes)
+		if (memscreen_megabytes || bm.swap_used > (999999<<10))
 			snprintf(number, 8, "%6lluM", bm.swap_used >> 20);
 		else
 			snprintf(number, 8, "%6lluK", bm.swap_used >> 10);
@@ -935,15 +930,19 @@ static void render_secondary(void) {
 		draw_string(number, 3, 11, (bm.swap_percent > 90) ? 1 : 0);
 		draw_string(percent, 39, 11, (bm.swap_percent > 90) ? 1 : 0);
 
-		/* copy history graph from previous rollover */
-		memcpy(bm.mem_buf + 21 * BOX_SIZE * 3, bm.his_bufa, BOX_SIZE * 31 * 3);
+		/* render load average graph */
+		draw_history(BOX_SIZE-4, 33, bm.history, &bm.mem_buf[21*BOX_SIZE*3]);
 	}
 }
 
-static void roll_membuffer(void) {
+static void rarely_render_secondary(void) {
 	static int delay;
+	int divisor;
 
-	if (++delay < 30)
+	divisor = 500000 / delay_time;
+	if (divisor == 0) divisor = 1;
+
+	if (++delay < divisor)
 		return;
 
 	delay = 0;
@@ -951,48 +950,28 @@ static void roll_membuffer(void) {
 }
 
 static void roll_history(void)  {
-	static int update, doit;
+	static int his_count, load_his_accumulator, mem_his_accumulator;
+	/* Per C standard, those are all initialized to 0 */
 
-	if (--doit <= 0) {
-		doit = ROLLVALUE; /* how many redraws before we sample new data */
-		if (--update <= 0) {
-			/* reset counter; 5 = the number of samples to average into one point on 
-			   the bar graph. Probably should be configurable. */
-			update = 5;
+	if (his_count > 5) {
+		/* roll history buffers, averaging last 5 samples */
+		bm.history[BOX_SIZE-4] = load_his_accumulator / his_count;
+		bm.memhist[BOX_SIZE-4] = mem_his_accumulator / his_count;
 
-			/* roll history buffers, averaging last 5 samples */
-			if (bm.hisadd)
-				bm.history[BOX_SIZE-4] /= bm.hisadd;
-			if (bm.memadd)
-				bm.memhist[BOX_SIZE-4] /= bm.memadd;
+		memmove(&bm.history[0], &bm.history[1], sizeof(bm.history));
+		memmove(&bm.memhist[0], &bm.memhist[1], sizeof(bm.memhist));
 
-			memmove(&bm.history[0], &bm.history[1], sizeof(bm.history));
-			memmove(&bm.memhist[0], &bm.memhist[1], sizeof(bm.memhist));
-
-			bm.history[BOX_SIZE-4] = 0;
-			bm.hisadd = 0;
-			bm.memhist[BOX_SIZE-4] = 0;
-			bm.memadd = 0;
-
-			/* refresh backgrounds */
-			memcpy(bm.his_bufa, mem_screen.pixel_data + 21 * BOX_SIZE * 3, 31 * BOX_SIZE * 3);
-			memcpy(bm.his_bufb, load_screen.pixel_data + 19 * BOX_SIZE * 3, 33 * BOX_SIZE * 3);
-
-			/* render memory graph */
-			draw_history(BOX_SIZE-4, 31, bm.memhist, bm.his_bufa);
-			/* render load average graph */
-			draw_history(BOX_SIZE-4, 33, bm.history, bm.his_bufb);
-
-		}
-
-		/* do load average history update */
-		bm.history[BOX_SIZE-4] += bm.loadavg[0].f + (bm.loadavg[0].i * 100);
-		bm.hisadd++;
-
-		/* do memory history update */
-		bm.memhist[BOX_SIZE-4] += bm.mem_percent;
-		bm.memadd++;
+		his_count = load_his_accumulator = mem_his_accumulator = 0;
 	}
+
+	system_loadavg();
+
+	/* do load average history update */
+	load_his_accumulator += bm.loadavg[0].f + (bm.loadavg[0].i * 100);
+	/* do memory history update */
+	mem_his_accumulator += bm.mem_percent;
+
+	his_count++;
 }
 
 static void draw_cpudigit(int what, unsigned char *whither) {
@@ -1157,7 +1136,7 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 				if (!bm.picture_lock)
 					memblend -= 36;
 				if (memblend < GRAPHMINBLEND) {
-					roll_membuffer();
+					rarely_render_secondary();
 					memblend = GRAPHMINBLEND;
 				}
 			}
@@ -1165,7 +1144,7 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 	} else {
 		blend += 4*6;
 		if (bm.picture_lock)
-			roll_membuffer();
+			rarely_render_secondary();
 
 		if (memscreen_enabled && !bm.picture_lock)
 			memblend += 60;

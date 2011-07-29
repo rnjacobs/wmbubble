@@ -183,11 +183,8 @@ int system_memory(void)
 
 void system_loadavg(void)
 {
-    static int avg_delay;
-
-    if (avg_delay-- <= 0) {
 	struct loadavg loadinfo;
-        int i, mib[2];
+	int i, mib[2];
 	size_t size;
 
 	mib[0] = CTL_VM;
@@ -195,14 +192,11 @@ void system_loadavg(void)
 	size = sizeof (loadinfo);
 	
 	if (sysctl(mib, 2, &loadinfo, &size, NULL, 0) >= 0)
-	    for (i = 0; i < 3; i++) {
-	    	bm.loadavg[i].i = loadinfo.ldavg[i] / loadinfo.fscale;
-	    	bm.loadavg[i].f = ((loadinfo.ldavg[i] * 100 + 
-			loadinfo.fscale / 2) / loadinfo.fscale) % 100;
-	    }
-
-	avg_delay = ROLLVALUE;
-    }
+		for (i = 0; i < 3; i++) {
+			bm.loadavg[i].i = loadinfo.ldavg[i] / loadinfo.fscale;
+			bm.loadavg[i].f = ((loadinfo.ldavg[i] * 100 + 
+			                    loadinfo.fscale / 2) / loadinfo.fscale) % 100;
+		}
 }
 
 /* ex:set ts=8: */

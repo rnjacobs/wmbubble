@@ -32,6 +32,7 @@
 #define GRAPHMINBLEND 40
 #define GRAPHMAXBLEND 256
 
+/* duckblend is actually the opacity of the water over the duck */
 #define DUCKBLEND 100
 
 #define MULTIPLIER 4096.0
@@ -39,7 +40,6 @@
 #define REALY(y) ((y) >> POWER2)
 #define MAKEY(y) ((y) << POWER2)
 #define MAKE_INTEGER(x) ((int)((x)*MULTIPLIER+0.5))
-#define ROLLVALUE 1		/* frequency of history rollover */
 
 #include <X11/Xlib.h>
 
