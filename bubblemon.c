@@ -909,8 +909,8 @@ static void render_secondary(void) {
 			sprintf(number, "%02d", bm.loadavg[i].f);
 			draw_string(number, 1+(4*4+2+1)*i + 4*2 + 2, 9, 0);
 		}
-		/* render memory graph */
-		draw_history(BOX_SIZE-4, 31, bm.memhist, &bm.mem_buf[19*BOX_SIZE*3]);
+		/* render load average graph */
+		draw_history(BOX_SIZE-4, BOX_SIZE-4-21, bm.history, &bm.mem_buf[21*BOX_SIZE*3]);
 	} else {
 		/* draw memory */
 		if (memscreen_megabytes || bm.mem_used > (999999<<10))
@@ -930,8 +930,8 @@ static void render_secondary(void) {
 		draw_string(number, 3, 11, (bm.swap_percent > 90) ? 1 : 0);
 		draw_string(percent, 39, 11, (bm.swap_percent > 90) ? 1 : 0);
 
-		/* render load average graph */
-		draw_history(BOX_SIZE-4, 33, bm.history, &bm.mem_buf[21*BOX_SIZE*3]);
+		/* render memory graph */
+		draw_history(BOX_SIZE-4, BOX_SIZE-4-19, bm.memhist, &bm.mem_buf[19*BOX_SIZE*3]);
 	}
 }
 
@@ -1076,8 +1076,6 @@ static void draw_datetime(unsigned char * rgbbuf) {
 
 static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 	/* where is the text going to be (now, bottom-center) */
-#define POSX (BOX_SIZE/2-12)
-#define POSY (BOX_SIZE-10)
 	int bob;
 
 	/* memory window */
@@ -1163,7 +1161,7 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 		 */
 		kitptr = kit;
 		for (y = 0; y < 9; y++) {
-			pos = (y + POSY) * BOX_SIZE * 3 + (POSX * 3);
+			pos = ((y + (BOX_SIZE-10)) * BOX_SIZE + (BOX_SIZE/2-12))*3;
 			bob = 75;		/* 25 * 3 */
 			while (bob--) {
 				bm.rgb_buf[pos] =
@@ -1187,9 +1185,7 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 			*ptr2++ = (memblend * src + (256 - memblend) * *ptr++) >> 8;
 		}
 	}
-#undef POSY
-#undef POSX
-}
+} /* realtime_alpha_blend_of_cpu_usage */
 
 static void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 	int w, h;
@@ -1198,7 +1194,6 @@ static void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 	int pos;
 	int dw, di, dh, ds;
 	int cmap;			/* index into duck colors */
-#define GETME(x, y, idx) ((int))
 	ds = 0;
 	if (y < 0)
 		ds = -(y);
@@ -1245,7 +1240,6 @@ static void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 			}
 		}
 	}
-#undef GETME
 }
 
 static int animate_correctly(void) {
