@@ -73,7 +73,7 @@ int system_cpu(void)
 	return loadPercentage;
 }
 
-int system_memory(void)
+void system_memory(void)
 {
 #define pagetob(size) ((size) << (uvmexp.pageshift))
 	struct uvmexp uvmexp;
@@ -100,8 +100,6 @@ int system_memory(void)
 		}
 		free(swdev);
 	}
-
-	return 1;
 }
 
 void system_loadavg(void)

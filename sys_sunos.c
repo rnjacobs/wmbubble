@@ -173,9 +173,8 @@ typedef struct TMyMem {
 	u_int64_t lSwapFree;
 } MyMem;
 
-int system_memory(void)
+void system_memory(void)
 {
-	static MyMem last = { 100, 20, 200, 10, };
 	MyMem         cur = { 100, 20, 200, 10, };
 	int rc = 0;
 
@@ -205,12 +204,6 @@ int system_memory(void)
 		}
 		i++;
 	}
-
-	/* if memory info changed - update things */
-	rc = (0 == memcmp(&last, &cur, sizeof(last)) ? 0 : 1);
-
-	memcpy(&last, &cur, sizeof(last));
-	return rc;
 }
 
 void system_loadavg(void)

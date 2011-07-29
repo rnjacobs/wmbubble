@@ -1319,17 +1319,13 @@ static void bubblemon_allocate_buffers(void) {
 }
 
 static void get_memory_load_percentage(void) {
-	/* system_memory() will return true on initial run so that we get
-	 * correct memory info, but may subsequently return 0 if memory
-	 * is not changing */
-	if (system_memory()) {
-		/* new memory/swap data is in, calculate things */
-		bm.mem_percent = (100 * bm.mem_used) / bm.mem_max;
+	system_memory();
+	/* new memory/swap data is in, calculate things */
+	bm.mem_percent = (100 * bm.mem_used) / bm.mem_max;
 
-		if (bm.swap_max != 0) {
-			bm.swap_percent = (100 * bm.swap_used) / bm.swap_max;
-		} else {
-			bm.swap_percent = 0;
-		}
+	if (bm.swap_max != 0) {
+		bm.swap_percent = (100 * bm.swap_used) / bm.swap_max;
+	} else {
+		bm.swap_percent = 0;
 	}
 }

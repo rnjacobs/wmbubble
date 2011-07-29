@@ -101,13 +101,12 @@ int system_cpu(void)
     return cpuload;
 }
 
-int system_memory(void)
+void system_memory(void)
 {
     u_int64_t my_mem_used, my_mem_max;
     u_int64_t my_swap_used, my_swap_max;
     char *p;
 
-    static int mem_delay = 0;
     FILE *mem;
     static u_int64_t aa, ab, ac, ad;
     static u_int64_t ae, af, ag, ah;
@@ -117,7 +116,6 @@ int system_memory(void)
 
     /* we might as well get both swap and memory at the same time.
      * sure beats opening the same file twice */
-    if (mem_delay-- <= 0) {
 	if (ver == LINUX_2_6) {
 	    mem = fopen("/proc/meminfo", "r");
 	    memset(shit, 0, sizeof(shit));
@@ -151,7 +149,6 @@ int system_memory(void)
 		}
 	    }
 	    fclose(mem);
-	    mem_delay = 25;
 	} else if (ver == LINUX_2_4) {
 	    mem = fopen("/proc/meminfo", "r");
 	    fgets(shit, 2048, mem);
@@ -160,7 +157,6 @@ int system_memory(void)
 		&ad, &ae, &af);
 	    fscanf(mem, "%*s %Ld %Ld", &ag, &ah);
 	    fclose(mem);
-	    mem_delay = 25;
 
 	    /* calculate it */
 	    my_mem_max = aa;	/* memory.total; */
@@ -180,12 +176,6 @@ int system_memory(void)
 	    bm.swap_used = my_swap_used;
 	    bm.swap_max = my_swap_max;
 	}
-
-	/* memory info changed - update things */
-	return 1;
-    }
-    /* nothing new */
-    return 0;
 }
 
 void system_loadavg(void)

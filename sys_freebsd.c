@@ -120,7 +120,7 @@ int system_cpu(void)
     return loadPercentage;
 }
 
-int system_memory(void)
+void system_memory(void)
 {
     u_int64_t my_mem_used, my_mem_max;
     u_int64_t my_swap_used, my_swap_max;
@@ -134,11 +134,11 @@ int system_memory(void)
     time_t curr_time;
 	
     if (kvm_read(kd, nlst[1].n_value, &sum, sizeof(sum)) != sizeof(sum))
-	return 0;		/* _cnt */
+	return;		/* _cnt */
 
     if (kvm_read(kd, nlst[2].n_value, &bufspace, sizeof(bufspace)) !=
 	sizeof(bufspace))
-	return 0;		/* _bufspace */
+	return;		/* _bufspace */
 
     my_mem_max = pagetob((u_int64_t) sum.v_page_count);
     my_mem_used = pagetob((u_int64_t) sum.v_active_count);
@@ -178,7 +178,6 @@ int system_memory(void)
     bm.mem_max = my_mem_max;
     bm.swap_used = my_swap_used;
     bm.swap_max = my_swap_max;
-    return 1;
 }
 
 void system_loadavg(void)

@@ -21,9 +21,7 @@
 
 /* these routines must be written for each new platform */
 int system_cpu(void);		/* return total CPU load in percent */
-int system_memory(void);	/* set memory related values in BubbleMonData
-				   and return 1, or return 0 if memory didn't
-				   change */
+void system_memory(void);	/* set memory related values in BubbleMonData */
 void system_loadavg(void);	/* get current load average and put into
 				   bm->loadavg[].{i,f} */
 #endif /* _SYS_INCLUDE_H_ */
