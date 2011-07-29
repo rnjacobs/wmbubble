@@ -823,7 +823,7 @@ static void draw_digit(int num, unsigned char * whither,
 		to = whither + BOX_SIZE*3*yy;
 		from = &numbers_xpm[3+yy][num];
 		for (xx = 0; xx < 4; xx++, from++, to+=3 ) {
-			if (*from==' ') { 
+			if (*from=='.') { 
 				to[0] = red; to[1] = grn; to[2] = blu;
 			}
 		}
