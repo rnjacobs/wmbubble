@@ -1,19 +1,12 @@
-# bubblemon configuration
-EXTRA =
-
 # where to install this program
 PREFIX = /usr/local
 
-# no user serviceable parts below
-EXTRA += $(WMAN)
 # optimization cflags
-USER_CFLAGS = -O3 -ansi -Wall
+CFLAGS = -O3 -ansi -Wall
 # profiling cflags
-# USER_CFLAGS = -ansi -Wall -pg -O3 -DPRO
+# CFLAGS = -ansi -Wall -pg -O3 -DPRO
 # test coverage cflags
-# USER_CFLAGS = -fprofile-arcs -ftest-coverage -Wall -ansi -g -DPRO
-BUILD_CFLAGS = 
-CFLAGS = $(USER_CFLAGS) $(BUILD_CFLAGS) ${EXTRA}
+# CFLAGS = -fprofile-arcs -ftest-coverage -Wall -ansi -g -DPRO
 
 BINARY=bubblemon
 SHELL=sh
