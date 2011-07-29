@@ -72,13 +72,9 @@ int system_cpu(void)
 
 void system_memory(void)
 {
-    u_int64_t my_mem_used, my_mem_max;
-    u_int64_t my_swap_used, my_swap_max;
     char *p;
 
     FILE *mem;
-    static u_int64_t aa, ab, ac, ad;
-    static u_int64_t ae, af, ag, ah;
 
     /* put this in permanent storage instead of stack */
     static char shit[2048];
@@ -90,28 +86,24 @@ void system_memory(void)
 	    fread(shit, 2048, 1, mem);
 	    p = strstr(shit, "MemTotal");
 	    if (p) {
-		sscanf(p, "MemTotal:%Ld", &aa);
-		my_mem_max = aa << 10;
+		sscanf(p, "MemTotal:%Ld", &bm.mem_max);
+		bm.mem_max <<= 10;
 
 		p = strstr(p, "Active");
 		if (p) {
-		    sscanf(p, "Active:%Ld", &ab);
-		    my_mem_used = ab << 10;
+		    sscanf(p, "Active:%Ld", &bm.mem_used);
+		    bm.mem_used <<= 10;
 
 		    p = strstr(p, "SwapTotal");
 		    if (p) {
-			sscanf(p, "SwapTotal:%Ld", &ac);
-			my_swap_max = ac << 10;
+			sscanf(p, "SwapTotal:%Ld", &bm.swap_max);
+			bm.swap_max <<= 10;
 
 			p = strstr(p, "SwapFree");
 			if (p) {
-			    sscanf(p, "SwapFree:%Ld", &ad);
-			    my_swap_used = my_swap_max - (ad << 10);
+			    sscanf(p, "SwapFree:%Ld", &bm.swap_used);
+			    bm.swap_used = bm.swap_max - (bm.swap_used << 10);
 
-			    bm.mem_used = my_mem_used;
-			    bm.mem_max = my_mem_max;
-			    bm.swap_used = my_swap_used;
-			    bm.swap_max = my_swap_max;
 			}
 		    }
 		}
