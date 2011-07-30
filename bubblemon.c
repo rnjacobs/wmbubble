@@ -319,9 +319,9 @@ int main(int argc, char **argv) {
 	int frames_count, old_frames_count;
 	time_t last_time;
 #endif
-#ifdef PRO
+#if defined(PRO) && PRO > 0
 	time_t start, end;
-	int cnt = 10000;
+	int cnt = PRO;
 #endif
 	XEvent event;
 	XrmDatabase x_resource_db;
@@ -377,6 +377,7 @@ int main(int argc, char **argv) {
 	       1
 #endif
 	       ) {
+		/* XPending+roll_history 1M times in 52sec -> 8us/frame */
 		while (XPending(wmxp_display)) {
 			XNextEvent(wmxp_display,&event);
 			switch (event.type) {
@@ -410,9 +411,9 @@ int main(int argc, char **argv) {
 #ifndef PRO
 		usleep(delay_time);
 #endif
-		/* get system statistics */
+		/* gmlp+roll_history 400k times in 47sec -> 73us/frame */
 		get_memory_load_percentage();
-		/* update main rgb buffer: bm.rgb_buf */
+		/* update+roll_history 50k times in 36sec -> 676us/frame */
 		bubblemon_update(proximity);
 
 #ifdef FPS
@@ -433,7 +434,7 @@ int main(int argc, char **argv) {
 		}
 #endif
 
-		/* actually draw the screen */
+		/* drawing borders: 50M times in 49sec -> 1020408fps or 0.98us/frame */
 		int xx,yy;
 		unsigned char * from=bm.rgb_buf;
 
@@ -454,13 +455,13 @@ int main(int argc, char **argv) {
 		/* X11 XImage->Pixmap->display: 400k times in 60sec -> 6667fps or 150us/frame */
 		RedrawWindow(bm.xim);
 
-		/* update graph histories */
+		/* update graph histories: 1M times in 44sec -> 22727fps or 44us/frame */
 		if (memscreen_enabled)
 			roll_history();
 	}
 #ifdef PRO
 	end=time(NULL);
-	fprintf(stderr,"10000 redraws in %d seconds = %f fps\n",end-start,10000.0/(end-start));
+	fprintf(stderr,"%d redraws in %d seconds = %f fps\n",PRO,end-start,(float)PRO/(end-start));
 #endif
 	return 0;
 }	/* main */

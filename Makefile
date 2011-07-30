@@ -4,7 +4,7 @@ PREFIX = /usr/local
 # optimization cflags
 CFLAGS = -O3 -ansi -Wall
 # profiling cflags
-# CFLAGS = -ansi -Wall -pg -O3 -DPRO
+# CFLAGS = -ansi -Wall -pg -O3 -DPRO=50000
 # test coverage cflags
 # CFLAGS = -fprofile-arcs -ftest-coverage -Wall -ansi -g -DPRO
 
