@@ -28,6 +28,52 @@ static int flush_expose(Window w) {
 	return i;
 }
 
+void RGBtoXIm(const unsigned char * from, XImage * ximout) {
+	unsigned long * p32 = ximout->data;
+	unsigned short * p16 = ximout->data;
+	unsigned char * p8 = ximout->data;
+	unsigned long pxl;
+	int i, yy;
+	/* violatin' the abstractions! */
+	switch (ximout->depth | ((ximout->red_mask|ximout->green_mask)<<8)) {
+	case 0xFFFF0020: /* 24bpp RGB */
+		for (i=0;i<BOX_SIZE*BOX_SIZE;i++,from+=3)
+			p32[i] = (from[0]<<16) | (from[1]<<8) | (from[2]);
+		break;
+	case 0x00FFFF20: /* 24bpp BGR */
+		for (i=0;i<BOX_SIZE*BOX_SIZE;i++,from+=3)
+			p32[i] = (from[2]<<16) | (from[1]<<8) | (from[0]);
+		break;
+	case 0xFFE010: /* 16bpp RGB */
+		for (i=0;i<BOX_SIZE*BOX_SIZE;i++,from+=3)
+			p16[i] = ((from[0]&0xF8)<<8) | ((from[1]&0xFC)<<3) | ((from[2]&0xF8)>>3);
+		break;
+	case 0x07FF10: /* 16bpp BGR */
+		for (i=0;i<BOX_SIZE*BOX_SIZE;i++,from+=3)
+			p16[i] = ((from[2]&0xF8)<<8) | ((from[1]&0xFC)<<3) | ((from[0]&0xF8)>>3);
+		break;
+	case 0x7FE010: /* 15bpp RGB */
+		for (i=0;i<BOX_SIZE*BOX_SIZE;i++,from+=3)
+			p16[i] = ((from[0]&0xF8)<<7) | ((from[1]&0xF8)<<2) | ((from[2]&0xF8)>>3);
+		break;
+	case 0x03FF10: /* 15bpp BGR */
+		for (i=0;i<BOX_SIZE*BOX_SIZE;i++,from+=3)
+			p16[i] = ((from[2]&0xF8)<<7) | ((from[1]&0xF8)<<2) | ((from[0]&0xF8)>>3);
+		break;
+	default:
+		for (yy=0;yy<BOX_SIZE;yy++)
+			for (i=0;i<BOX_SIZE;i++,from+=3) {
+				pxl = ((from[0]*ximout->red_mask/255)&ximout->red_mask) |
+					((from[1]*ximout->green_mask/255)&ximout->green_mask) |
+					((from[2]*ximout->blue_mask/255)&ximout->blue_mask);
+
+				XPutPixel(ximout, i, yy, pxl);
+			}
+		break;
+	}
+}
+
+
 /* RedrawWindow
    redraws both windows from the contents of the passed Ximage */
 void RedrawWindow(XImage * xim) {

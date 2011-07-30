@@ -11,6 +11,7 @@
 
 XImage * initwmX11pixmap(int argc, char *argv[]);
 void RedrawWindow(XImage * xim);
+void RGBtoXIm(const unsigned char * from, XImage * ximout);
 
 #define wmPutPixel(xim, x, y, r, g, b) {\
 	unsigned long pxl;\

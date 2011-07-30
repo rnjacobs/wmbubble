@@ -449,10 +449,9 @@ int main(int argc, char **argv) {
 			from[yy+(BOX_SIZE-1)*3+2]=(255+from[yy+(BOX_SIZE-1)*3]+2)/2;
 		}
 
-		for (yy=0;yy<BOX_SIZE;yy++)
-			for (xx=0;xx<BOX_SIZE;xx++,from+=3)
-				wmPutPixel(bm.xim,xx,yy,from[0],from[1],from[2]);
-
+		/* Our colorspace conversion: 3M times in 56sec -> 53561fps or 19us/frame */
+		RGBtoXIm(bm.rgb_buf,bm.xim);
+		/* X11 XImage->Pixmap->display: 400k times in 60sec -> 6667fps or 150us/frame */
 		RedrawWindow(bm.xim);
 
 		/* update graph histories */
