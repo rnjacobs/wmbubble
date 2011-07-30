@@ -344,6 +344,8 @@ int main(int argc, char **argv) {
 	bm.xim = initwmX11pixmap(argc,argv);
 	XrmInitialize();
 	x_resources_as_string = XResourceManagerString(wmxp_display);
+	if (x_resources_as_string == NULL)
+		x_resources_as_string = "";
 	x_resource_db = XrmGetStringDatabase(x_resources_as_string);
 	XrmParseCommand(&x_resource_db, x_resource_options, 
 	                sizeof(x_resource_options)/sizeof(x_resource_options[0]), 
