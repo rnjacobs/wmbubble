@@ -85,7 +85,7 @@
 /* local prototypes *INDENT-OFF* */
 static void bubblemon_setup_samples(void);
 static void bubblemon_allocate_buffers(void);
-static void bubblemon_update(int proximity);
+static void bubblemon_update(int cpu);
 static void make_new_bubblemon_dockapp(void);
 static void get_memory_load_percentage(void);
 static void bubblemon_session_defaults(XrmDatabase x_resource_database);
@@ -108,7 +108,7 @@ static void draw_dtchr(const char letter, unsigned char *where);
 
 static int animate_correctly(void);
 static void draw_duck(int x, int y, int nr, int flipx, int flipy);
-static void duck_swimmer(int posy);
+static void duck_swimmer(void);
 
 #ifdef __FreeBSD__
 extern int init_stuff();	/* defined in sys_{freebsd,linux}.c */
@@ -314,6 +314,7 @@ static void print_usage(void) {
 int main(int argc, char **argv) {
 	char execute[256];
 	char * x_resources_as_string;
+	unsigned int loadPercentage;
 	int proximity = 0;
 #ifdef FPS
 	int frames_count, old_frames_count;
@@ -413,8 +414,20 @@ int main(int argc, char **argv) {
 #endif
 		/* gmlp+roll_history 400k times in 47sec -> 73us/frame */
 		get_memory_load_percentage();
-		/* update+roll_history 50k times in 36sec -> 676us/frame */
-		bubblemon_update(proximity);
+		/* Find out the CPU load */
+		loadPercentage = system_cpu();
+		/* bubblemon_update 100k times in 54sec -> 1852fps or 540us/frame */
+		bubblemon_update(loadPercentage);
+
+		if (duck_enabled) {
+			duck_swimmer();
+		}
+
+		if (cpu_enabled || memscreen_enabled) {
+			/* cpu_blend: 2M times in 59sec -> 33898fps or 30us/frame */
+			realtime_alpha_blend_of_cpu_usage(loadPercentage, proximity);
+		}
+
 
 #ifdef FPS
 		/* render frames per second on bottom-right corner :) */
@@ -507,9 +520,9 @@ static void make_new_bubblemon_dockapp(void) {
  * This function, bubblemon_update, gets the CPU usage and updates
  * the bubble array and main rgb buffer.
  */
-static void bubblemon_update(int proximity) {
+static void bubblemon_update(int loadPercentage) {
 	Bubble *bubbles = bm.bubbles;
-	unsigned int i, loadPercentage, x, y;
+	unsigned int i, x, y;
 	unsigned char reds[3], grns[3], blus[3];
 	unsigned char *ptr, *bubblebuf_ptr;
 	enum bubblebuf_values { watercolor, antialiascolor, aircolor };
@@ -519,13 +532,6 @@ static void bubblemon_update(int proximity) {
 	   drawing water. */
 	unsigned int waterlevel_min, waterlevel_max;
 	unsigned int real_waterlevel_min, real_waterlevel_max;
-
-	/* These values are for keeping track how deep the duck is inside water */
-	unsigned int action_min = BOX_SIZE;
-	static unsigned int last_action_min = 0;
-
-	/* Find out the CPU load */
-	loadPercentage = system_cpu();
 
 	/*
 	  The bubblebuf is made up of int8s (0..2), correspodning to the enum. A
@@ -586,9 +592,6 @@ static void bubblemon_update(int proximity) {
 	real_waterlevel_min = REALY(waterlevel_min);
 	real_waterlevel_max = REALY(waterlevel_max);
 
-	if (action_min > real_waterlevel_min)
-		action_min = real_waterlevel_min;
-	
 	/*
 	  Draw the air-and-water background
 
@@ -796,19 +799,6 @@ static void bubblemon_update(int proximity) {
 		*ptr++ = blus[*bubblebuf_ptr];
 		bubblebuf_ptr++;
 	}
-
-	if (duck_enabled) {
-		duck_swimmer((last_action_min < action_min) ? 
-		             last_action_min - 14 : 
-		             action_min - 14);
-	}
-
-	if (cpu_enabled || memscreen_enabled) {
-		realtime_alpha_blend_of_cpu_usage(loadPercentage, proximity);
-	}
-
-	/* Remember where we have been poking around this round */
-	last_action_min = action_min;
 }	/* bubblemon_update */
 
 
@@ -1259,17 +1249,26 @@ static int animate_correctly(void) {
 	return outp[totalcounter];
 }
 
-static void duck_swimmer(int posy) {
+static void duck_swimmer() {
 	static int tx = -19;
 	static int rp;
 	static int rev = 1;
 	static int upsidedown = 0;
+	int posy, avx;
+
+	avx = tx-2;
+	if (avx<0) avx=0;
+	if (avx>BOX_SIZE-5) avx=BOX_SIZE-5;
+
+	posy = REALY(bm.waterlevels[avx] + bm.waterlevels[avx+1]*2 + 
+	             bm.waterlevels[avx+2]*2 + bm.waterlevels[avx+3]*2 + 
+	             bm.waterlevels[avx+4])/8 - 13;
 
 	/* dive */
 	if (upside_down_duck_enabled) {
-		if (upsidedown == 0 && posy < 2)
+		if (upsidedown == 0 && posy < 3)
 			upsidedown = 1;
-		else if (upsidedown == 1 && posy > 5)	/* jump out */
+		else if (upsidedown == 1 && posy > 6)	/* jump out */
 			upsidedown = 0;
 
 		if (upsidedown)
