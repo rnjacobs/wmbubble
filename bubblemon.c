@@ -50,6 +50,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <time.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -321,7 +322,7 @@ int main(int argc, char **argv) {
 	time_t last_time;
 #endif
 #if defined(PRO) && PRO > 0
-	time_t start, end;
+	struct timeval start, end;
 	int cnt = PRO;
 #endif
 	XEvent event;
@@ -369,7 +370,7 @@ int main(int argc, char **argv) {
 	make_new_bubblemon_dockapp();
 
 #ifdef PRO
-	start = time(NULL);
+	gettimeofday(&start,NULL);
 #endif
 	while (
 #ifdef PRO
@@ -464,8 +465,10 @@ int main(int argc, char **argv) {
 			roll_history();
 	}
 #ifdef PRO
-	end=time(NULL);
-	fprintf(stderr,"%d redraws in %d seconds = %f fps\n",PRO,end-start,(float)PRO/(end-start));
+	gettimeofday(&end,NULL);
+	end.tv_sec -= start.tv_sec;
+	end.tv_usec -= start.tv_usec;
+	fprintf(stderr,"%d redraws in %f seconds = %f fps\n",PRO,end.tv_sec+end.tv_usec/1000000.0,(float)PRO/(end.tv_sec+end.tv_usec/1000000.0));
 #endif
 	return 0;
 }	/* main */
