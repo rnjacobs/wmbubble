@@ -458,9 +458,9 @@ int main(int argc, char **argv) {
 
 		for (yy=0;yy<BOX_SIZE*BOX_SIZE*3;yy+=BOX_SIZE*3) {
 			from[yy  ]/=4; from[yy+1]/=4; from[yy+2]/=4;
-			from[yy+(BOX_SIZE-1)*3  ]=(255+from[yy+(BOX_SIZE-1)*3]  )/2;
-			from[yy+(BOX_SIZE-1)*3+1]=(255+from[yy+(BOX_SIZE-1)*3]+1)/2;
-			from[yy+(BOX_SIZE-1)*3+2]=(255+from[yy+(BOX_SIZE-1)*3]+2)/2;
+			from[yy+(BOX_SIZE-1)*3  ]=(255+from[yy+(BOX_SIZE-1)*3  ])/2;
+			from[yy+(BOX_SIZE-1)*3+1]=(255+from[yy+(BOX_SIZE-1)*3+1])/2;
+			from[yy+(BOX_SIZE-1)*3+2]=(255+from[yy+(BOX_SIZE-1)*3+2])/2;
 		}
 
 		/* Our colorspace conversion: 3M times in 56sec -> 53561fps or 19us/frame */
