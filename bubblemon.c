@@ -317,7 +317,7 @@ int main(int argc, char **argv) {
 	unsigned int loadPercentage;
 	int proximity = 0;
 #ifdef FPS
-	int frames_count, old_frames_count;
+	int frames_count;
 	time_t last_time;
 #endif
 #if defined(PRO) && PRO > 0
@@ -328,7 +328,7 @@ int main(int argc, char **argv) {
 	XrmDatabase x_resource_db;
 
 #ifdef FPS
-	old_frames_count = frames_count = last_time = 0;
+	frames_count = last_time = 0;
 #endif
 
 	if (mem_screen.width != mem_screen.height || mem_screen.width != BOX_SIZE ||
@@ -430,18 +430,9 @@ int main(int argc, char **argv) {
 
 
 #ifdef FPS
-		/* render frames per second on bottom-right corner :) */
 		frames_count++;
-		int b;
-		b=old_frames_count;
-		if (b>=100) {
-			draw_digit(b/100,&bm.rgb_buf[3*(43+BOX_SIZE*46)],0,255,0);
-			b=b%100;
-		}
-		draw_digit(b/10,&bm.rgb_buf[3*(47+BOX_SIZE*46)],0,255,0);
-		draw_digit(b%10,&bm.rgb_buf[3*(51+BOX_SIZE*46)],0,255,0);
 		if(time(NULL)!=last_time) {
-			old_frames_count=frames_count;
+			fprintf(stderr,"%03dfps\n",frames_count);
 			frames_count=0;
 			last_time=time(NULL);
 		}
