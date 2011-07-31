@@ -83,10 +83,14 @@
 #define GET_GRN(x) (((x)>> 8)&255)
 #define GET_BLU(x) (((x)    )&255)
 
+enum bubblebuf_values { watercolor, antialiascolor, aircolor };
+
 /* local prototypes *INDENT-OFF* */
 static void bubblemon_setup_samples(void);
 static void bubblemon_allocate_buffers(void);
 static void bubblemon_update(int cpu);
+static void bubblebuf_colorspace(void);
+
 static void make_new_bubblemon_dockapp(void);
 static void get_memory_load_percentage(void);
 static void bubblemon_session_defaults(XrmDatabase x_resource_database);
@@ -94,7 +98,7 @@ static int get_screen_selection(void);
 /* draw functions for load average / memory screens */
 static void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c);
 static void draw_history(int num, int size, unsigned int *history,
-			 unsigned char *buf);
+                  unsigned char *buf);
 static void draw_digit(int num, unsigned char * whither, unsigned char red, unsigned char grn, unsigned char blu);
 static void draw_string(char *string, int x, int y, int color);
 static void draw_cpudigit(int what, unsigned char *whither);
@@ -419,6 +423,7 @@ int main(int argc, char **argv) {
 		loadPercentage = system_cpu();
 		/* bubblemon_update 100k times in 54sec -> 1852fps or 540us/frame */
 		bubblemon_update(loadPercentage);
+		bubblebuf_colorspace();
 
 		if (duck_enabled) {
 			duck_swimmer();
@@ -517,9 +522,7 @@ static void make_new_bubblemon_dockapp(void) {
 static void bubblemon_update(int loadPercentage) {
 	Bubble *bubbles = bm.bubbles;
 	unsigned int i, x, y;
-	unsigned char reds[3], grns[3], blus[3];
-	unsigned char *ptr, *bubblebuf_ptr;
-	enum bubblebuf_values { watercolor, antialiascolor, aircolor };
+	unsigned char *bubblebuf_ptr;
 	unsigned int waterlevels_goal;
 
 	/* These values are for keeping track of where we have to start
@@ -753,7 +756,13 @@ static void bubblemon_update(int loadPercentage) {
 			}
 		}
 	}
+}	/* bubblemon_update */
 
+
+static void bubblebuf_colorspace(void) {
+	unsigned char reds[3], grns[3], blus[3];
+	unsigned char * bubblebuf_ptr, * rgbbuf_ptr;
+	int count;
 	/*
 	  Vary the colors of air and water with how many percent of the available
 	  swap space that is in use.
@@ -783,18 +792,14 @@ static void bubblemon_update(int loadPercentage) {
 		 GET_BLU(bm.air_noswap) * (100 - bm.swap_percent)) / 100;
 	blus[antialiascolor] = ((int)blus[watercolor] + blus[aircolor])/2;
 
-	ptr = bm.rgb_buf;
-	bubblebuf_ptr = bm.bubblebuf;
-	i = BOX_SIZE * BOX_SIZE;
-
-	while (i--) {
-		*ptr++ = reds[*bubblebuf_ptr];
-		*ptr++ = grns[*bubblebuf_ptr];
-		*ptr++ = blus[*bubblebuf_ptr];
-		bubblebuf_ptr++;
+	for (count = BOX_SIZE*BOX_SIZE, rgbbuf_ptr = bm.rgb_buf, bubblebuf_ptr = bm.bubblebuf;
+	     count;
+	     count--, bubblebuf_ptr++) {
+		*rgbbuf_ptr++ = reds[*bubblebuf_ptr];
+		*rgbbuf_ptr++ = grns[*bubblebuf_ptr];
+		*rgbbuf_ptr++ = blus[*bubblebuf_ptr];
 	}
-}	/* bubblemon_update */
-
+} /* bubblebuf_colorspace */
 
 /* draws 4x8 digits for the memory/swap panel */
 static void draw_digit(int num, unsigned char * whither, 
