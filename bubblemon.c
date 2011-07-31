@@ -86,34 +86,34 @@
 enum bubblebuf_values { watercolor, antialiascolor, aircolor };
 
 /* local prototypes *INDENT-OFF* */
-static void bubblemon_setup_samples(void);
-static void bubblemon_allocate_buffers(void);
-static void bubblemon_update(int cpu);
-static void bubblebuf_colorspace(void);
+void bubblemon_setup_samples(void);
+void bubblemon_allocate_buffers(void);
+void bubblemon_update(int cpu);
+void bubblebuf_colorspace(void);
 
-static void make_new_bubblemon_dockapp(void);
-static void get_memory_load_percentage(void);
-static void bubblemon_session_defaults(XrmDatabase x_resource_database);
-static int get_screen_selection(void);
+void make_new_bubblemon_dockapp(void);
+void get_memory_load_percentage(void);
+void bubblemon_session_defaults(XrmDatabase x_resource_database);
+int get_screen_selection(void);
 /* draw functions for load average / memory screens */
-static void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c);
-static void draw_history(int num, int size, unsigned int *history,
+void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c);
+void draw_history(int num, int size, unsigned int *history,
                   unsigned char *buf);
-static void draw_digit(int num, unsigned char * whither, unsigned char red, unsigned char grn, unsigned char blu);
-static void draw_string(char *string, int x, int y, int color);
-static void draw_cpudigit(int what, unsigned char *whither);
+void draw_digit(int num, unsigned char * whither, unsigned char red, unsigned char grn, unsigned char blu);
+void draw_string(char *string, int x, int y, int color);
+void draw_cpudigit(int what, unsigned char *whither);
 
-static void render_secondary(void);
-static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity);
-static void rarely_render_secondary(void);
-static void roll_history(void);
+void render_secondary(void);
+void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity);
+void rarely_render_secondary(void);
+void roll_history(void);
 
-static void draw_datetime(unsigned char *display);
-static void draw_dtchr(const char letter, unsigned char *where);
+void draw_datetime(unsigned char *display);
+void draw_dtchr(const char letter, unsigned char *where);
 
-static int animate_correctly(void);
-static void draw_duck(int x, int y, int nr, int flipx, int flipy);
-static void duck_swimmer(void);
+int animate_correctly(void);
+void draw_duck(int x, int y, int nr, int flipx, int flipy);
+void duck_swimmer(void);
 
 #ifdef __FreeBSD__
 extern int init_stuff();	/* defined in sys_{freebsd,linux}.c */
@@ -211,7 +211,7 @@ const struct XrmExtras {
 	{"-shifttime",      Is_Int, &shifttime, "Number of hours after midnight that are drawn as part of the previous day" }
 };	
 
-static void bubblemon_session_defaults(XrmDatabase x_resource_database)
+void bubblemon_session_defaults(XrmDatabase x_resource_database)
 {
 	/* XResource stuff */
 	char name[BUFSIZ] = "";
@@ -307,7 +307,7 @@ static void bubblemon_session_defaults(XrmDatabase x_resource_database)
 	bm.speed_limit_int = MAKE_INTEGER(bm.speed_limit);
 }
 
-static void print_usage(void) {
+void print_usage(void) {
 	int i;
 	printf("BubbleMon version "VERSION"\n"
 	       "Usage: "NAME" [switches] [program_1] [program_2]\n\n"
@@ -481,7 +481,7 @@ int main(int argc, char **argv) {
 /*
  * This determines if the left or right shift keys are depressed.
  */
-static int get_screen_selection(void) {
+int get_screen_selection(void) {
 	static KeyCode lshift_code, rshift_code;
 	static int first_time = 1;
 	char keys[32];
@@ -505,7 +505,7 @@ static int get_screen_selection(void) {
 }
 
 /* This is the function that actually creates the display widgets */
-static void make_new_bubblemon_dockapp(void) {
+void make_new_bubblemon_dockapp(void) {
 	/* We begin with zero bubbles */
 	bm.n_bubbles = 0;
 
@@ -519,7 +519,7 @@ static void make_new_bubblemon_dockapp(void) {
  * This function, bubblemon_update, gets the CPU usage and updates
  * the bubble array and main rgb buffer.
  */
-static void bubblemon_update(int loadPercentage) {
+void bubblemon_update(int loadPercentage) {
 	Bubble *bubbles = bm.bubbles;
 	unsigned int i, x, y;
 	unsigned char *bubblebuf_ptr;
@@ -759,7 +759,7 @@ static void bubblemon_update(int loadPercentage) {
 }	/* bubblemon_update */
 
 
-static void bubblebuf_colorspace(void) {
+void bubblebuf_colorspace(void) {
 	unsigned char reds[3], grns[3], blus[3];
 	unsigned char * bubblebuf_ptr, * rgbbuf_ptr;
 	int count;
@@ -802,7 +802,7 @@ static void bubblebuf_colorspace(void) {
 } /* bubblebuf_colorspace */
 
 /* draws 4x8 digits for the memory/swap panel */
-static void draw_digit(int num, unsigned char * whither, 
+void draw_digit(int num, unsigned char * whither, 
                        unsigned char red, unsigned char grn, unsigned char blu) {
 	int xx, yy;
 	char *from;
@@ -822,7 +822,7 @@ static void draw_digit(int num, unsigned char * whither,
 }
 
 /* draws a string using previous function. non-digits and non-K/M = space */
-static void draw_string(char *string, int x, int y, int color) {
+void draw_string(char *string, int x, int y, int color) {
 	unsigned char c;
 
 	/* bluish rgb:48,140,240  pale rgb:158,196,237
@@ -842,7 +842,7 @@ static void draw_string(char *string, int x, int y, int color) {
 	}
 }
 
-static void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c) {
+void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c) {
 	unsigned char *ptr;
 	ptr = buf + y * BOX_SIZE * 3 + x * 3 + 6;	/* +6 = x + 2 */
 	*ptr++ = *c++;
@@ -852,7 +852,7 @@ static void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char 
 
 /* draw graph num x size, data taken from history, into rgb buffer buf.
  * this is called not very often: only 1 time out of 250 */
-static void draw_history(int num, int size, unsigned int *history, unsigned char *buf) {
+void draw_history(int num, int size, unsigned int *history, unsigned char *buf) {
 	int pixels_per_byte;
 	int j, k;
 	int d;
@@ -884,7 +884,7 @@ static void draw_history(int num, int size, unsigned int *history, unsigned char
 }
 
 /* refreshes memory/swap screen */
-static void render_secondary(void) {
+void render_secondary(void) {
 	char percent[4];
 	char number[8];
 	int i;
@@ -926,7 +926,7 @@ static void render_secondary(void) {
 	}
 }
 
-static void rarely_render_secondary(void) {
+void rarely_render_secondary(void) {
 	static int delay;
 	int divisor;
 
@@ -940,7 +940,7 @@ static void rarely_render_secondary(void) {
 	render_secondary();
 }
 
-static void roll_history(void)  {
+void roll_history(void)  {
 	static int his_count, load_his_accumulator, mem_his_accumulator;
 	/* Per C standard, those are all initialized to 0 */
 
@@ -965,7 +965,7 @@ static void roll_history(void)  {
 	his_count++;
 }
 
-static void draw_cpudigit(int what, unsigned char *whither) {
+void draw_cpudigit(int what, unsigned char *whither) {
 	unsigned int len, y;
 	unsigned char *to, *from;
 	for (y = 0; y < 9; y++) { /* magic numbers suck. */
@@ -977,7 +977,7 @@ static void draw_cpudigit(int what, unsigned char *whither) {
 	}
 }
 
-static void draw_dtchr(const char letter, unsigned char * rgbbuf) {
+void draw_dtchr(const char letter, unsigned char * rgbbuf) {
   int x,y;
 
   if (letter>='0' && letter<='9') {
@@ -1006,7 +1006,7 @@ static void draw_dtchr(const char letter, unsigned char * rgbbuf) {
   }
 }
 
-static void draw_largedigit(char number, unsigned char * rgbbuf) {
+void draw_largedigit(char number, unsigned char * rgbbuf) {
   int x,y;
   int t,v;
 
@@ -1022,7 +1022,7 @@ static void draw_largedigit(char number, unsigned char * rgbbuf) {
   }
 }
 
-static void draw_datetime(unsigned char * rgbbuf) {
+void draw_datetime(unsigned char * rgbbuf) {
   const char months[12][3]={"Jan","Feb","Mar","Apr","May","Jun",
 			 "Jul","Aug","Sep","Oct","Nov","Dec"};
   const char days[7][3]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
@@ -1065,7 +1065,7 @@ static void draw_datetime(unsigned char * rgbbuf) {
   draw_largedigit(mytime->tm_min%10,rgbbuf+3*(43+BOX_SIZE*13));
 }
 
-static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
+void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 	/* where is the text going to be (now, bottom-center) */
 	int bob;
 
@@ -1178,7 +1178,7 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 	}
 } /* realtime_alpha_blend_of_cpu_usage */
 
-static void draw_duck(int x, int y, int nr, int flipx, int flipy) {
+void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 	int w, h;
 	int rw;
 	int rh;
@@ -1233,7 +1233,7 @@ static void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 	}
 }
 
-static int animate_correctly(void) {
+int animate_correctly(void) {
 	/* returns the correct order of framenumber 0,1,2,1,0,1,2...
 	   instead of 0,1,2,0,1,2 <- this way the duck looks really ugly
 	   instead of keeping 2 counters we just made it longer */
@@ -1248,7 +1248,7 @@ static int animate_correctly(void) {
 	return outp[totalcounter];
 }
 
-static void duck_swimmer() {
+void duck_swimmer() {
 	static int tx = -19;
 	static int rp;
 	static int rev = 1;
@@ -1293,13 +1293,13 @@ static void duck_swimmer() {
 	draw_duck(tx, posy, animate_correctly(), rev, upsidedown);
 }
 
-static void bubblemon_setup_samples(void) {
+void bubblemon_setup_samples(void) {
 	bm.loadIndex = 0;
 	bm.load = calloc(bm.samples, sizeof(u_int64_t));
 	bm.total = calloc(bm.samples, sizeof(u_int64_t));
 }
 
-static void bubblemon_allocate_buffers(void) {
+void bubblemon_allocate_buffers(void) {
 	int i;
 
 	/* storage for bubbles */
@@ -1318,7 +1318,7 @@ static void bubblemon_allocate_buffers(void) {
 	bm.waterlevels_dy = calloc(BOX_SIZE, sizeof(int));
 }
 
-static void get_memory_load_percentage(void) {
+void get_memory_load_percentage(void) {
 	system_memory();
 	/* new memory/swap data is in, calculate things */
 	bm.mem_percent = (100 * bm.mem_used) / bm.mem_max;
