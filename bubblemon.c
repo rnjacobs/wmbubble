@@ -68,9 +68,8 @@
 
 #include "include/ducks.h"
 #include "include/digits.h"
-#include "misc/load_58.c"
-#include "misc/mem_58.c"
 #include "misc/numbers.xpm"
+#include "misc/ofmspct.xpm"
 
 /* #define DEBUG_DUCK 1 */
 
@@ -90,16 +89,20 @@ void bubblemon_setup_samples(void);
 void bubblemon_allocate_buffers(void);
 void bubblemon_update(int cpu);
 void bubblebuf_colorspace(void);
+void build_graphs(void);
 
 void make_new_bubblemon_dockapp(void);
 void get_memory_load_percentage(void);
 void bubblemon_session_defaults(XrmDatabase x_resource_database);
 int get_screen_selection(void);
 /* draw functions for load average / memory screens */
+void draw_from_xpm(char **xpm, unsigned char *whither, unsigned int targetw,
+                   unsigned int xpmx, unsigned int xpmy, unsigned int xpmw,
+                   unsigned int xpmh, unsigned int color);
 void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c);
 void draw_history(int num, int size, unsigned int *history,
                   unsigned char *buf);
-void draw_digit(int num, unsigned char * whither, unsigned char red, unsigned char grn, unsigned char blu);
+void draw_digit(unsigned char * from, unsigned char * whither);
 void draw_string(char *string, int x, int y, int color);
 void draw_cpudigit(int what, unsigned char *whither);
 
@@ -141,6 +144,13 @@ int delay_time = 100000;
 
 /* duck_colors[0] is always transparent */
 int duck_colors[4] = {0,0xF8FC00,0xF8B040,0};
+/* 1, 5, 15 on load average graph; m, s on memory utilization graph */
+int graph_labels = 0xC1C400;
+int graph_field = 0x202020;
+int graph_grid = 0x062A00;
+
+unsigned char * empty_loadgraph, * empty_memgraph;
+unsigned char * graph_numbers_n_rgb, * graph_numbers_b_rgb;
 
 XrmOptionDescRec x_resource_options[] = {
 	{"-maxbubbles",    "*maxbubbles",     XrmoptionSepArg, (XPointer) NULL},
@@ -164,8 +174,11 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-u",             "*upsidedown",     XrmoptionNoArg,  (XPointer) "no"}, /* disable upside-down-ifying */
 	{"-cpumeter",      "*cpumeter",       XrmoptionSepArg, (XPointer) NULL},
 	{"-c",             "*cpumeter",       XrmoptionNoArg,  (XPointer) "no"}, /* disable numeric cpu gauge */
-	{"-graphdigitcolor","*graphdigitcolor",XrmoptionSepArg,(XPointer) NULL},
-	{"-graphwarncolor","*graphwarncolor", XrmoptionSepArg, (XPointer) NULL},
+	{"-graphdigit",    "*graphdigit",     XrmoptionSepArg, (XPointer) NULL},
+	{"-graphwarn",     "*graphwarn",      XrmoptionSepArg, (XPointer) NULL},
+	{"-graphlabel",    "*graphlabel",     XrmoptionSepArg, (XPointer) NULL},
+	{"-graphfield",    "*graphfield",     XrmoptionSepArg, (XPointer) NULL},
+	{"-graphgrid",     "*graphgrid",      XrmoptionSepArg, (XPointer) NULL},
 	{"-p",             ".graphdigitpale", XrmoptionNoArg,  (XPointer) "1"},
 	{"-graphs",        "*graphs",         XrmoptionSepArg, (XPointer) NULL}, /* disable graphs */
 	{"-m",             "*graphs",         XrmoptionIsArg,  (XPointer) "no"},
@@ -201,8 +214,11 @@ const struct XrmExtras {
 	{"-u",              Is_Bool, &upside_down_duck_enabled, "The duck can never flip" },
 	{"-cpumeter",       Is_Bool, &cpu_enabled, "Show the current load at the bottom"},
 	{"-c",              Is_Bool, &cpu_enabled, "Don't show the current load"},
-	{"-graphdigitcolor",Is_Color, &graph_digit_colors[0], "The color for the digits on the graphs"},
-	{"-graphwarncolor", Is_Color, &graph_digit_colors[1], "The color for the digits on the memory graph when above 90%" },
+	{"-graphdigit",     Is_Color, &graph_digit_colors[0], "The color for the digits on the graphs"},
+	{"-graphwarn",      Is_Color, &graph_digit_colors[1], "The color for the digits on the memory graph when above 90%" },
+	{"-graphlabel",     Is_Color, &graph_labels, "The color for the 1 5 and 15 on load graph and m and s on mem graph" },
+	{"-graphfield",     Is_Color, &graph_field, "The background color of the graphs" },
+	{"-graphgrid",      Is_Color, &graph_grid, "The color of the grid lines in the graphs" },
 	{"-p",              Is_Bool, &pale, "Adjust the digit colors to pale blue and cyan"},
 	{"-graphs",         Is_Bool, &memscreen_enabled, "Does hovering show the graphs" },
 	{"-m",              Is_Bool, &memscreen_enabled, "Graphs are never shown"},
@@ -336,13 +352,6 @@ int main(int argc, char **argv) {
 	frames_count = last_time = 0;
 #endif
 
-	if (mem_screen.width != mem_screen.height || mem_screen.width != BOX_SIZE ||
-	    load_screen.width != load_screen.height || load_screen.width != BOX_SIZE) {
-		fprintf(stderr, "compilation time error: mem_screen (%dx%d) or load_screen (%dx%d) dimensions don't match applet dimensions (%dx%d)",
-		        mem_screen.width,mem_screen.height,load_screen.width,load_screen.height,BOX_SIZE,BOX_SIZE);
-		abort();
-	}
-
 	/* VERY first thing: zero data structure */
 	memset(&bm, 0, sizeof(bm));
 
@@ -369,8 +378,6 @@ int main(int argc, char **argv) {
 		exit(-1);
 #endif
 
-
-	/* create dockapp window. creates windows, allocates memory, etc */
 	make_new_bubblemon_dockapp();
 
 #ifdef PRO
@@ -504,7 +511,6 @@ int get_screen_selection(void) {
 	}
 }
 
-/* This is the function that actually creates the display widgets */
 void make_new_bubblemon_dockapp(void) {
 	/* We begin with zero bubbles */
 	bm.n_bubbles = 0;
@@ -512,7 +518,7 @@ void make_new_bubblemon_dockapp(void) {
 	/* Allocate memory for calculations */
 	bubblemon_allocate_buffers();
 
-	bubblemon_setup_samples();
+	build_graphs();
 }	/* make_new_bubblemon_dockapp */
 
 /*
@@ -801,29 +807,55 @@ void bubblebuf_colorspace(void) {
 	}
 } /* bubblebuf_colorspace */
 
-/* draws 4x8 digits for the memory/swap panel */
-void draw_digit(int num, unsigned char * whither, 
-                       unsigned char red, unsigned char grn, unsigned char blu) {
-	int xx, yy;
-	char *from;
-	unsigned char *to;
-    
-	num *= 4;
+void draw_from_xpm(char **xpm, unsigned char *whither, unsigned int targetw,
+                   unsigned int xpmx, unsigned int xpmy, unsigned int xpmw, 
+                   unsigned int xpmh, unsigned int color) {
+	unsigned char r=GET_RED(color),g=GET_GRN(color),b=GET_BLU(color);
+	int yy,xx,ncolors,cpp;
+	unsigned char * to;
+	char * from;
+	char transparent=0;
 
-	for (yy = 0; yy < 8; yy++) {
-		to = whither + BOX_SIZE*3*yy;
-		from = &numbers_xpm[3+yy][num];
-		for (xx = 0; xx < 4; xx++, from++, to+=3 ) {
-			if (*from=='.') { 
-				to[0] = red; to[1] = grn; to[2] = blu;
+	sscanf(xpm[0],"%u %u %u %u",&xx,&yy,&ncolors,&cpp);
+	if (cpp != 1) abort(); /* fuck that */
+	if (xpmx+xpmw > xx || xpmy+xpmh > yy) return;
+
+	for (yy=1;yy<=ncolors;yy++) {
+		if (strcasestr(xpm[yy],"none")) {
+			transparent = xpm[yy][0];
+			yy=255;
+		}
+	}
+
+	for (yy=0;yy<xpmh;yy++) {
+		to = whither + targetw*3*yy;
+		from = &xpm[1+ncolors+xpmy+yy][xpmx];
+		for (xx=0;xx<xpmw;xx++,from++,to+=3) {
+			if (*from != transparent) {
+				to[0]=r; to[1]=g; to[2]=b;
 			}
 		}
+	}
+}
+
+/* draws 3x8 digits for the memory/swap panel */
+void draw_digit(unsigned char * from, unsigned char * whither) {
+	int xx, yy;
+	unsigned char *to;
+	/* assumes layout of from is 3x9x3bpp */
+	for (yy = 0; yy < 8; yy++) {
+		to = whither + BOX_SIZE*3*yy;
+		for (xx = 0; xx < 9; xx++)
+			*to++ = *from++;
 	}
 }
 
 /* draws a string using previous function. non-digits and non-K/M = space */
 void draw_string(char *string, int x, int y, int color) {
 	unsigned char c;
+	unsigned char * graph_numbers = graph_numbers_n_rgb;
+
+	if (color) graph_numbers = graph_numbers_b_rgb;
 
 	/* bluish rgb:48,140,240  pale rgb:158,196,237
 	   reddish rgb:237,23,23  pale(cyan) rgb:0,255,233 */
@@ -834,10 +866,8 @@ void draw_string(char *string, int x, int y, int color) {
 		else if (c >= '0' && c <= '9') c -= '0';
 
 		if (c <= 11)
-			draw_digit(c, &bm.mem_buf[3*(y*BOX_SIZE+x)], 
-			           GET_RED(graph_digit_colors[color]),
-			           GET_GRN(graph_digit_colors[color]),
-			           GET_BLU(graph_digit_colors[color]));
+			draw_digit(&graph_numbers[3*3*9*c],
+			           &bm.mem_buf[3*(y*BOX_SIZE+x)]);
 		x += 4;
 	}
 }
@@ -890,7 +920,7 @@ void render_secondary(void) {
 	int i;
 
 	/* make a clean buffer with blank spaces. */
-	memcpy(bm.mem_buf, bm.screen_type ? load_screen.pixel_data : mem_screen.pixel_data,
+	memcpy(bm.mem_buf, bm.screen_type ? empty_loadgraph : empty_memgraph,
 	       BOX_SIZE * BOX_SIZE * 3);
 
 	if (bm.screen_type) {
@@ -979,23 +1009,24 @@ void draw_cpudigit(int what, unsigned char *whither) {
 
 void draw_dtchr(const char letter, unsigned char * rgbbuf) {
   int x,y;
+  unsigned char * attenuator;
 
   if (letter>='0' && letter<='9') {
     for (y=0;y<7;y++)
-      for (x=0;x<5;x++) 
+	    for (x=0,attenuator=&rgbbuf[y*BOX_SIZE*3];x<5;x++) 
 	      if (clockdigit[x+(y*10+(letter-'0'))*6]=='M') {
-		      rgbbuf[(x+y*BOX_SIZE)*3  ]>>=1;
-		      rgbbuf[(x+y*BOX_SIZE)*3+1]>>=1;
-		      rgbbuf[(x+y*BOX_SIZE)*3+2]>>=1;
+		      *(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
+	      } else {
+		      attenuator += 3;
 	      }
   } else if (letter>='@' && letter<='~') {
 	  for (y=0;y<7;y++)
-		  for (x=0;x<4;x++) 
+		  for (x=0,attenuator=&rgbbuf[y*BOX_SIZE*3];x<4;x++) 
 			  if (clockalpha[x+(y*63+(letter-'@'))*5]=='M') {
-				  rgbbuf[(x+y*BOX_SIZE)*3  ]>>=1;
-				  rgbbuf[(x+y*BOX_SIZE)*3+1]>>=1;
-				  rgbbuf[(x+y*BOX_SIZE)*3+2]>>=1;
-			  }
+		      *(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
+	      } else {
+		      attenuator += 3;
+	      }
   } else if (letter==':') {
 	  rgbbuf[3*BOX_SIZE*3  ]>>=1;
 	  rgbbuf[3*BOX_SIZE*3+1]>>=1;
@@ -1009,15 +1040,16 @@ void draw_dtchr(const char letter, unsigned char * rgbbuf) {
 void draw_largedigit(char number, unsigned char * rgbbuf) {
   int x,y;
   int t,v;
+  unsigned char * from, * to;
 
   if (number>='0' && number<='9') number-='0';
   if (number>=0 && number<=9) {
-    for (y=0;y<32;y++)
-      for (x=0;x<13;x++) {
-	      v=bigdigits[number*13+x+y*130]>>2;
-        t=rgbbuf[(x+y*BOX_SIZE)*3  ]+v; if (t>255) t=255; rgbbuf[(x+y*BOX_SIZE)*3  ]=t;
-        t=rgbbuf[(x+y*BOX_SIZE)*3+1]+v; if (t>255) t=255; rgbbuf[(x+y*BOX_SIZE)*3+1]=t;
-        t=rgbbuf[(x+y*BOX_SIZE)*3+2]+v; if (t>255) t=255; rgbbuf[(x+y*BOX_SIZE)*3+2]=t;
+	  for (y=0;y<32;y++)
+		  for (x=0,from=&bigdigits[number*13+y*130],to=&rgbbuf[y*BOX_SIZE*3];x<13;x++) {
+	      v=*from++>>2;
+	      t=*to+v; *(to++)=(t>255)?255:t;
+	      t=*to+v; *(to++)=(t>255)?255:t;
+	      t=*to+v; *(to++)=(t>255)?255:t;
       }
   }
 }
@@ -1293,14 +1325,8 @@ void duck_swimmer() {
 	draw_duck(tx, posy, animate_correctly(), rev, upsidedown);
 }
 
-void bubblemon_setup_samples(void) {
-	bm.loadIndex = 0;
-	bm.load = calloc(bm.samples, sizeof(u_int64_t));
-	bm.total = calloc(bm.samples, sizeof(u_int64_t));
-}
-
 void bubblemon_allocate_buffers(void) {
-	int i;
+	int ii;
 
 	/* storage for bubbles */
 	bm.bubbles = (Bubble *) malloc(sizeof(Bubble) * bm.maxbubbles);
@@ -1310,12 +1336,138 @@ void bubblemon_allocate_buffers(void) {
 
 	/* Allocate water level memory */
 	bm.waterlevels = malloc(BOX_SIZE * sizeof(int));
-	for (i = 0; i < BOX_SIZE; i++) {
-		bm.waterlevels[i] = MAKEY(BOX_SIZE);
+	for (ii = 0; ii < BOX_SIZE; ii++) {
+		bm.waterlevels[ii] = MAKEY(BOX_SIZE);
 	}
 
 	/* Allocate water level velocity memory */
 	bm.waterlevels_dy = calloc(BOX_SIZE, sizeof(int));
+
+	empty_loadgraph = calloc(BOX_SIZE * BOX_SIZE,3);
+	empty_memgraph = calloc(BOX_SIZE * BOX_SIZE,3);
+	graph_numbers_n_rgb = calloc(3*3*9*12,1);
+	graph_numbers_b_rgb = calloc(3*3*9*12,1);
+
+	for (ii = 0; ii < 12; ii++) {
+		draw_from_xpm(numbers_xpm,&graph_numbers_n_rgb[ii*3*3*9],3,
+		              4*ii,0,3,9,graph_digit_colors[0]);
+		draw_from_xpm(numbers_xpm,&graph_numbers_b_rgb[ii*3*3*9],3,
+		              4*ii,0,3,9,graph_digit_colors[1]);
+	}
+
+	bm.loadIndex = 0;
+	bm.load = calloc(bm.samples, sizeof(u_int64_t));
+	bm.total = calloc(bm.samples, sizeof(u_int64_t));
+}
+
+void build_graphs(void) {
+	int xx, yy;
+	unsigned char r,g,b;
+	/* Dynamically generate empty graphs for status overlays. This allows us
+	   to easily support changing colors at no computational cost and also to
+	   later support runtime sizing of the dockapp. (Why would you want it
+	   something significantly different than 58x58? dunno) */
+
+	/* For the memory graph, we need to draw the following:
+	   - memory line: m and %
+	   - swap line: s and %
+	   - two hlines
+	   - a field of solid color for the graph
+	   - gridlines in the graph */
+
+	/* memory */
+	draw_from_xpm(ofmspct_xpm,&empty_memgraph[3*(32+4*BOX_SIZE)],BOX_SIZE,
+	              6,0,5,5,graph_labels); /* m */
+	draw_from_xpm(ofmspct_xpm,&empty_memgraph[3*(51+2*BOX_SIZE)],BOX_SIZE,
+	              18,0,4,8,graph_digit_colors[0]); /* mem% */
+	draw_from_xpm(ofmspct_xpm,&empty_memgraph[3*(32+13*BOX_SIZE)],BOX_SIZE,
+	              12,0,5,5,graph_labels); /* s */
+	draw_from_xpm(ofmspct_xpm,&empty_memgraph[3*(51+11*BOX_SIZE)],BOX_SIZE,
+	              18,0,4,8,graph_digit_colors[0]); /* swap% */
+
+	/* load average */
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(8+2*BOX_SIZE)],BOX_SIZE,
+	              0,0,2,5,graph_labels); /* 1 */
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(27+2*BOX_SIZE)],BOX_SIZE,
+	              3,0,2,5,graph_labels); /* 5 */
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(45+2*BOX_SIZE)],BOX_SIZE,
+	              0,0,2,5,graph_labels); /* 1 */
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(48+2*BOX_SIZE)],BOX_SIZE,
+	              3,0,2,5,graph_labels); /* 5 */
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(9+15*BOX_SIZE)],BOX_SIZE,
+	              18,0,1,2,graph_digit_colors[0]); /* . */
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(28+15*BOX_SIZE)],BOX_SIZE,
+	              18,0,1,2,graph_digit_colors[0]); /* . */
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(47+15*BOX_SIZE)],BOX_SIZE,
+	              18,0,1,2,graph_digit_colors[0]); /* . */
+
+	r = GET_RED(graph_digit_colors[0]);
+	g = GET_GRN(graph_digit_colors[0]);
+	b = GET_BLU(graph_digit_colors[0]);
+
+	/* the lines above and below the graphs */
+	for (xx = 2; xx < BOX_SIZE - 2; xx++) {
+		empty_memgraph[3*(xx + 20 * BOX_SIZE)  ] = r;
+		empty_memgraph[3*(xx + 20 * BOX_SIZE)+1] = g;
+		empty_memgraph[3*(xx + 20 * BOX_SIZE)+2] = b;
+		empty_memgraph[3*(xx + (BOX_SIZE-3) * BOX_SIZE)  ] = r;
+		empty_memgraph[3*(xx + (BOX_SIZE-3) * BOX_SIZE)+1] = g;
+		empty_memgraph[3*(xx + (BOX_SIZE-3) * BOX_SIZE)+2] = b;
+		empty_loadgraph[3*(xx + 18 * BOX_SIZE)  ] = r;
+		empty_loadgraph[3*(xx + 18 * BOX_SIZE)+1] = g;
+		empty_loadgraph[3*(xx + 18 * BOX_SIZE)+2] = b;
+		empty_loadgraph[3*(xx + (BOX_SIZE-3) * BOX_SIZE)  ] = r;
+		empty_loadgraph[3*(xx + (BOX_SIZE-3) * BOX_SIZE)+1] = g;
+		empty_loadgraph[3*(xx + (BOX_SIZE-3) * BOX_SIZE)+2] = b;
+	}
+
+	r = GET_RED(graph_field);
+	g = GET_GRN(graph_field);
+	b = GET_BLU(graph_field);
+
+	/* the main field of the graph */
+	for (yy = 22; yy < BOX_SIZE - 4; yy++)
+		for (xx = 2; xx < BOX_SIZE - 2; xx++) {
+			empty_memgraph[3*(xx+yy*BOX_SIZE)  ] = r;
+			empty_memgraph[3*(xx+yy*BOX_SIZE)+1] = g;
+			empty_memgraph[3*(xx+yy*BOX_SIZE)+2] = b;
+		}
+
+	for (yy = 20; yy < BOX_SIZE - 4; yy++)
+		for (xx = 2; xx < BOX_SIZE - 2; xx++) {
+			empty_loadgraph[3*(xx+yy*BOX_SIZE)  ] = r;
+			empty_loadgraph[3*(xx+yy*BOX_SIZE)+1] = g;
+			empty_loadgraph[3*(xx+yy*BOX_SIZE)+2] = b;
+		}
+
+	r = GET_RED(graph_grid);
+	g = GET_GRN(graph_grid);
+	b = GET_BLU(graph_grid);
+
+	/* the horizontal lines in the graph */
+	for (yy = 1; yy < 4; yy++)
+		for (xx = 2; xx < BOX_SIZE - 2; xx++) {
+			empty_memgraph[3*(xx+(22+yy*(BOX_SIZE-4-22)/4)*BOX_SIZE)  ] = r;
+			empty_memgraph[3*(xx+(22+yy*(BOX_SIZE-4-22)/4)*BOX_SIZE)+1] = g;
+			empty_memgraph[3*(xx+(22+yy*(BOX_SIZE-4-22)/4)*BOX_SIZE)+2] = b;
+			empty_loadgraph[3*(xx+(20+yy*(BOX_SIZE-4-20)/4)*BOX_SIZE)  ] = r;
+			empty_loadgraph[3*(xx+(20+yy*(BOX_SIZE-4-20)/4)*BOX_SIZE)+1] = g;
+			empty_loadgraph[3*(xx+(20+yy*(BOX_SIZE-4-20)/4)*BOX_SIZE)+2] = b;
+		}
+
+	/* the vertical lines in the graph */
+	for (xx = BOX_SIZE - 3 - 7; xx > 2; xx -= 8)
+		for (yy = 22; yy < BOX_SIZE - 4; yy++) {
+			empty_memgraph[3*(xx+yy*BOX_SIZE)  ] = r;
+			empty_memgraph[3*(xx+yy*BOX_SIZE)+1] = g;
+			empty_memgraph[3*(xx+yy*BOX_SIZE)+2] = b;
+		}
+	for (xx = BOX_SIZE - 3 - 7; xx > 2; xx -= 8)
+		for (yy = 20; yy < BOX_SIZE - 4; yy++) {
+			empty_loadgraph[3*(xx+yy*BOX_SIZE)  ] = r;
+			empty_loadgraph[3*(xx+yy*BOX_SIZE)+1] = g;
+			empty_loadgraph[3*(xx+yy*BOX_SIZE)+2] = b;
+		}
 }
 
 void get_memory_load_percentage(void) {
