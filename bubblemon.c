@@ -838,15 +838,14 @@ void draw_from_xpm(char **xpm, unsigned char *whither, unsigned int targetw,
 	}
 }
 
-/* draws 3x8 digits for the memory/swap panel */
+/* draws 3x8 (4x9 padding) digits for the memory/swap panel */
 void draw_digit(unsigned char * from, unsigned char * whither) {
-	int xx, yy;
-	unsigned char *to;
+	int yy;
 	/* assumes layout of from is 3x9x3bpp */
 	for (yy = 0; yy < 8; yy++) {
-		to = whither + BOX_SIZE*3*yy;
-		for (xx = 0; xx < 9; xx++)
-			*to++ = *from++;
+		memcpy(whither, from, 12);
+		from += 12;
+		whither += 3*BOX_SIZE;
 	}
 }
 
@@ -866,7 +865,7 @@ void draw_string(char *string, int x, int y, int color) {
 		else if (c >= '0' && c <= '9') c -= '0';
 
 		if (c <= 11)
-			draw_digit(&graph_numbers[3*3*9*c],
+			draw_digit(&graph_numbers[3*4*9*c],
 			           &bm.mem_buf[3*(y*BOX_SIZE+x)]);
 		x += 4;
 	}
@@ -1345,13 +1344,13 @@ void bubblemon_allocate_buffers(void) {
 
 	empty_loadgraph = calloc(BOX_SIZE * BOX_SIZE,3);
 	empty_memgraph = calloc(BOX_SIZE * BOX_SIZE,3);
-	graph_numbers_n_rgb = calloc(3*3*9*12,1);
-	graph_numbers_b_rgb = calloc(3*3*9*12,1);
+	graph_numbers_n_rgb = calloc(3*4*9*12,1);
+	graph_numbers_b_rgb = calloc(3*4*9*12,1);
 
 	for (ii = 0; ii < 12; ii++) {
-		draw_from_xpm(numbers_xpm,&graph_numbers_n_rgb[ii*3*3*9],3,
+		draw_from_xpm(numbers_xpm,&graph_numbers_n_rgb[ii*3*4*9],4,
 		              4*ii,0,3,9,graph_digit_colors[0]);
-		draw_from_xpm(numbers_xpm,&graph_numbers_b_rgb[ii*3*3*9],3,
+		draw_from_xpm(numbers_xpm,&graph_numbers_b_rgb[ii*3*4*9],4,
 		              4*ii,0,3,9,graph_digit_colors[1]);
 	}
 
