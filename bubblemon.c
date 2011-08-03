@@ -995,14 +995,12 @@ void roll_history(void)  {
 }
 
 void draw_cpudigit(int what, unsigned char *whither) {
-	unsigned int len, y;
-	unsigned char *to, *from;
+	unsigned int y;
+	unsigned char *from = digits + what * 3 * 6;;
 	for (y = 0; y < 9; y++) { /* magic numbers suck. */
-		len = 7*3;
-		to = whither + y * 3*25;
-		from = digits + y * 3*95 + what*3*6;
-		while (len--)
-			*to++ = *from++;
+		memcpy(whither,from,21);
+		whither += 3*25;
+		from += 3*95;
 	}
 }
 
