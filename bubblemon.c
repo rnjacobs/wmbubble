@@ -105,9 +105,10 @@ void draw_history(int num, int size, unsigned int *history,
 void draw_digit(unsigned char * from, unsigned char * whither);
 void draw_string(char *string, int x, int y, int color);
 void draw_cpudigit(int what, unsigned char *whither);
+void draw_cpugauge(int cpu);
 
 void render_secondary(void);
-void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity);
+void realtime_alpha_blend_of_cpu_usage(int proximity);
 void rarely_render_secondary(void);
 void roll_history(void);
 
@@ -151,6 +152,7 @@ int graph_grid = 0x062A00;
 
 unsigned char * empty_loadgraph, * empty_memgraph;
 unsigned char * graph_numbers_n_rgb, * graph_numbers_b_rgb;
+unsigned char cpu_gauge[25*9*3];
 
 XrmOptionDescRec x_resource_options[] = {
 	{"-maxbubbles",    "*maxbubbles",     XrmoptionSepArg, (XPointer) NULL},
@@ -342,6 +344,7 @@ int main(int argc, char **argv) {
 	char execute[256];
 	char * x_resources_as_string;
 	unsigned int loadPercentage;
+	int delay, divisor;
 	int proximity = 0;
 #ifdef FPS
 	int frames_count;
@@ -385,6 +388,12 @@ int main(int argc, char **argv) {
 #endif
 
 	make_new_bubblemon_dockapp();
+
+	/* the math below makes the cpu gauge try to update at 5 Hz.
+	   Originally it was 15ms*10 meaning 7Hz */
+	delay = divisor = 200000 / delay_time;
+	if (divisor == 0) divisor = 1;
+	loadPercentage = 0;
 
 #ifdef PRO
 	gettimeofday(&start,NULL);
@@ -432,8 +441,14 @@ int main(int argc, char **argv) {
 #endif /*PRO*/
 		/* gmlp: 72.53us/frame */
 		get_memory_load_percentage();
-		/* system_cpu: 494.0us/frame */
-		loadPercentage = system_cpu();
+
+		if (++delay >= divisor) {
+			/* on linux, apparently opening /proc/stat is expensive, whodathunk? */
+			/* system_cpu: 494.0us/frame */
+			loadPercentage = system_cpu();
+			delay = 0;
+		}
+
 		/* bubblemon_update: 2.207us/frame */
 		bubblemon_update(loadPercentage);
 		/* 18.68us/frame */
@@ -445,8 +460,13 @@ int main(int argc, char **argv) {
 		}
 
 		if (cpu_enabled || memscreen_enabled) {
+			/* we don't want to redraw changing digits every update because that
+			 * doesn't look so good. we throttle it above because system_cpu is
+			 * expensive on linux. */
+			if (delay == 0)
+				draw_cpugauge(loadPercentage);
 			/* 30.15us/frame */
-			realtime_alpha_blend_of_cpu_usage(loadPercentage, proximity);
+			realtime_alpha_blend_of_cpu_usage(proximity);
 		}
 
 #ifdef FPS
@@ -1015,6 +1035,20 @@ void draw_cpudigit(int what, unsigned char *whither) {
 	}
 }
 
+void draw_cpugauge(int cpu) {
+	if (cpu >= 100) {
+		draw_cpudigit(1, cpu_gauge);
+		draw_cpudigit(0, &cpu_gauge[3*6]);
+		draw_cpudigit(0, &cpu_gauge[3*12]);
+	} else {
+		draw_cpudigit(12, cpu_gauge);
+		draw_cpudigit(cpu / 10, &cpu_gauge[3*6]);
+		draw_cpudigit(cpu % 10, &cpu_gauge[3*12]);
+	}
+	/* percent sign is always there */
+	draw_cpudigit(10, &cpu_gauge[3*18]);
+}
+
 void draw_dtchr(const char letter, unsigned char * rgbbuf) {
   int x,y;
   unsigned char * attenuator;
@@ -1105,7 +1139,7 @@ void draw_datetime(unsigned char * rgbbuf) {
   draw_largedigit(mytime->tm_min%10,rgbbuf+3*(43+BOX_SIZE*13));
 }
 
-void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
+void realtime_alpha_blend_of_cpu_usage(int proximity) {
 	/* where is the text going to be (now, bottom-center) */
 	int bob;
 
@@ -1113,43 +1147,13 @@ void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 	static int blend = CPUMAXBLEND;
 	static int memblend = GRAPHMAXBLEND;
 	static int showmem = 0;
-	static int yoh;
-	static int avg;
-	int hibyte, y, pos, ratio;
+	int y, pos;
 
 	/* CPU load buffer */
-	static unsigned char kit[25 * 3 * 9 + 1]; /* 9 high, 25 wide, 3bpp */
 	unsigned char *kitptr;
 
-	/* the plan is simple.  we don't want to redraw the digits every update
-	 * because that doesn't look so good.  so we average it, and draw only
-	 * once every N updates. 
-
-	 * We alpha blend the static buffer so we still get cool transparency
+	/* We alpha blend the static buffer so we still get cool transparency
 	 * effects. */
-	avg += cpu;
-
-	ratio = 200000/delay_time;
-	if (ratio==0) ratio=1;
-
-	/* the math below makes it vaguely try to update at 5 Hz.
-	   Originally it was 15ms*10 meaning 7Hz */
-	while (++yoh > ratio) {
-		cpu = avg / ratio;
-		avg = yoh = 0;
-		hibyte = cpu / 10;
-		if (hibyte == 10) {
-			draw_cpudigit(1, kit);
-			draw_cpudigit(0, &kit[3*6]);
-			draw_cpudigit(0, &kit[3*12]);
-		} else {
-			draw_cpudigit(12, kit);
-			draw_cpudigit(hibyte, &kit[3*6]);
-			draw_cpudigit(cpu % 10, &kit[3*12]);
-		}
-		/* percent sign is always there */
-		draw_cpudigit(10, &kit[3*18]);
-	}
 
 	/* sexy fade effect */
 	if (proximity) {
@@ -1190,7 +1194,7 @@ void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity) {
 		/* bit shifts result in smaller and faster code without an extra jns
 		 * which appears if we / 128 instead of >> 7. 
 		 */
-		kitptr = kit;
+		kitptr = cpu_gauge;
 		for (y = 0; y < 9; y++) {
 			pos = ((y + (BOX_SIZE-10)) * BOX_SIZE + (BOX_SIZE/2-12))*3;
 			bob = 75;		/* 25 * 3 */
