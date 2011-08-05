@@ -279,8 +279,14 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 					*(double *) x_resource_extras[i].write_to = strtod(val.addr,NULL);
 					break;
 				case Is_Color:
-					XParseColor(wmxp_display,DefaultColormap(wmxp_display,DefaultScreen(wmxp_display)),
-					            val.addr, &colorparsing);
+					if (XParseColor(wmxp_display,
+					                DefaultColormap(wmxp_display,
+					                                DefaultScreen(wmxp_display)),
+					                val.addr, &colorparsing) == 0) {
+						fprintf(stderr,"Couldn't parse color %s for control %s\n",
+						        val.addr,x_resource_extras[i].option);
+						exit(-3);
+					}
 					*(int *) x_resource_extras[i].write_to = 
 						((colorparsing.red & 0xFF00) << 8) | 
 						((colorparsing.green & 0xFF00)) |
