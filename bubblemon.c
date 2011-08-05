@@ -396,7 +396,7 @@ int main(int argc, char **argv) {
 	       1
 #endif
 	       ) {
-		/* XPending+roll_history 1M times in 52sec -> 8us/frame */
+		/* XPending: 1184ns/frame */
 		while (XPending(wmxp_display)) {
 			XNextEvent(wmxp_display,&event);
 			switch (event.type) {
@@ -429,35 +429,37 @@ int main(int argc, char **argv) {
 		}
 #ifndef PRO
 		usleep(delay_time);
-#endif
-		/* gmlp+roll_history 400k times in 47sec -> 73us/frame */
+#endif /*PRO*/
+		/* gmlp: 72.53us/frame */
 		get_memory_load_percentage();
-		/* Find out the CPU load */
+		/* system_cpu: 494.0us/frame */
 		loadPercentage = system_cpu();
-		/* bubblemon_update 100k times in 54sec -> 1852fps or 540us/frame */
+		/* bubblemon_update: 2.207us/frame */
 		bubblemon_update(loadPercentage);
+		/* 18.68us/frame */
 		bubblebuf_colorspace();
 
+		/* 1.785us/frame */
 		if (duck_enabled) {
 			duck_swimmer();
 		}
 
 		if (cpu_enabled || memscreen_enabled) {
-			/* cpu_blend: 2M times in 59sec -> 33898fps or 30us/frame */
+			/* 30.15us/frame */
 			realtime_alpha_blend_of_cpu_usage(loadPercentage, proximity);
 		}
 
-
 #ifdef FPS
+		/* 157ns/frame */
 		frames_count++;
 		if(time(NULL)!=last_time) {
 			fprintf(stderr,"%03dfps\n",frames_count);
 			frames_count=0;
 			last_time=time(NULL);
 		}
-#endif
+#endif /*FPS*/
 
-		/* drawing borders: 50M times in 54sec -> 925926fps or 1.08us/frame */
+		/* drawing borders: 1.136us/frame */
 		int xx,yy;
 		unsigned char * from;
 
@@ -473,12 +475,12 @@ int main(int argc, char **argv) {
 			from[(BOX_SIZE-1)*3+2]=(255+from[(BOX_SIZE-1)*3+2])/2;
 		}
 
-		/* Our colorspace conversion: 3M times in 56sec -> 53561fps or 19us/frame */
+		/* Our colorspace conversion: 18.17us/frame */
 		RGBtoXIm(bm.rgb_buf,bm.xim);
-		/* X11 XImage->Pixmap->display: 400k times in 60sec -> 6667fps or 150us/frame */
+		/* X11 XImage->Pixmap->display: 148.6us/frame */
 		RedrawWindow(bm.xim);
 
-		/* update graph histories: 1M times in 44sec -> 22727fps or 44us/frame */
+		/* update graph histories: 51.46us/frame */
 		if (memscreen_enabled)
 			roll_history();
 	}
@@ -486,7 +488,10 @@ int main(int argc, char **argv) {
 	gettimeofday(&end,NULL);
 	end.tv_sec -= start.tv_sec;
 	end.tv_usec -= start.tv_usec;
-	fprintf(stderr,"%d redraws in %f seconds = %f fps\n",PRO,end.tv_sec+end.tv_usec/1000000.0,(float)PRO/(end.tv_sec+end.tv_usec/1000000.0));
+	fprintf(stderr,"%d redraws in %f seconds = %f fps, %f us/f\n",PRO,
+	        end.tv_sec+end.tv_usec/1000000.0,
+	        (float)PRO/(end.tv_sec+end.tv_usec/1000000.0),
+	        (end.tv_sec*1000000.0+end.tv_usec)/(float)PRO);
 #endif
 	return 0;
 }	/* main */
