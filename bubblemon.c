@@ -774,7 +774,7 @@ void bubblemon_update(int loadPercentage) {
 void bubblebuf_colorspace(void) {
 	unsigned char reds[3], grns[3], blus[3];
 	unsigned char * bubblebuf_ptr, * rgbbuf_ptr;
-	int count;
+	int count, bubblebuf_val;
 	/*
 	  Vary the colors of air and water with how many percent of the available
 	  swap space that is in use.
@@ -805,11 +805,11 @@ void bubblebuf_colorspace(void) {
 	blus[antialiascolor] = ((int)blus[watercolor] + blus[aircolor])/2;
 
 	for (count = BOX_SIZE*BOX_SIZE, rgbbuf_ptr = bm.rgb_buf, bubblebuf_ptr = bm.bubblebuf;
-	     count;
-	     count--, bubblebuf_ptr++) {
-		*rgbbuf_ptr++ = reds[*bubblebuf_ptr];
-		*rgbbuf_ptr++ = grns[*bubblebuf_ptr];
-		*rgbbuf_ptr++ = blus[*bubblebuf_ptr];
+	     count; count--) {
+		bubblebuf_val = *bubblebuf_ptr++; /* -O3 did not optimize away the 3x load of *bubblebuf_ptr */
+		*rgbbuf_ptr++ = reds[bubblebuf_val];
+		*rgbbuf_ptr++ = grns[bubblebuf_val];
+		*rgbbuf_ptr++ = blus[bubblebuf_val];
 	}
 } /* bubblebuf_colorspace */
 
