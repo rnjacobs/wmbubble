@@ -108,7 +108,9 @@ void draw_cpudigit(int what, unsigned char *whither);
 void draw_cpugauge(int cpu);
 
 void render_secondary(void);
-void realtime_alpha_blend_of_cpu_usage(int proximity);
+int calculate_transparencies(int proximity);
+void alpha_cpu(void);
+void alpha_graph(void);
 void rarely_render_secondary(void);
 void roll_history(void);
 
@@ -346,6 +348,7 @@ int main(int argc, char **argv) {
 	unsigned int loadPercentage;
 	int delay, divisor;
 	int proximity = 0;
+	int show_graph = 0;
 #ifdef FPS
 	int frames_count;
 	time_t last_time;
@@ -466,8 +469,17 @@ int main(int argc, char **argv) {
 			if (delay == 0)
 				draw_cpugauge(loadPercentage);
 			/* 30.15us/frame */
-			realtime_alpha_blend_of_cpu_usage(proximity);
+			show_graph = calculate_transparencies(proximity);
 		}
+
+		if (cpu_enabled)
+			alpha_cpu();
+
+		/* if (clock_mode == DIGITAL_CLOCK) */
+		draw_datetime(bm.rgb_buf);
+
+		if (memscreen_enabled && show_graph)
+			alpha_graph();
 
 #ifdef FPS
 		/* 157ns/frame */
@@ -1139,18 +1151,12 @@ void draw_datetime(unsigned char * rgbbuf) {
   draw_largedigit(mytime->tm_min%10,rgbbuf+3*(43+BOX_SIZE*13));
 }
 
-void realtime_alpha_blend_of_cpu_usage(int proximity) {
-	/* where is the text going to be (now, bottom-center) */
-	int bob;
+int blend = CPUMAXBLEND;
+int memblend = GRAPHMAXBLEND;
 
+int calculate_transparencies(int proximity) {
 	/* memory window */
-	static int blend = CPUMAXBLEND;
-	static int memblend = GRAPHMAXBLEND;
 	static int showmem = 0;
-	int y, pos;
-
-	/* CPU load buffer */
-	unsigned char *kitptr;
 
 	/* We alpha blend the static buffer so we still get cool transparency
 	 * effects. */
@@ -1190,37 +1196,36 @@ void realtime_alpha_blend_of_cpu_usage(int proximity) {
 		}
 	}
 
-	if (cpu_enabled) {
-		/* bit shifts result in smaller and faster code without an extra jns
-		 * which appears if we / 128 instead of >> 7. 
-		 */
-		kitptr = cpu_gauge;
-		for (y = 0; y < 9; y++) {
-			pos = ((y + (BOX_SIZE-10)) * BOX_SIZE + (BOX_SIZE/2-12))*3;
-			bob = 75;		/* 25 * 3 */
-			while (bob--) {
-				bm.rgb_buf[pos] =
-					(blend * bm.rgb_buf[pos] + (256 - blend) * *kitptr++) >> 8;
-				pos++;
-			}
-		}
-	}
-
-	draw_datetime(bm.rgb_buf);
+	return showmem;
+} /* calculate_transparencies */
 
 
-	/* we hovered long enough to print some memory info */
-	if (memscreen_enabled && showmem) {
-		unsigned char *ptr, *ptr2, src;
-		ptr = bm.mem_buf;
-		ptr2 = bm.rgb_buf;
-		bob = BOX_SIZE * BOX_SIZE * 3;
+void alpha_cpu(void) {
+	unsigned char * kitptr;
+	int y, bob, pos;
+	kitptr = cpu_gauge;
+	for (y = 0; y < 9; y++) {
+		pos = ((y + (BOX_SIZE-10)) * BOX_SIZE + (BOX_SIZE/2-12))*3;
+		bob = 75;		/* 25 * 3 */
 		while (bob--) {
-			src = *ptr2;
-			*ptr2++ = (memblend * src + (256 - memblend) * *ptr++) >> 8;
+			bm.rgb_buf[pos] =
+				(blend * bm.rgb_buf[pos] + (256 - blend) * *kitptr++) >> 8;
+			pos++;
 		}
 	}
-} /* realtime_alpha_blend_of_cpu_usage */
+}
+
+void alpha_graph(void) {
+	unsigned char *ptr, *ptr2, src;
+	int bob;
+	ptr = bm.mem_buf;
+	ptr2 = bm.rgb_buf;
+	bob = BOX_SIZE * BOX_SIZE * 3;
+	while (bob--) {
+		src = *ptr2;
+		*ptr2++ = (memblend * src + (256 - memblend) * *ptr++) >> 8;
+	}
+}
 
 void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 	int w, h;
