@@ -314,7 +314,9 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 					}
 					break;
 				default:
-					/* fail soft */
+					fprintf(stderr, "Compilation time error: element #%d (%s) has not-understood parse type %d\n",
+					        i, x_resource_extras[i].option, x_resource_extras[i].parse_as);
+					abort();
 					break;
 				}
 		}
