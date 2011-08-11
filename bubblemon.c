@@ -1201,29 +1201,28 @@ int calculate_transparencies(int proximity) {
 
 
 void alpha_cpu(void) {
-	unsigned char * kitptr;
-	int y, bob, pos;
-	kitptr = cpu_gauge;
+	unsigned char * gaugeptr, *rgbptr;
+	int y, bob;
+	gaugeptr = cpu_gauge;
 	for (y = 0; y < 9; y++) {
-		pos = ((y + (BOX_SIZE-10)) * BOX_SIZE + (BOX_SIZE/2-12))*3;
+		rgbptr = &bm.rgb_buf[((y + (BOX_SIZE-10)) * BOX_SIZE + (BOX_SIZE/2-12))*3];
 		bob = 75;		/* 25 * 3 */
 		while (bob--) {
-			bm.rgb_buf[pos] =
-				(blend * bm.rgb_buf[pos] + (256 - blend) * *kitptr++) >> 8;
-			pos++;
+			*rgbptr = (blend * *rgbptr + (256 - blend) * *gaugeptr++) >> 8;
+			rgbptr++;
 		}
 	}
 }
 
 void alpha_graph(void) {
-	unsigned char *ptr, *ptr2, src;
+	unsigned char *graphptr, *rgbptr;
 	int bob;
-	ptr = bm.mem_buf;
-	ptr2 = bm.rgb_buf;
+	graphptr = bm.mem_buf;
+	rgbptr = bm.rgb_buf;
 	bob = BOX_SIZE * BOX_SIZE * 3;
 	while (bob--) {
-		src = *ptr2;
-		*ptr2++ = (memblend * src + (256 - memblend) * *ptr++) >> 8;
+		*rgbptr = (memblend * *rgbptr + (256 - memblend) * *graphptr++) >> 8;
+		rgbptr++;
 	}
 }
 
