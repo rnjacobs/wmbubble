@@ -54,6 +54,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include <ctype.h> /* I know tolower isn't i18n, I'm sorry */
 
 /* x11 includes */
@@ -114,7 +115,7 @@ void alpha_graph(void);
 void rarely_render_secondary(void);
 void roll_history(void);
 
-void draw_datetime(unsigned char *display);
+void alpha_datetime(void);
 void draw_dtchr(const char letter, unsigned char *where);
 
 int animate_correctly(void);
@@ -369,6 +370,9 @@ int main(int argc, char **argv) {
 	/* VERY first thing: zero data structure */
 	memset(&bm, 0, sizeof(bm));
 
+	/* Support localized date strings */
+	setlocale(LC_ALL,"");
+
 	/* initialize Ximage */
 	bm.xim = initwmX11pixmap(argc,argv);
 	XrmInitialize();
@@ -470,7 +474,7 @@ int main(int argc, char **argv) {
 			 * expensive on linux. */
 			if (delay == 0)
 				draw_cpugauge(loadPercentage);
-			/* 30.15us/frame */
+			/* ? */
 			show_graph = calculate_transparencies(proximity);
 		}
 
@@ -478,7 +482,7 @@ int main(int argc, char **argv) {
 			alpha_cpu();
 
 		/* if (clock_mode == DIGITAL_CLOCK) */
-		draw_datetime(bm.rgb_buf);
+		alpha_datetime();
 
 		if (memscreen_enabled && show_graph)
 			alpha_graph();
@@ -1063,33 +1067,49 @@ void draw_cpugauge(int cpu) {
 	draw_cpudigit(10, &cpu_gauge[3*18]);
 }
 
+int dtchr_width(const char letter) {
+	if (letter >= '0' && letter <= '9') {
+		return 6;
+	} else if (letter >= '@' && letter <= '~') {
+		return 5;
+	} else if (letter == ':') {
+		return 2;
+	} else {
+		return 1;
+	}
+}
+
 void draw_dtchr(const char letter, unsigned char * rgbbuf) {
   int x,y;
   unsigned char * attenuator;
 
-  if (letter>='0' && letter<='9') {
-    for (y=0;y<7;y++)
-	    for (x=0,attenuator=&rgbbuf[y*BOX_SIZE*3];x<5;x++) 
-	      if (clockdigit[x+(y*10+(letter-'0'))*6]=='M') {
-		      *(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
-	      } else {
-		      attenuator += 3;
+  switch (dtchr_width(letter)) {
+  case 6:
+	  for (y=0;y<7;y++)
+		  for (x=0,attenuator=&rgbbuf[y*BOX_SIZE*3];x<5;x++) 
+			  if (clockdigit[x+(y*10+(letter-'0'))*6]=='M') {
+				  *(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
+			  } else {
+				  attenuator += 3;
 	      }
-  } else if (letter>='@' && letter<='~') {
+	  break;
+  case 5:
 	  for (y=0;y<7;y++)
 		  for (x=0,attenuator=&rgbbuf[y*BOX_SIZE*3];x<4;x++) 
 			  if (clockalpha[x+(y*63+(letter-'@'))*5]=='M') {
-		      *(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
-	      } else {
-		      attenuator += 3;
+				  *(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
+			  } else {
+				  attenuator += 3;
 	      }
-  } else if (letter==':') {
+	  break;
+  case 2:
 	  rgbbuf[3*BOX_SIZE*3  ]>>=1;
 	  rgbbuf[3*BOX_SIZE*3+1]>>=1;
 	  rgbbuf[3*BOX_SIZE*3+2]>>=1;
 	  rgbbuf[5*BOX_SIZE*3  ]>>=1;
 	  rgbbuf[5*BOX_SIZE*3+1]>>=1;
 	  rgbbuf[5*BOX_SIZE*3+2]>>=1;
+	  break;
   }
 }
 
@@ -1110,13 +1130,13 @@ void draw_largedigit(char number, unsigned char * rgbbuf) {
   }
 }
 
-void draw_datetime(unsigned char * rgbbuf) {
-  const char months[12][3]={"Jan","Feb","Mar","Apr","May","Jun",
-			 "Jul","Aug","Sep","Oct","Nov","Dec"};
-  const char days[7][3]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+void alpha_datetime(void) {
+	char format[11];
   time_t mytt;
   struct tm * mytime;
   int mday=0, hours=0;
+  int ii, width;
+  unsigned char * rgbptr;
 
   time(&mytt);
   mytime = localtime(&mytt);
@@ -1130,27 +1150,24 @@ void draw_datetime(unsigned char * rgbbuf) {
 	  mytime->tm_hour += hours;
   }
 
-  /* Sat Jan 04 */
+  if (strftime(format,11,"%a %b %d",mytime) == 0) /* Sat Jan 04 */
+	  strftime(format,11,"%m %d",mytime); /* 01 04   if above fails */
 
-#define DOWx  9
-#define MONx 25
-#define DOMx 41
-  /* draw day-of-week (14 px)*/
-  draw_dtchr(days[mytime->tm_wday][0],rgbbuf+(DOWx   )*3+56*3);
-  draw_dtchr(days[mytime->tm_wday][1],rgbbuf+(DOWx+ 5)*3+56*3);
-  draw_dtchr(days[mytime->tm_wday][2],rgbbuf+(DOWx+10)*3+56*3);
-  /* draw month (14 px) */
-  draw_dtchr(months[mytime->tm_mon][0],rgbbuf+(MONx   )*3+56*3);
-  draw_dtchr(months[mytime->tm_mon][1],rgbbuf+(MONx+ 5)*3+56*3);
-  draw_dtchr(months[mytime->tm_mon][2],rgbbuf+(MONx+10)*3+56*3);
-  /* draw day-of-month (11 px) */
-  draw_dtchr((mytime->tm_mday)/10+'0',rgbbuf+(DOMx   )*3+56*3);
-  draw_dtchr((mytime->tm_mday)%10+'0',rgbbuf+(DOMx+ 6)*3+56*3);
+  for (width = ii = 0; ii < strlen(format); ii++) {
+	  width += dtchr_width(format[ii]);
+  }
 
-  draw_largedigit(mytime->tm_hour/10,rgbbuf+3*(3+BOX_SIZE*13));
-  draw_largedigit(mytime->tm_hour%10,rgbbuf+3*(16+BOX_SIZE*13));
-  draw_largedigit(mytime->tm_min/10,rgbbuf+3*(30+BOX_SIZE*13));
-  draw_largedigit(mytime->tm_min%10,rgbbuf+3*(43+BOX_SIZE*13));
+  rgbptr = &bm.rgb_buf[3*(2*BOX_SIZE+(BOX_SIZE-width)/2)]; /* calculate centered */
+
+  for (ii = 0; ii < strlen(format); ii++) {
+	  draw_dtchr(format[ii],rgbptr);
+	  rgbptr += 3*dtchr_width(format[ii]);
+  }
+
+  draw_largedigit(mytime->tm_hour/10,&bm.rgb_buf[3*(3+BOX_SIZE*13)]);
+  draw_largedigit(mytime->tm_hour%10,&bm.rgb_buf[3*(16+BOX_SIZE*13)]);
+  draw_largedigit(mytime->tm_min/10,&bm.rgb_buf[3*(30+BOX_SIZE*13)]);
+  draw_largedigit(mytime->tm_min%10,&bm.rgb_buf[3*(43+BOX_SIZE*13)]);
 }
 
 int blend = CPUMAXBLEND;
