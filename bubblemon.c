@@ -468,15 +468,15 @@ int main(int argc, char **argv) {
 			duck_swimmer();
 		}
 
-		if (cpu_enabled || memscreen_enabled) {
+		if (cpu_enabled && delay == 0)
 			/* we don't want to redraw changing digits every update because that
 			 * doesn't look so good. we throttle it above because system_cpu is
 			 * expensive on linux. */
-			if (delay == 0)
-				draw_cpugauge(loadPercentage);
+			draw_cpugauge(loadPercentage);
+
+		if (memscreen_enabled)
 			/* ? */
 			show_graph = calculate_transparencies(proximity);
-		}
 
 		if (cpu_enabled)
 			alpha_cpu();
