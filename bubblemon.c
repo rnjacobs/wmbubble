@@ -137,7 +137,8 @@ int upside_down_duck_enabled = 1;
 int cpu_enabled = 1;
 int memscreen_enabled = 1;
 int memscreen_megabytes = 0;
-int graph_digit_colors[2] = {0x308cf0,0xed1717};
+int graph_digit_color = 0x308cf0;
+int graph_warning_digit_color = 0xed1717;
 int pale = 0;
 
 int shifttime = 0;
@@ -219,8 +220,8 @@ const struct XrmExtras {
 	{"-u",              Is_Bool, &upside_down_duck_enabled, "The duck can never flip" },
 	{"-cpumeter",       Is_Bool, &cpu_enabled, "Show the current load at the bottom"},
 	{"-c",              Is_Bool, &cpu_enabled, "Don't show the current load"},
-	{"-graphdigit",     Is_Color, &graph_digit_colors[0], "The color for the digits on the graphs"},
-	{"-graphwarn",      Is_Color, &graph_digit_colors[1], "The color for the digits on the memory graph when above 90%" },
+	{"-graphdigit",     Is_Color, &graph_digit_color, "The color for the digits on the graphs"},
+	{"-graphwarn",      Is_Color, &graph_warning_digit_color, "The color for the digits on the memory graph when above 90%" },
 	{"-graphlabel",     Is_Color, &graph_labels, "The color for the 1 5 and 15 on load graph and m and s on mem graph" },
 	{"-graphfield",     Is_Color, &graph_field, "The background color of the graphs" },
 	{"-graphgrid",      Is_Color, &graph_grid, "The color of the grid lines in the graphs" },
@@ -324,8 +325,8 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 	}
 
 	if (pale) {
-		graph_digit_colors[0] = 0x9ec4ed;
-		graph_digit_colors[1] = 0x00ffe9;
+		graph_digit_color = 0x9ec4ed;
+		graph_warning_digit_color = 0x00ffe9;
 	}
 
 	/* convert doubles into integer representation */
@@ -1385,9 +1386,9 @@ void bubblemon_allocate_buffers(void) {
 
 	for (ii = 0; ii < 12; ii++) {
 		draw_from_xpm(numbers_xpm,&graph_numbers_n_rgb[ii*3*4*9],4,
-		              4*ii,0,3,9,graph_digit_colors[0]);
+		              4*ii,0,3,9,graph_digit_color);
 		draw_from_xpm(numbers_xpm,&graph_numbers_b_rgb[ii*3*4*9],4,
-		              4*ii,0,3,9,graph_digit_colors[1]);
+		              4*ii,0,3,9,graph_warning_digit_color);
 	}
 
 	bm.loadIndex = 0;
@@ -1414,11 +1415,11 @@ void build_graphs(void) {
 	draw_from_xpm(ofmspct_xpm,&empty_memgraph[3*(32+4*BOX_SIZE)],BOX_SIZE,
 	              6,0,5,5,graph_labels); /* m */
 	draw_from_xpm(ofmspct_xpm,&empty_memgraph[3*(51+2*BOX_SIZE)],BOX_SIZE,
-	              18,0,4,8,graph_digit_colors[0]); /* mem% */
+	              18,0,4,8,graph_digit_color); /* mem% */
 	draw_from_xpm(ofmspct_xpm,&empty_memgraph[3*(32+13*BOX_SIZE)],BOX_SIZE,
 	              12,0,5,5,graph_labels); /* s */
 	draw_from_xpm(ofmspct_xpm,&empty_memgraph[3*(51+11*BOX_SIZE)],BOX_SIZE,
-	              18,0,4,8,graph_digit_colors[0]); /* swap% */
+	              18,0,4,8,graph_digit_color); /* swap% */
 
 	/* load average */
 	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(8+2*BOX_SIZE)],BOX_SIZE,
@@ -1430,15 +1431,15 @@ void build_graphs(void) {
 	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(48+2*BOX_SIZE)],BOX_SIZE,
 	              3,0,2,5,graph_labels); /* 5 */
 	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(9+15*BOX_SIZE)],BOX_SIZE,
-	              18,0,1,2,graph_digit_colors[0]); /* . */
+	              18,0,1,2,graph_digit_color); /* . */
 	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(28+15*BOX_SIZE)],BOX_SIZE,
-	              18,0,1,2,graph_digit_colors[0]); /* . */
+	              18,0,1,2,graph_digit_color); /* . */
 	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(47+15*BOX_SIZE)],BOX_SIZE,
-	              18,0,1,2,graph_digit_colors[0]); /* . */
+	              18,0,1,2,graph_digit_color); /* . */
 
-	r = GET_RED(graph_digit_colors[0]);
-	g = GET_GRN(graph_digit_colors[0]);
-	b = GET_BLU(graph_digit_colors[0]);
+	r = GET_RED(graph_digit_color);
+	g = GET_GRN(graph_digit_color);
+	b = GET_BLU(graph_digit_color);
 
 	/* the lines above and below the graphs */
 	for (xx = 2; xx < BOX_SIZE - 2; xx++) {
