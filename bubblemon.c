@@ -933,7 +933,7 @@ void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c) {
  * this is called not very often: only 1 time out of 250 */
 void draw_history(int num, int size, unsigned int *history, unsigned char *buf) {
 	int pixels_per_byte;
-	int j, k;
+	int yy, xx;
 	int d;
 
 	pixels_per_byte = 100;
@@ -943,21 +943,21 @@ void draw_history(int num, int size, unsigned int *history, unsigned char *buf) 
 			pixels_per_byte += 100;
 	}
 
-	for (k = 0; k < num; k++) {
-		d = size * history[k] / pixels_per_byte;
+	for (xx = 0; xx < num; xx++) {
+		d = size * history[xx] / pixels_per_byte;
 
-		for (j = 0; j < size; j++) {
-			if (j < d - 2)
-				draw_pixel(k, size - j - 1, buf, "\x00\x7d\x71"); /* dark cyan for lower part of bar graph */
-			else if (j < d)
-				draw_pixel(k, size - j - 1, buf, "\x20\xb6\xae"); /* seagreen for top two pixels */
+		for (yy = 0; yy < size; yy++) {
+			if (yy < d - 2)
+				draw_pixel(xx, size - yy - 1, buf, "\x00\x7d\x71"); /* dark cyan for lower part of bar graph */
+			else if (yy < d)
+				draw_pixel(xx, size - yy - 1, buf, "\x20\xb6\xae"); /* seagreen for top two pixels */
 		}
 	}
 	
-	for (j = pixels_per_byte - 100; j > 0; j -= 100) { /* draw lines for each 100s */
-		for (k = 0; k < num; k++) {
-			d = size * j / pixels_per_byte;
-			draw_pixel(k, size - d - 1, buf, "\x71\xe3\x71"); /* spring green */ 
+	for (yy = pixels_per_byte - 100; yy > 0; yy -= 100) { /* draw lines for each 100s */
+		for (xx = 0; xx < num; xx++) {
+			d = size * yy / pixels_per_byte;
+			draw_pixel(xx, size - d - 1, buf, "\x71\xe3\x71"); /* spring green */
 		}
 	}
 }
