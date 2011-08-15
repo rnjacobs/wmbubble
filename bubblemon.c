@@ -154,6 +154,10 @@ int graph_labels = 0xC1C400;
 int graph_field = 0x202020;
 int graph_grid = 0x062A00;
 
+int graph_max = 0x20B6AE;
+int graph_bar = 0x007D71;
+int graph_hundreds = 0x71E371;
+
 unsigned char * empty_loadgraph, * empty_memgraph;
 unsigned char * graph_numbers_n_rgb, * graph_numbers_b_rgb;
 unsigned char cpu_gauge[25*9*3];
@@ -185,6 +189,9 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-graphlabel",    "*graphlabel",     XrmoptionSepArg, (XPointer) NULL},
 	{"-graphfield",    "*graphfield",     XrmoptionSepArg, (XPointer) NULL},
 	{"-graphgrid",     "*graphgrid",      XrmoptionSepArg, (XPointer) NULL},
+	{"-graphmax",      "*graphmax",       XrmoptionSepArg, (XPointer) NULL},
+	{"-graphbar",      "*graphbar",       XrmoptionSepArg, (XPointer) NULL},
+	{"-graphmarkers",  "*graphmarkers",   XrmoptionSepArg, (XPointer) NULL},
 	{"-p",             ".graphdigitpale", XrmoptionNoArg,  (XPointer) "1"},
 	{"-graphs",        "*graphs",         XrmoptionSepArg, (XPointer) NULL}, /* disable graphs */
 	{"-m",             "*graphs",         XrmoptionIsArg,  (XPointer) "no"},
@@ -225,6 +232,9 @@ const struct XrmExtras {
 	{"-graphlabel",     Is_Color, &graph_labels, "The color for the 1 5 and 15 on load graph and m and s on mem graph" },
 	{"-graphfield",     Is_Color, &graph_field, "The background color of the graphs" },
 	{"-graphgrid",      Is_Color, &graph_grid, "The color of the grid lines in the graphs" },
+	{"-graphmax",       Is_Color, &graph_max, "The color of the top two pixels of the bar graph" },
+	{"-graphbar",       Is_Color, &graph_bar, "The color of the rest of the bar graph" },
+	{"-graphmarkers",   Is_Color, &graph_hundreds, "The color of the horizontal lines on the graph that indicate each integer load average" },
 	{"-p",              Is_Bool, &pale, "Adjust the digit colors to pale blue and cyan"},
 	{"-graphs",         Is_Bool, &memscreen_enabled, "Does hovering show the graphs" },
 	{"-m",              Is_Bool, &memscreen_enabled, "Graphs are never shown"},
@@ -921,43 +931,53 @@ void draw_string(char *string, int x, int y, int color) {
 	}
 }
 
-void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c) {
-	unsigned char *ptr;
-	ptr = buf + y * BOX_SIZE * 3 + x * 3 + 6;	/* +6 = x + 2 */
-	*ptr++ = *c++;
-	*ptr++ = *c++;
-	*ptr++ = *c++;
-}
-
-/* draw graph num x size, data taken from history, into rgb buffer buf.
- * this is called not very often: only 1 time out of 250 */
+/* draw graph num x size, data taken from history (num long), into rgb
+   buffer buf (width BOX_SIZE, height size). */
 void draw_history(int num, int size, unsigned int *history, unsigned char *buf) {
 	int pixels_per_byte;
 	int yy, xx;
-	int d;
+	int height;
+	unsigned char mr,mg,mb, br,bg,bb;
+	unsigned char * graphptr;
 
 	pixels_per_byte = 100;
 
-	for (j = 0; j < num; j++) {
-		while (history[j] > pixels_per_byte) /* autoscaling */
+	for (xx = 0; xx < num; xx++) {
+		while (history[xx] > pixels_per_byte) /* autoscaling */
 			pixels_per_byte += 100;
 	}
 
-	for (xx = 0; xx < num; xx++) {
-		d = size * history[xx] / pixels_per_byte;
+	mr = GET_RED(graph_max);
+	mg = GET_GRN(graph_max);
+	mb = GET_BLU(graph_max);
 
-		for (yy = 0; yy < size; yy++) {
-			if (yy < d - 2)
-				draw_pixel(xx, size - yy - 1, buf, "\x00\x7d\x71"); /* dark cyan for lower part of bar graph */
-			else if (yy < d)
-				draw_pixel(xx, size - yy - 1, buf, "\x20\xb6\xae"); /* seagreen for top two pixels */
+	br = GET_RED(graph_bar);
+	bg = GET_GRN(graph_bar);
+	bb = GET_BLU(graph_bar);
+
+	for (xx = 0; xx < num; xx++) {
+		height = size - size * history[xx] / pixels_per_byte;
+
+		for (yy = height, graphptr = &buf[(height*BOX_SIZE+xx+2)*3];
+		     yy < height+2 && yy < size;
+		     yy++, graphptr += 3*BOX_SIZE) {
+			graphptr[0] = mr; graphptr[1] = mg; graphptr[2] = mb;
+		}
+
+		for (;yy < size; yy++, graphptr += 3*BOX_SIZE) {
+			graphptr[0] = br; graphptr[1] = bg; graphptr[2] = bb;
 		}
 	}
+
+	br = GET_RED(graph_hundreds);
+	bg = GET_GRN(graph_hundreds);
+	bb = GET_BLU(graph_hundreds);
 	
 	for (yy = pixels_per_byte - 100; yy > 0; yy -= 100) { /* draw lines for each 100s */
-		for (xx = 0; xx < num; xx++) {
-			d = size * yy / pixels_per_byte;
-			draw_pixel(xx, size - d - 1, buf, "\x71\xe3\x71"); /* spring green */
+		height = size - size * yy / pixels_per_byte;
+		graphptr = &buf[(height*BOX_SIZE+2)*3];
+		for (xx = 0; xx < num; xx++, graphptr += 3) {
+			graphptr[0] = br; graphptr[1] = bg; graphptr[2] = bb;
 		}
 	}
 }
