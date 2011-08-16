@@ -609,7 +609,7 @@ void bubblemon_update(int loadPercentage) {
 	unsigned int real_waterlevel_min, real_waterlevel_max;
 
 	/*
-	  The bubblebuf is made up of int8s (0..2), correspodning to the enum. A
+	  The bubblebuf is made up of int8s (0..2), corresponding to the enum. A
 	  pixel in the bubblebuf is accessed using the formula bubblebuf[row * w
 	  + column].
 	*/
