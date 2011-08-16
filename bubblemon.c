@@ -146,8 +146,8 @@ int do_help = 0;
 
 int delay_time = 100000;
 
-int blend = CPUMAXBLEND;
-int memblend = GRAPHMAXBLEND;
+int gauge_alpha = CPUMAXBLEND;
+int graph_alpha = GRAPHMAXBLEND;
 
 /* duck_colors[0] is always transparent */
 int duck_colors[4] = {0,0xF8FC00,0xF8B040,0};
@@ -504,7 +504,7 @@ int main(int argc, char **argv) {
 		   graphs are rolled every 500/66.7=7.5 s.
 
 		   For now we'll just update everything at the same rate */
-		if (memscreen_enabled && memblend < GRAPHMAXBLEND && graphdelay == 0)
+		if (memscreen_enabled && graph_alpha < GRAPHMAXBLEND && graphdelay == 0)
 			render_secondary();
 
 		if (cpu_enabled)
@@ -513,7 +513,7 @@ int main(int argc, char **argv) {
 		/* if (clock_mode == DIGITAL_CLOCK) */
 		alpha_datetime();
 
-		if (memscreen_enabled && memblend < GRAPHMAXBLEND)
+		if (memscreen_enabled && graph_alpha < GRAPHMAXBLEND)
 			alpha_graph();
 
 #ifdef FPS
@@ -1190,30 +1190,30 @@ void calculate_transparencies(int proximity) {
 
 	/* sexy fade effect */
 	if (proximity) {
-		blend -= gauge_rate;
-		if (blend < CPUMINBLEND) {
-			blend = CPUMINBLEND;
+		gauge_alpha -= gauge_rate;
+		if (gauge_alpha < CPUMINBLEND) {
+			gauge_alpha = CPUMINBLEND;
 			if (memscreen_enabled) {
-				if (memblend == GRAPHMAXBLEND) {
+				if (graph_alpha == GRAPHMAXBLEND) {
 					/* first time here, update memory stats */
 					render_secondary();
 				}
 				if (!bm.picture_lock)
-					memblend -= graph_transparent_rate;
-				if (memblend < GRAPHMINBLEND) {
-					memblend = GRAPHMINBLEND;
+					graph_alpha -= graph_transparent_rate;
+				if (graph_alpha < GRAPHMINBLEND) {
+					graph_alpha = GRAPHMINBLEND;
 				}
 			}
 		}
 	} else {
-		blend += gauge_rate;
+		gauge_alpha += gauge_rate;
 		if (memscreen_enabled && !bm.picture_lock)
-			memblend += graph_opaque_rate;
-		if (blend > CPUMAXBLEND) {
-			blend = CPUMAXBLEND;
+			graph_alpha += graph_opaque_rate;
+		if (gauge_alpha > CPUMAXBLEND) {
+			gauge_alpha = CPUMAXBLEND;
 		}
-		if (memscreen_enabled && memblend > GRAPHMAXBLEND) {
-			memblend = GRAPHMAXBLEND;
+		if (memscreen_enabled && graph_alpha > GRAPHMAXBLEND) {
+			graph_alpha = GRAPHMAXBLEND;
 		}
 	}
 } /* calculate_transparencies */
@@ -1227,7 +1227,7 @@ void alpha_cpu(void) {
 		rgbptr = &bm.rgb_buf[((y + (BOX_SIZE-10)) * BOX_SIZE + (BOX_SIZE/2-12))*3];
 		bob = 75;		/* 25 * 3 */
 		while (bob--) {
-			*rgbptr = (blend * *rgbptr + (256 - blend) * *gaugeptr++) >> 8;
+			*rgbptr = (gauge_alpha * *rgbptr + (256 - gauge_alpha) * *gaugeptr++) >> 8;
 			rgbptr++;
 		}
 	}
@@ -1240,7 +1240,7 @@ void alpha_graph(void) {
 	rgbptr = bm.rgb_buf;
 	bob = BOX_SIZE * BOX_SIZE * 3;
 	while (bob--) {
-		*rgbptr = (memblend * *rgbptr + (256 - memblend) * *graphptr++) >> 8;
+		*rgbptr = (graph_alpha * *rgbptr + (256 - graph_alpha) * *graphptr++) >> 8;
 		rgbptr++;
 	}
 }
