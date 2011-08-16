@@ -1,12 +1,14 @@
 # where to install this program
 PREFIX = /usr/local
 
+# default build flags
+CFLAGS = -ansi -Wall -ggdb
 # optimization cflags
-CFLAGS = -O3 -ansi -Wall
+# CFLAGS = -ansi -Wall -O3
 # profiling cflags
-# CFLAGS = -ansi -Wall -pg -O3 -DPRO=50000
+# CFLAGS = -ansi -Wall -O3 -pg -DPRO=50000
 # test coverage cflags
-# CFLAGS = -fprofile-arcs -ftest-coverage -Wall -ansi -g -DPRO
+# CFLAGS = -ansi -Wall -ggdb -fprofile-arcs -ftest-coverage -DPRO=50000
 
 BINARY=bubblemon
 SHELL=sh
@@ -18,7 +20,6 @@ CC = gcc
 ifeq ($(OS), Linux)
 	OBJS += sys_linux.o
 	LIBS = -lX11
-	INSTALL = -m 755
 endif
 
 # special things for FreeBSD
@@ -48,12 +49,8 @@ ifeq ($(OS), SunOS)
 		CFLAGS=-v -xO3
 	endif
 
-	ifeq ($(COMPILER), gcc)
-		CFLAGS=-O3 -Wall
-	endif
 	OBJS += sys_sunos.o
 	LIBS = -lX11 -lkstat -lm
-	INSTALL = -m 755
 endif
 
 CFLAGS += -DNAME=\"$(BINARY)\"
@@ -63,10 +60,9 @@ all: $(BINARY)
 $(BINARY): $(OBJS)
 	$(CC) $(CFLAGS) -o $(BINARY) $(OBJS) $(LIBS)
 
-bubblemon.o: bubblemon.c wmx11pixmap.h include/bubblemon.h			\
- include/sys_include.h include/clockfont.h include/numbers-2.h	\
- include/ducks.h include/digits.h misc/load_58.c misc/mem_58.c	\
- misc/numbers.xpm
+bubblemon.o: bubblemon.c wmx11pixmap.h include/bubblemon.h					\
+ include/sys_include.h include/clockfont.h include/numbers-2.h			\
+ include/ducks.h include/digits.h misc/numbers.xpm misc/ofmspct.xpm
 
 wmx11pixmap.o: wmx11pixmap.c wmx11pixmap.h
 
