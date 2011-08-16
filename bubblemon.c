@@ -746,15 +746,16 @@ void bubblemon_update(int loadPercentage) {
 			         i, bubbles[i].x, i, bubbles[i].y);
 #endif
 		
-			/* Yes; nuke it */
+			/* Yes; nuke it by replacing its properties with those
+			   of the last one and deallocate the last one. */
 			bubbles[i].x = bubbles[bm.n_bubbles - 1].x;
 			bubbles[i].y = bubbles[bm.n_bubbles - 1].y;
 			bubbles[i].dy = bubbles[bm.n_bubbles - 1].dy;
-			bm.n_bubbles--; /* XXX this can't be right */
+			bm.n_bubbles--;
 
 	    /*
-	      We must check the previously last bubble, which is
-	      now the current bubble, also.
+	      We must still check what was the next bubble which is 
+	      now the current bubble.
 	    */
 	    i--;
 	    continue;
@@ -770,16 +771,11 @@ void bubblemon_update(int loadPercentage) {
 				bm.waterlevels[bubbles[i].x + 1] += bm.ripples_int;
 			}
 
-			/* Yes; nuke it */
 			bubbles[i].x = bubbles[bm.n_bubbles - 1].x;
 			bubbles[i].y = bubbles[bm.n_bubbles - 1].y;
 			bubbles[i].dy = bubbles[bm.n_bubbles - 1].dy;
 			bm.n_bubbles--;
 
-			/*
-			  We must check the previously last bubble, which is
-			  now the current bubble, also.
-			*/
 			i--;
 			continue;
 		}
