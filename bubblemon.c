@@ -1175,15 +1175,24 @@ int blend = CPUMAXBLEND;
 int memblend = GRAPHMAXBLEND;
 
 int calculate_transparencies(int proximity) {
-	/* memory window */
 	static int showmem = 0;
+	static int gauge_rate, graph_transparent_rate, graph_opaque_rate;
 
-	/* We alpha blend the static buffer so we still get cool transparency
-	 * effects. */
+	if (gauge_rate == 0) {
+		/* gauge rate at 15ms/redraw: 4, or extremum-to-extremum in 0.4125s */
+		gauge_rate = delay_time * (CPUMAXBLEND-CPUMINBLEND) / 412500;
+		if (gauge_rate == 0) gauge_rate++;
+		/* transparenting rate at 15ms/redraw: 6, or opaque-to-transpaernt in 0.54s */
+		graph_transparent_rate = delay_time * (GRAPHMAXBLEND-GRAPHMINBLEND) / 540000;
+		if (graph_transparent_rate == 0) graph_transparent_rate++;
+		/* opacifying rate at 15ms/redraw: 10, or transparent-to-opaque in 0.324s */
+		graph_opaque_rate = delay_time * (GRAPHMAXBLEND-GRAPHMINBLEND) / 324000;
+		if (graph_opaque_rate == 0) graph_opaque_rate++;
+	}
 
 	/* sexy fade effect */
 	if (proximity) {
-		blend -= 24;
+		blend -= gauge_rate;
 		if (blend < CPUMINBLEND) {
 			blend = CPUMINBLEND;
 			if (memscreen_enabled) {
@@ -1193,16 +1202,16 @@ int calculate_transparencies(int proximity) {
 				}
 				showmem = 1;
 				if (!bm.picture_lock)
-					memblend -= 36;
+					memblend -= graph_transparent_rate;
 				if (memblend < GRAPHMINBLEND) {
 					memblend = GRAPHMINBLEND;
 				}
 			}
 		}
 	} else {
-		blend += 4*6;
+		blend += gauge_rate;
 		if (memscreen_enabled && !bm.picture_lock)
-			memblend += 60;
+			memblend += graph_opaque_rate;
 		if (blend > CPUMAXBLEND) {
 			blend = CPUMAXBLEND;
 		}
