@@ -119,7 +119,7 @@ void alpha_datetime(void);
 void draw_dtchr(const char letter, unsigned char *where);
 
 int animate_correctly(void);
-void draw_duck(int x, int y, int nr, int flipx, int flipy);
+void draw_duck(int x, int y, int frame_no, int flipx, int flipy);
 void duck_swimmer(void);
 
 #ifdef __FreeBSD__
@@ -1266,34 +1266,34 @@ void alpha_graph(void) {
 	}
 }
 
-void draw_duck(int x, int y, int nr, int flipx, int flipy) {
-	int w, h;
-	int rw;
-	int rh;
+void draw_duck(int x, int y, int frame_no, int flipx, int flipy) {
+	int xx, yy;
+	int real_x;
+	int real_y;
 	int pos;
-	int dw, di, dh, ds;
+	int duck_right, duck_left, duck_bottom, duck_top;
 	int cmap;			/* index into duck colors */
-	ds = 0;
+	duck_top = 0;
 	if (y < 0)
-		ds = -(y);
-	dh = 17;
+		duck_top = -(y);
+	duck_bottom = 17;
 	if ((y + 17) > BOX_SIZE)
-		dh = BOX_SIZE - y;
-	dw = 18;
+		duck_bottom = BOX_SIZE - y;
+	duck_right = 18;
 	if (x > BOX_SIZE-18)
-		dw = 18 - (x - (BOX_SIZE-18));
-	di = 0;
+		duck_right = 18 - (x - (BOX_SIZE-18));
+	duck_left = 0;
 	if (x < 0)
-		di = -(x);
-	for (h = ds; h < dh; h++) {
+		duck_left = -(x);
+	for (yy = duck_top; yy < duck_bottom; yy++) {
 		/* calculate this only once */
-		int ypos = (h + y) * BOX_SIZE;
-		rh = (flipy && upside_down_duck_enabled) ? 16 - h : h;
-		for (w = di; w < dw; w++) {
-			rw = flipx ? 17 - w : w;
-			if ((cmap = duck_data[nr][rh * 18 + rw]) != 0) {
+		int ypos = (yy + y) * BOX_SIZE;
+		real_y = (flipy && upside_down_duck_enabled) ? 16 - yy : yy;
+		for (xx = duck_left; xx < duck_right; xx++) {
+			real_x = flipx ? 17 - xx : xx;
+			if ((cmap = duck_data[frame_no][real_y * 18 + real_x]) != 0) {
 				unsigned char r, g, b;
-				pos = (ypos + w + x) * 3;
+				pos = (ypos + xx + x) * 3;
 
 				r = GET_RED(duck_colors[cmap]);
 				g = GET_GRN(duck_colors[cmap]);
@@ -1302,7 +1302,7 @@ void draw_duck(int x, int y, int nr, int flipx, int flipy) {
 				/* and now we'll blend the duck part that in water */
 				/* if we use integers here we speed up this function about
 				 * 40%. */
-				if (h + y < REALY(bm.waterlevels[w + x])) {
+				if (yy + y < REALY(bm.waterlevels[xx + x])) {
 					bm.rgb_buf[pos++] = r;
 					bm.rgb_buf[pos++] = g;
 					bm.rgb_buf[pos] = b;
