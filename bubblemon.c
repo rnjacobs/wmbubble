@@ -109,7 +109,7 @@ void draw_cpudigit(int what, unsigned char *whither);
 void draw_cpugauge(int cpu);
 
 void render_secondary(void);
-int calculate_transparencies(int proximity);
+void calculate_transparencies(int proximity);
 void alpha_cpu(void);
 void alpha_graph(void);
 void roll_history(void);
@@ -145,6 +145,9 @@ int shifttime = 0;
 int do_help = 0;
 
 int delay_time = 100000;
+
+int blend = CPUMAXBLEND;
+int memblend = GRAPHMAXBLEND;
 
 /* duck_colors[0] is always transparent */
 int duck_colors[4] = {0,0xF8FC00,0xF8B040,0};
@@ -361,7 +364,6 @@ int main(int argc, char **argv) {
 	unsigned int loadPercentage;
 	int gaugedelay, gaugedivisor, graphdelay, graphdivisor;
 	int proximity = 0;
-	int show_graph = 0;
 #ifdef FPS
 	int frames_count;
 	time_t last_time;
@@ -495,14 +497,14 @@ int main(int argc, char **argv) {
 			draw_cpugauge(loadPercentage);
 
 		/* ? */
-		show_graph = calculate_transparencies(proximity);
+		calculate_transparencies(proximity);
 
 		/* ? */
 		/* originally, numbers above are updated every (30/66.7)=0.45 s and
 		   graphs are rolled every 500/66.7=7.5 s.
 
 		   For now we'll just update everything at the same rate */
-		if (memscreen_enabled && show_graph && graphdelay == 0)
+		if (memscreen_enabled && memblend < GRAPHMAXBLEND && graphdelay == 0)
 			render_secondary();
 
 		if (cpu_enabled)
@@ -511,7 +513,7 @@ int main(int argc, char **argv) {
 		/* if (clock_mode == DIGITAL_CLOCK) */
 		alpha_datetime();
 
-		if (memscreen_enabled && show_graph)
+		if (memscreen_enabled && memblend < GRAPHMAXBLEND)
 			alpha_graph();
 
 #ifdef FPS
@@ -1171,11 +1173,7 @@ void alpha_datetime(void) {
   draw_largedigit(mytime->tm_min%10,&bm.rgb_buf[3*(43+BOX_SIZE*13)]);
 }
 
-int blend = CPUMAXBLEND;
-int memblend = GRAPHMAXBLEND;
-
-int calculate_transparencies(int proximity) {
-	static int showmem = 0;
+void calculate_transparencies(int proximity) {
 	static int gauge_rate, graph_transparent_rate, graph_opaque_rate;
 
 	if (gauge_rate == 0) {
@@ -1196,11 +1194,10 @@ int calculate_transparencies(int proximity) {
 		if (blend < CPUMINBLEND) {
 			blend = CPUMINBLEND;
 			if (memscreen_enabled) {
-				if (!showmem) {
+				if (memblend == GRAPHMAXBLEND) {
 					/* first time here, update memory stats */
 					render_secondary();
 				}
-				showmem = 1;
 				if (!bm.picture_lock)
 					memblend -= graph_transparent_rate;
 				if (memblend < GRAPHMINBLEND) {
@@ -1217,11 +1214,8 @@ int calculate_transparencies(int proximity) {
 		}
 		if (memscreen_enabled && memblend > GRAPHMAXBLEND) {
 			memblend = GRAPHMAXBLEND;
-			showmem = 0;
 		}
 	}
-
-	return showmem;
 } /* calculate_transparencies */
 
 
