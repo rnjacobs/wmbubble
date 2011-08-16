@@ -112,7 +112,6 @@ void render_secondary(void);
 int calculate_transparencies(int proximity);
 void alpha_cpu(void);
 void alpha_graph(void);
-void rarely_render_secondary(void);
 void roll_history(void);
 
 void alpha_datetime(void);
@@ -360,7 +359,7 @@ int main(int argc, char **argv) {
 	char execute[256];
 	char * x_resources_as_string;
 	unsigned int loadPercentage;
-	int delay, divisor;
+	int gaugedelay, gaugedivisor, graphdelay, graphdivisor;
 	int proximity = 0;
 	int show_graph = 0;
 #ifdef FPS
@@ -411,8 +410,12 @@ int main(int argc, char **argv) {
 
 	/* the math below makes the cpu gauge try to update at 5 Hz.
 	   Originally it was 15ms*10 meaning 7Hz */
-	delay = divisor = 200000 / delay_time;
-	if (divisor == 0) divisor = 1;
+	gaugedelay = gaugedivisor = 200000 / delay_time;
+	if (gaugedivisor == 0) gaugedivisor = 1;
+
+	graphdelay = graphdivisor = 1000000 / delay_time;
+	if (graphdivisor == 0) graphdivisor = 1;
+
 	loadPercentage = 0;
 
 #ifdef PRO
@@ -462,11 +465,17 @@ int main(int argc, char **argv) {
 		/* gmlp: 72.53us/frame */
 		get_memory_load_percentage();
 
-		if (++delay >= divisor) {
+		if (++gaugedelay >= gaugedivisor) {
 			/* on linux, apparently opening /proc/stat is expensive, whodathunk? */
 			/* system_cpu: 494.0us/frame */
 			loadPercentage = system_cpu();
-			delay = 0;
+			gaugedelay = 0;
+		}
+
+		if (memscreen_enabled && ++graphdelay >= graphdivisor) {
+			/* update graph histories: ? */
+			roll_history();
+			graphdelay = 0;
 		}
 
 		/* bubblemon_update: 2.207us/frame */
@@ -479,15 +488,22 @@ int main(int argc, char **argv) {
 			duck_swimmer();
 		}
 
-		if (cpu_enabled && delay == 0)
+		if (cpu_enabled && gaugedelay == 0)
 			/* we don't want to redraw changing digits every update because that
 			 * doesn't look so good. we throttle it above because system_cpu is
 			 * expensive on linux. */
 			draw_cpugauge(loadPercentage);
 
-		if (memscreen_enabled)
-			/* ? */
-			show_graph = calculate_transparencies(proximity);
+		/* ? */
+		show_graph = calculate_transparencies(proximity);
+
+		/* ? */
+		/* originally, numbers above are updated every (30/66.7)=0.45 s and
+		   graphs are rolled every 500/66.7=7.5 s.
+
+		   For now we'll just update everything at the same rate */
+		if (memscreen_enabled && show_graph && graphdelay == 0)
+			render_secondary();
 
 		if (cpu_enabled)
 			alpha_cpu();
@@ -528,10 +544,6 @@ int main(int argc, char **argv) {
 		RGBtoXIm(bm.rgb_buf,bm.xim);
 		/* X11 XImage->Pixmap->display: 148.6us/frame */
 		RedrawWindow(bm.xim);
-
-		/* update graph histories: 51.46us/frame */
-		if (memscreen_enabled)
-			roll_history();
 	}
 #ifdef PRO
 	gettimeofday(&end,NULL);
@@ -1025,43 +1037,15 @@ void render_secondary(void) {
 	}
 }
 
-void rarely_render_secondary(void) {
-	static int delay;
-	int divisor;
-
-	divisor = 500000 / delay_time;
-	if (divisor == 0) divisor = 1;
-
-	if (++delay < divisor)
-		return;
-
-	delay = 0;
-	render_secondary();
-}
-
 void roll_history(void)  {
-	static int his_count, load_his_accumulator, mem_his_accumulator;
-	/* Per C standard, those are all initialized to 0 */
-
-	if (his_count > 5) {
-		/* roll history buffers, averaging last 5 samples */
-		bm.history[BOX_SIZE-4] = load_his_accumulator / his_count;
-		bm.memhist[BOX_SIZE-4] = mem_his_accumulator / his_count;
-
-		memmove(&bm.history[0], &bm.history[1], sizeof(bm.history));
-		memmove(&bm.memhist[0], &bm.memhist[1], sizeof(bm.memhist));
-
-		his_count = load_his_accumulator = mem_his_accumulator = 0;
-	}
-
 	system_loadavg();
 
-	/* do load average history update */
-	load_his_accumulator += bm.loadavg[0].f + (bm.loadavg[0].i * 100);
-	/* do memory history update */
-	mem_his_accumulator += bm.mem_percent;
+	/* roll history buffers */
+	bm.history[BOX_SIZE-4] = bm.loadavg[0].f + (bm.loadavg[0].i * 100);
+	bm.memhist[BOX_SIZE-4] = bm.mem_percent;
 
-	his_count++;
+	memmove(&bm.history[0], &bm.history[1], sizeof(bm.history));
+	memmove(&bm.memhist[0], &bm.memhist[1], sizeof(bm.memhist));
 }
 
 void draw_cpudigit(int what, unsigned char *whither) {
@@ -1215,16 +1199,12 @@ int calculate_transparencies(int proximity) {
 				if (!bm.picture_lock)
 					memblend -= 36;
 				if (memblend < GRAPHMINBLEND) {
-					rarely_render_secondary();
 					memblend = GRAPHMINBLEND;
 				}
 			}
 		}
 	} else {
 		blend += 4*6;
-		if (bm.picture_lock)
-			rarely_render_secondary();
-
 		if (memscreen_enabled && !bm.picture_lock)
 			memblend += 60;
 		if (blend > CPUMAXBLEND) {
