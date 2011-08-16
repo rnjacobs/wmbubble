@@ -705,7 +705,7 @@ void bubblemon_update(int loadPercentage) {
 	    && ((rand() % 101) <= loadPercentage)) {
 		/* We don't allow bubbles on the edges 'cause we'd have to clip them */
 		bubbles[bm.n_bubbles].x = (rand() % (BOX_SIZE-2)) + 1;
-		bubbles[bm.n_bubbles].y = MAKEY(BOX_SIZE) - 256;
+		bubbles[bm.n_bubbles].y = MAKEY(BOX_SIZE-1);
 		bubbles[bm.n_bubbles].dy = 0;
 #ifdef DEBUG_DUCK
 		fprintf (stderr, "new bubble:  bubbles[bm.n_bubbles].x = %i\n",
@@ -816,7 +816,7 @@ void bubblemon_update(int loadPercentage) {
 		bubblebuf_ptr += BOX_SIZE-2;
 
 		/* Bottom row */
-		if (y < (MAKEY(BOX_SIZE) - 256)) {
+		if (y < MAKEY(BOX_SIZE-1)) {
 			if (*bubblebuf_ptr < aircolor) {
 				(*bubblebuf_ptr)++;
 			}
