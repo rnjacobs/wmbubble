@@ -198,9 +198,9 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-graphmarkers",  "*graphmarkers",   XrmoptionSepArg, (XPointer) NULL},
 	{"-p",             ".graphdigitpale", XrmoptionNoArg,  (XPointer) "1"},
 	{"-graphs",        "*graphs",         XrmoptionSepArg, (XPointer) NULL},
-	{"-m",             "*graphs",         XrmoptionIsArg,  (XPointer) "no"}, /* disable graphs */
+	{"-m",             "*graphs",         XrmoptionNoArg,  (XPointer) "no"}, /* disable graphs */
 	{"-units",         "*units",          XrmoptionSepArg, (XPointer) NULL}, /* kB or MB */
-	{"-k",             "*units",          XrmoptionIsArg,  (XPointer) "m"},
+	{"-k",             "*units",          XrmoptionNoArg,  (XPointer) "m"},
 	{"-shifttime",     "*shifttime",      XrmoptionSepArg, (XPointer) NULL},
 };	
 
