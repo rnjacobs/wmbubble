@@ -193,18 +193,18 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-graphbar",      "*graphbar",       XrmoptionSepArg, (XPointer) NULL},
 	{"-graphmarkers",  "*graphmarkers",   XrmoptionSepArg, (XPointer) NULL},
 	{"-p",             ".graphdigitpale", XrmoptionNoArg,  (XPointer) "1"},
-	{"-graphs",        "*graphs",         XrmoptionSepArg, (XPointer) NULL}, /* disable graphs */
-	{"-m",             "*graphs",         XrmoptionIsArg,  (XPointer) "no"},
+	{"-graphs",        "*graphs",         XrmoptionSepArg, (XPointer) NULL},
+	{"-m",             "*graphs",         XrmoptionIsArg,  (XPointer) "no"}, /* disable graphs */
 	{"-units",         "*units",          XrmoptionSepArg, (XPointer) NULL}, /* kB or MB */
 	{"-k",             "*units",          XrmoptionIsArg,  (XPointer) "m"},
 	{"-shifttime",     "*shifttime",      XrmoptionSepArg, (XPointer) NULL},
 };	
 
 const struct XrmExtras {
-	const char const * option; /* same as XrmOptionDescRec option */
+	const char * const option; /* same as XrmOptionDescRec option */
 	const enum { Is_Int, Is_Color, Is_Float, Is_Bool, No_Param } parse_as;
 	void * write_to;
-	const char * description;
+	const char * const description;
 } x_resource_extras[] = {
 	{"-maxbubbles",     Is_Int, &bm.maxbubbles, "Maximum number of simultaneous bubbles in the dockapp" },
 	{"-air_noswap",     Is_Color, &bm.air_noswap, "Color of air and bubbles when swap is at 0%" },
