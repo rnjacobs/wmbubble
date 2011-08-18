@@ -1201,13 +1201,12 @@ void calculate_transparencies(int proximity) {
 		gauge_alpha -= gauge_rate;
 		if (gauge_alpha < CPUMINBLEND) {
 			gauge_alpha = CPUMINBLEND;
-			if (memscreen_enabled) {
+			if (memscreen_enabled && !bm.picture_lock) {
 				if (graph_alpha == GRAPHMAXBLEND) {
-					/* first time here, update memory stats */
+					/* make sure there's never a stale picture when we first go non-opaque */
 					render_secondary();
 				}
-				if (!bm.picture_lock)
-					graph_alpha -= graph_transparent_rate;
+				graph_alpha -= graph_transparent_rate;
 				if (graph_alpha < GRAPHMINBLEND) {
 					graph_alpha = GRAPHMINBLEND;
 				}
@@ -1215,13 +1214,14 @@ void calculate_transparencies(int proximity) {
 		}
 	} else {
 		gauge_alpha += gauge_rate;
-		if (memscreen_enabled && !bm.picture_lock)
-			graph_alpha += graph_opaque_rate;
 		if (gauge_alpha > CPUMAXBLEND) {
 			gauge_alpha = CPUMAXBLEND;
 		}
-		if (memscreen_enabled && graph_alpha > GRAPHMAXBLEND) {
-			graph_alpha = GRAPHMAXBLEND;
+		if (memscreen_enabled && !bm.picture_lock) {
+			graph_alpha += graph_opaque_rate;
+			if (memscreen_enabled && graph_alpha > GRAPHMAXBLEND) {
+				graph_alpha = GRAPHMAXBLEND;
+			}
 		}
 	}
 } /* calculate_transparencies */
