@@ -60,9 +60,9 @@ all: $(BINARY)
 $(BINARY): $(OBJS)
 	$(CC) $(CFLAGS) -o $(BINARY) $(OBJS) $(LIBS)
 
-bubblemon.o: bubblemon.c wmx11pixmap.h include/bubblemon.h					\
- include/sys_include.h include/clockfont.h include/numbers-2.h			\
- include/ducks.h include/digits.h misc/numbers.xpm misc/ofmspct.xpm
+bubblemon.o: bubblemon.c wmx11pixmap.h include/bubblemon.h \
+ include/sys_include.h include/numbers-2.h include/ducks.h \
+ include/digits.h misc/numbers.xpm misc/ofmspct.xpm misc/datefont.xpm
 
 wmx11pixmap.o: wmx11pixmap.c wmx11pixmap.h
 

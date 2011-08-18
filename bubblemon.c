@@ -64,13 +64,13 @@
 #include "include/bubblemon.h"
 #include "include/sys_include.h"
 
-#include "include/clockfont.h"
 #include "include/numbers-2.h"
 
 #include "include/ducks.h"
 #include "include/digits.h"
 #include "misc/numbers.xpm"
 #include "misc/ofmspct.xpm"
+#include "misc/datefont.xpm"
 
 /* #define DEBUG_DUCK 1 */
 
@@ -161,6 +161,10 @@ int graph_hundreds = 0x71E371;
 unsigned char * empty_loadgraph, * empty_memgraph;
 unsigned char * graph_numbers_n_rgb, * graph_numbers_b_rgb;
 unsigned char cpu_gauge[25*9*3];
+
+int datefont_widths[256];
+char datefont_transparent;
+int datefont_offset;
 
 XrmOptionDescRec x_resource_options[] = {
 	{"-maxbubbles",    "*maxbubbles",     XrmoptionSepArg, (XPointer) NULL},
@@ -584,6 +588,7 @@ int get_screen_selection(void) {
 }
 
 void make_new_bubblemon_dockapp(void) {
+	int cc, xx, yy;
 	/* We begin with zero bubbles */
 	bm.n_bubbles = 0;
 
@@ -591,6 +596,33 @@ void make_new_bubblemon_dockapp(void) {
 	bubblemon_allocate_buffers();
 
 	build_graphs();
+
+	sscanf(datefont_xpm[0],"%u %u %u %u",&xx,&yy,&datefont_offset,&cc);
+	if (cc != 1) abort(); /* fuck that */
+
+	datefont_offset++; /* include header line */
+
+	for (yy = 1; yy < datefont_offset; yy++) {
+		if (strcasestr(datefont_xpm[yy],"none")) {
+			datefont_transparent = datefont_xpm[yy][0];
+			yy = datefont_offset;
+		}
+	}
+
+	/* calculate proportional spacing widths of font used for writing date */
+	for (cc = 33; cc < 128; cc++)
+		for (xx = 4; xx >= 0; xx--)
+			for (yy = 0; yy < 8; yy++)
+				if (datefont_xpm[(cc-32)*8+yy+datefont_offset][xx] != datefont_transparent) {
+					datefont_widths[cc] = xx+2;
+					xx = -1; yy = 9;
+				}
+	datefont_widths[' ']=2;
+	/* force non-ascii strings to display as MONTH_IN_ROMAN_NUMERALS - DAY_OF_MONTH */
+	for (cc = 0; cc < 32; cc++)
+		datefont_widths[cc] = BOX_SIZE;
+	for (cc = 128; cc < 256; cc++)
+		datefont_widths[cc] = BOX_SIZE;
 }	/* make_new_bubblemon_dockapp */
 
 /*
@@ -1068,49 +1100,19 @@ void draw_cpugauge(int cpu) {
 	draw_cpudigit(10, &cpu_gauge[3*18]);
 }
 
-int dtchr_width(const char letter) {
-	if (letter >= '0' && letter <= '9') {
-		return 6;
-	} else if (letter >= '@' && letter <= '~') {
-		return 5;
-	} else if (letter == ':') {
-		return 2;
-	} else {
-		return 1;
-	}
-}
-
 void draw_dtchr(const char letter, unsigned char * rgbbuf) {
   int x,y;
   unsigned char * attenuator;
+  char * xpm_line;
 
-  switch (dtchr_width(letter)) {
-  case 6:
-	  for (y=0;y<7;y++)
-		  for (x=0,attenuator=&rgbbuf[y*BOX_SIZE*3];x<5;x++) 
-			  if (clockdigit[x+(y*10+(letter-'0'))*6]=='M') {
-				  *(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
-			  } else {
-				  attenuator += 3;
-	      }
-	  break;
-  case 5:
-	  for (y=0;y<7;y++)
-		  for (x=0,attenuator=&rgbbuf[y*BOX_SIZE*3];x<4;x++) 
-			  if (clockalpha[x+(y*63+(letter-'@'))*5]=='M') {
-				  *(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
-			  } else {
-				  attenuator += 3;
-	      }
-	  break;
-  case 2:
-	  rgbbuf[3*BOX_SIZE*3  ]>>=1;
-	  rgbbuf[3*BOX_SIZE*3+1]>>=1;
-	  rgbbuf[3*BOX_SIZE*3+2]>>=1;
-	  rgbbuf[5*BOX_SIZE*3  ]>>=1;
-	  rgbbuf[5*BOX_SIZE*3+1]>>=1;
-	  rgbbuf[5*BOX_SIZE*3+2]>>=1;
-	  break;
+  for (y=0;y<8;y++) {
+	  xpm_line = datefont_xpm[((unsigned char)letter-32)*8+y+datefont_offset];
+	  for (x=0,attenuator=&rgbbuf[y*BOX_SIZE*3];x<datefont_widths[(unsigned char)letter]-1;x++)
+		  if (xpm_line[x] == datefont_transparent) {
+			  attenuator += 3;
+		  } else {
+			  *(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
+		  }
   }
 }
 
@@ -1132,7 +1134,8 @@ void draw_largedigit(char number, unsigned char * rgbbuf) {
 }
 
 void alpha_datetime(void) {
-	char format[11];
+	const char *roman[]={"I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"};
+	char format[32];
   time_t mytt;
   struct tm * mytime;
   int mday=0, hours=0;
@@ -1151,18 +1154,25 @@ void alpha_datetime(void) {
 	  mytime->tm_hour += hours;
   }
 
-  if (strftime(format,11,"%a %b %d",mytime) == 0) /* Sat Jan 04 */
-	  strftime(format,11,"%m %d",mytime); /* 01 04   if above fails */
-
-  for (width = ii = 0; ii < strlen(format); ii++) {
-	  width += dtchr_width(format[ii]);
+  if (strftime(format,32,"%a %b %d",mytime) != 0) {
+	  for (width = ii = 0; ii < strlen(format); ii++)
+		  width += datefont_widths[(unsigned char)format[ii]];
+	  if (width > BOX_SIZE - 1) { /* if too wide */
+		  snprintf(format,32,"%s-%d",roman[mytime->tm_mon],mytime->tm_mday);
+		  for (width = ii = 0; ii < strlen(format); ii++)
+			  width += datefont_widths[(unsigned char)format[ii]];
+	  }
+  } else { /* if strftime failed */
+	  snprintf(format,32,"%s-%d",roman[mytime->tm_mon],mytime->tm_mday);
+	  for (width = ii = 0; ii < strlen(format); ii++)
+		  width += datefont_widths[(unsigned char)format[ii]];
   }
 
   rgbptr = &bm.rgb_buf[3*(2*BOX_SIZE+(BOX_SIZE-width)/2)]; /* calculate centered */
 
   for (ii = 0; ii < strlen(format); ii++) {
 	  draw_dtchr(format[ii],rgbptr);
-	  rgbptr += 3*dtchr_width(format[ii]);
+	  rgbptr += 3*datefont_widths[(unsigned char)format[ii]];
   }
 
   draw_largedigit(mytime->tm_hour/10,&bm.rgb_buf[3*(3+BOX_SIZE*13)]);
