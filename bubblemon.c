@@ -86,7 +86,6 @@
 enum bubblebuf_values { watercolor, antialiascolor, aircolor };
 
 /* local prototypes *INDENT-OFF* */
-void bubblemon_setup_samples(void);
 void bubblemon_allocate_buffers(void);
 void bubblemon_update(int cpu);
 void bubblebuf_colorspace(void);
@@ -100,7 +99,6 @@ int get_screen_selection(void);
 void draw_from_xpm(char **xpm, unsigned char *whither, unsigned int targetw,
                    unsigned int xpmx, unsigned int xpmy, unsigned int xpmw,
                    unsigned int xpmh, unsigned int color);
-void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char *c);
 void draw_history(int num, int size, unsigned int *history,
                   unsigned char *buf);
 void draw_digit(unsigned char * from, unsigned char * whither);
