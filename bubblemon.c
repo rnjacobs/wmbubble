@@ -674,7 +674,6 @@ void make_new_bubblemon_dockapp(void) {
  * the bubble array and main rgb buffer.
  */
 void bubblemon_update(int loadPercentage) {
-	Bubble *bubbles = bm.bubbles;
 	unsigned int i, x, y;
 	unsigned char *bubblebuf_ptr;
 	unsigned int waterlevels_goal;
@@ -780,22 +779,22 @@ void bubblemon_update(int loadPercentage) {
 	if ((bm.n_bubbles < bm.maxbubbles)
 	    && ((rand() % 101) <= loadPercentage)) {
 		/* We don't allow bubbles on the edges 'cause we'd have to clip them */
-		bubbles[bm.n_bubbles].x = (rand() % (BOX_SIZE-2)) + 1;
-		bubbles[bm.n_bubbles].y = MAKEY(BOX_SIZE-1);
-		bubbles[bm.n_bubbles].dy = 0;
+		bm.bubbles[bm.n_bubbles].x = (rand() % (BOX_SIZE-2)) + 1;
+		bm.bubbles[bm.n_bubbles].y = MAKEY(BOX_SIZE-1);
+		bm.bubbles[bm.n_bubbles].dy = 0;
 #ifdef DEBUG_DUCK
-		fprintf (stderr, "new bubble:  bubbles[bm.n_bubbles].x = %i\n",
-		         bubbles[bm.n_bubbles].x);
+		fprintf (stderr, "new bubble:  bm.bubbles[bm.n_bubbles].x = %i\n",
+		         bm.bubbles[bm.n_bubbles].x);
 #endif
 
 		/* Raise the water level above where the bubble is created */
-		if (bubbles[bm.n_bubbles].x > 2)
-			bm.waterlevels[bubbles[bm.n_bubbles].x - 2] -= bm.ripples_int;
-		bm.waterlevels[bubbles[bm.n_bubbles].x - 1] -= bm.ripples_int;
-		bm.waterlevels[bubbles[bm.n_bubbles].x] -= bm.ripples_int;
-		bm.waterlevels[bubbles[bm.n_bubbles].x + 1] -= bm.ripples_int;
-		if (bubbles[bm.n_bubbles].x < (BOX_SIZE-3))
-			bm.waterlevels[bubbles[bm.n_bubbles].x + 2] -= bm.ripples_int;
+		if (bm.bubbles[bm.n_bubbles].x > 2)
+			bm.waterlevels[bm.bubbles[bm.n_bubbles].x - 2] -= bm.ripples_int;
+		bm.waterlevels[bm.bubbles[bm.n_bubbles].x - 1] -= bm.ripples_int;
+		bm.waterlevels[bm.bubbles[bm.n_bubbles].x] -= bm.ripples_int;
+		bm.waterlevels[bm.bubbles[bm.n_bubbles].x + 1] -= bm.ripples_int;
+		if (bm.bubbles[bm.n_bubbles].x < (BOX_SIZE-3))
+			bm.waterlevels[bm.bubbles[bm.n_bubbles].x + 2] -= bm.ripples_int;
 
 		/* Count the new bubble */
 		bm.n_bubbles++;
@@ -804,26 +803,26 @@ void bubblemon_update(int loadPercentage) {
 	/* Update and draw the bubbles */
 	for (i = 0; i < bm.n_bubbles; i++) {
 		/* Accelerate the bubble */
-		bubbles[i].dy -= bm.gravity_int;
+		bm.bubbles[i].dy -= bm.gravity_int;
 
 		/* Move the bubble vertically */
-		bubbles[i].y += bubbles[i].dy;
+		bm.bubbles[i].y += bm.bubbles[i].dy;
 
 		/* is the bubble grossly out of bounds? */
-		if (bubbles[i].x < 1 || bubbles[i].x > (BOX_SIZE-2) ||
-		    bubbles[i].y > MAKEY(BOX_SIZE)) {
+		if (bm.bubbles[i].x < 1 || bm.bubbles[i].x > (BOX_SIZE-2) ||
+		    bm.bubbles[i].y > MAKEY(BOX_SIZE)) {
 #ifdef DEBUG_DUCK
 			fprintf (stderr, "bubble out of bounds "
-			         "bubbles[%i].x=%i, bubbles[%i].y=%i\n", 
-			         i, bubbles[i].x, i, bubbles[i].y);
+			         "bm.bubbles[%i].x=%i, bm.bubbles[%i].y=%i\n",
+			         i, bm.bubbles[i].x, i, bm.bubbles[i].y);
 #endif
 		
 			/* Yes; nuke it by replacing its properties with those
 			   of the last one and deallocate the last one. */
-			bubbles[i].x = bubbles[bm.n_bubbles - 1].x;
-			bubbles[i].y = bubbles[bm.n_bubbles - 1].y;
-			bubbles[i].dy = bubbles[bm.n_bubbles - 1].dy;
 			bm.n_bubbles--;
+			bm.bubbles[i].x = bm.bubbles[bm.n_bubbles].x;
+			bm.bubbles[i].y = bm.bubbles[bm.n_bubbles].y;
+			bm.bubbles[i].dy = bm.bubbles[bm.n_bubbles].dy;
 
 	    /*
 	      We must still check what was the next bubble which is 
@@ -834,24 +833,20 @@ void bubblemon_update(int loadPercentage) {
 		}
 		
 		/* Did we lose it? */
-		if (bubbles[i].y < bm.waterlevels[bubbles[i].x]) {
+		if (bm.bubbles[i].y < bm.waterlevels[bm.bubbles[i].x]) {
 			/* Lower the water level around where the bubble is about to vanish */
-			bm.waterlevels[bubbles[i].x - 1] += bm.ripples_int;
-			bm.waterlevels[bubbles[i].x] += 3 * bm.ripples_int;
-			bm.waterlevels[bubbles[i].x + 1] += bm.ripples_int;
+			bm.waterlevels[bm.bubbles[i].x - 1] += bm.ripples_int;
+			bm.waterlevels[bm.bubbles[i].x] += 3 * bm.ripples_int;
+			bm.waterlevels[bm.bubbles[i].x + 1] += bm.ripples_int;
 
-			bubbles[i].x = bubbles[bm.n_bubbles - 1].x;
-			bubbles[i].y = bubbles[bm.n_bubbles - 1].y;
-			bubbles[i].dy = bubbles[bm.n_bubbles - 1].dy;
 			bm.n_bubbles--;
+			bm.bubbles[i].x = bm.bubbles[bm.n_bubbles].x;
+			bm.bubbles[i].y = bm.bubbles[bm.n_bubbles].y;
+			bm.bubbles[i].dy = bm.bubbles[bm.n_bubbles].dy;
 
 			i--;
 			continue;
 		}
-
-		/* Draw the bubble */
-		x = bubbles[i].x;
-		y = bubbles[i].y;
 
 		/*
 		  Clipping is not necessary for x, but it *is* for y.
@@ -860,8 +855,8 @@ void bubblemon_update(int loadPercentage) {
 		*/
 
 		/* Top row */
-		bubblebuf_ptr = &(bm.bubblebuf[(((REALY(y) - 1) * BOX_SIZE) + BOX_SIZE) + x - 1]);
-		if (y >= bm.waterlevels[x]) {
+		bubblebuf_ptr = &(bm.bubblebuf[(((REALY(bm.bubbles[i].y) - 1) * BOX_SIZE) + BOX_SIZE) + bm.bubbles[i].x - 1]);
+		if (bm.bubbles[i].y >= bm.waterlevels[bm.bubbles[i].x]) {
 			if (*bubblebuf_ptr < aircolor) 
 				(*bubblebuf_ptr)++; /* water becomes antialias; antialias becomes air for outside corners */
 			bubblebuf_ptr++;
