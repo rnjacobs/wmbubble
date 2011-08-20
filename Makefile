@@ -19,20 +19,20 @@ CC = gcc
 # special things for Linux
 ifeq ($(OS), Linux)
 	OBJS += sys_linux.o
-	LIBS = -lX11
+	LIBS = -lX11 -lm
 endif
 
 # special things for FreeBSD
 ifeq ($(OS), FreeBSD)
 	OBJS += sys_freebsd.o
-	LIBS = -lX11 -lkvm
+	LIBS = -lX11 -lkvm -lm
 	INSTALL = -c -g kmem -m 2755 -o root
 endif
 
 # special things for OpenBSD
 ifeq ($(OS), OpenBSD)
 	OBJS += sys_openbsd.o
-	LIBS = -lX11
+	LIBS = -lX11 -lm
 endif
 
 #special things for SunOS

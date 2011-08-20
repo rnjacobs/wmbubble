@@ -56,6 +56,7 @@
 #include <string.h>
 #include <locale.h>
 #include <ctype.h> /* I know tolower isn't i18n, I'm sorry */
+#include <math.h>
 
 /* x11 includes */
 #include "wmx11pixmap.h"
@@ -105,14 +106,18 @@ void draw_digit(unsigned char * from, unsigned char * whither);
 void draw_string(char *string, int x, int y, int color);
 void draw_cpudigit(int what, unsigned char *whither);
 void draw_cpugauge(int cpu);
+void draw_rgba_pixel(unsigned char * whither, int color, float opacity);
+void draw_aa_line(float x1,float y1, float x2,float y2, int color);
+void draw_clockhands(void);
 
 void render_secondary(void);
 void calculate_transparencies(int proximity);
 void alpha_cpu(void);
 void alpha_graph(void);
+void alpha_digitalclock(struct tm * mytime);
+void alpha_date(struct tm * mytime);
 void roll_history(void);
 
-void alpha_datetime(void);
 void draw_dtchr(const char letter, unsigned char *where);
 
 int animate_correctly(void);
@@ -138,7 +143,13 @@ int graph_digit_color = 0x308cf0;
 int graph_warning_digit_color = 0xed1717;
 int pale = 0;
 
+int do_analog_clock = 0;
+int hourcolor = 0xEEEEEE;
+int mincolor = 0xBF0000;
+int seccolor = 0xC79F2B;
 int shifttime = 0;
+int do_digital_clock = 0;
+int do_date = 0;
 
 int do_help = 0;
 
@@ -202,6 +213,12 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-units",         "*units",          XrmoptionSepArg, (XPointer) NULL}, /* kB or MB */
 	{"-k",             "*units",          XrmoptionNoArg,  (XPointer) "m"},
 	{"-shifttime",     "*shifttime",      XrmoptionSepArg, (XPointer) NULL},
+	{"-digital",       "*digital",        XrmoptionNoArg,  (XPointer) "1"},
+	{"-showdate",      "*showdate",       XrmoptionNoArg,  (XPointer) "1"},
+	{"-analog",        "*analog" ,        XrmoptionNoArg,  (XPointer) "1"},
+	{"-hourcolor",     "*hourcolor",      XrmoptionSepArg, (XPointer) NULL},
+	{"-mincolor",      "*mincolor",       XrmoptionSepArg, (XPointer) NULL},
+	{"-seccolor",      "*seccolor",       XrmoptionSepArg, (XPointer) NULL},
 };	
 
 const struct XrmExtras {
@@ -244,7 +261,13 @@ const struct XrmExtras {
 	{"-m",              Is_Bool, &memscreen_enabled, "Graphs are never shown"},
 	{"-units",          Is_Bool, &memscreen_megabytes, "Units for memory in KB or MB"},
 	{"-k",              Is_Bool, &memscreen_megabytes, "Memory graphs use MB" },
-	{"-shifttime",      Is_Int, &shifttime, "Number of hours after midnight that are drawn as part of the previous day" }
+	{"-shifttime",      Is_Int, &shifttime, "Number of hours after midnight that are drawn as part of the previous day on digital clock and date" },
+	{"-digital",        Is_Bool, &do_digital_clock, "Draw 24h digital clock" },
+	{"-showdate",       Is_Bool, &do_date, "Draw day-of-week month day-of-month "},
+	{"-analog",         Is_Bool, &do_analog_clock, "Draw analog clock face" },
+	{"-hourcolor",      Is_Color, &hourcolor, "Color of hour hand on analog clock "},
+	{"-mincolor",       Is_Color, &mincolor, "Color of minute hand on analog clock "},
+	{"-seccolor",       Is_Color, &seccolor, "Color of second hand on analog clock "},
 };	
 
 void bubblemon_session_defaults(XrmDatabase x_resource_database)
@@ -366,6 +389,9 @@ int main(int argc, char **argv) {
 	unsigned int loadPercentage;
 	int gaugedelay, gaugedivisor, graphdelay, graphdivisor;
 	int proximity = 0;
+	time_t mytt;
+	struct tm * mytime;
+	int mday=0, hours=0;
 #ifdef FPS
 	int frames_count;
 	time_t last_time;
@@ -512,8 +538,26 @@ int main(int argc, char **argv) {
 		if (cpu_enabled)
 			alpha_cpu();
 
-		/* if (clock_mode == DIGITAL_CLOCK) */
-		alpha_datetime();
+		if (do_analog_clock)
+			draw_clockhands();
+
+		time(&mytt);
+		mytime = localtime(&mytt);
+		mday = mytime->tm_mday;
+
+		if (mytime->tm_hour<shifttime) {
+			while (mday == mytime->tm_mday) {
+				mytt -= 3600; hours++;
+				mytime = localtime(&mytt);
+			}
+			mytime->tm_hour += hours;
+		}
+
+		if (do_digital_clock)
+			alpha_digitalclock(mytime);
+
+		if (do_date)
+			alpha_date(mytime);
 
 		if (memscreen_enabled && graph_alpha < GRAPHMAXBLEND)
 			alpha_graph();
@@ -1133,26 +1177,126 @@ void draw_largedigit(char number, unsigned char * rgbbuf) {
   }
 }
 
-void alpha_datetime(void) {
+void draw_rgba_pixel(unsigned char * whither, int color, float opacity) {
+	whither[0] = (opacity*GET_RED(color) + (1-opacity)*whither[0]);
+	whither[1] = (opacity*GET_GRN(color) + (1-opacity)*whither[1]);
+	whither[2] = (opacity*GET_BLU(color) + (1-opacity)*whither[2]);
+}
+
+float fpart(float in) { return in - floor(in); }
+
+/* Xiaolin Wu's antialiased line-drawing algorithm */
+void draw_aa_line(float x1,float y1, float x2,float y2, int color) {
+	float dx = x2 - x1;
+	float dy = y2 - y1;
+	float tmp, gradient;
+	float xend, yend, xgap, ygap, intery, interx;
+	int x1pxl, x2pxl, y1pxl, y2pxl, xx, yy;
+
+	if (fabsf(dx) > fabsf(dy)) {
+		if (x2 < x1) {
+			tmp=x1; x1=x2; x2=tmp;
+			tmp=y1; y1=y2; y2=tmp;
+		}
+		gradient = dy / dx;
+
+		/* handle first endpoint */
+		xend = floor(x1+.5);
+		yend = y1 + gradient * (xend - x1);
+		xgap = 1-fpart(x1 + 0.5);
+
+		x1pxl = xend;
+		y1pxl = floor(yend);
+		draw_rgba_pixel(&bm.rgb_buf[(x1pxl+BOX_SIZE*(y1pxl  ))*3], color, (1-fpart(yend)) * xgap );
+		draw_rgba_pixel(&bm.rgb_buf[(x1pxl+BOX_SIZE*(y1pxl+1))*3], color, fpart(yend) * xgap);
+		intery = yend + gradient;
+
+		/* handle second endpoint */
+		xend = floor(x2+.5);
+		yend = y2 + gradient * (xend - x2);
+		xgap = fpart(x2 + 0.5);
+		x2pxl = xend;
+		y2pxl = floor(yend);
+		draw_rgba_pixel(&bm.rgb_buf[(x2pxl+BOX_SIZE*(y2pxl  ))*3], color, (1-fpart(yend)) * xgap );
+		draw_rgba_pixel(&bm.rgb_buf[(x2pxl+BOX_SIZE*(y2pxl+1))*3], color, fpart(yend) * xgap);
+
+		for(xx = x1pxl + 1; xx <= x2pxl - 1; xx++) {
+			draw_rgba_pixel(&bm.rgb_buf[(xx+BOX_SIZE*(int)(intery))*3], color, 1-fpart (intery) );
+			draw_rgba_pixel(&bm.rgb_buf[(xx+BOX_SIZE*(int)(intery+1))*3], color, fpart (intery) );
+			intery = intery + gradient;
+		}
+	} else {
+		if (y2 < y1) {
+			tmp=y1; y1=y2; y2=tmp;
+			tmp=x1; x1=x2; x2=tmp;
+		}
+		gradient = dx / dy;
+
+		/* handle first endpoint */
+		yend = floor(y1+.5);
+		xend = x1 + gradient * (yend - y1);
+		ygap = 1-fpart(y1 + 0.5);
+
+		y1pxl = yend;
+		x1pxl = floor(xend);
+		draw_rgba_pixel(&bm.rgb_buf[(  x1pxl+BOX_SIZE*y1pxl)*3], color, (1-fpart(xend)) * ygap );
+		draw_rgba_pixel(&bm.rgb_buf[(1+x1pxl+BOX_SIZE*y1pxl)*3], color, fpart(xend) * ygap);
+		interx = xend + gradient;
+
+		/* handle second endpoint */
+		yend = floor(y2+.5);
+		xend = x2 + gradient * (yend - y2);
+		ygap = fpart(y2 + 0.5);
+		y2pxl = yend;
+		x2pxl = floor(xend);
+		draw_rgba_pixel(&bm.rgb_buf[(  x2pxl+BOX_SIZE*y2pxl)*3], color, (1-fpart(xend)) * ygap );
+		draw_rgba_pixel(&bm.rgb_buf[(1+x2pxl+BOX_SIZE*y2pxl)*3], color, fpart(xend) * ygap);
+
+		for(yy = y1pxl + 1; yy <= y2pxl - 1; yy++) {
+			draw_rgba_pixel(&bm.rgb_buf[(  (int)interx+BOX_SIZE*yy)*3], color, 1-fpart (interx) );
+			draw_rgba_pixel(&bm.rgb_buf[(1+(int)interx+BOX_SIZE*yy)*3], color, fpart (interx) );
+			interx = interx + gradient;
+		}
+	}
+}
+
+void draw_clockhands(void) {
+	struct tm * mytime;
+	struct timeval tv;
+	float theta;
+
+	gettimeofday(&tv,NULL);
+	mytime = localtime(&tv.tv_sec);
+
+	theta = ((mytime->tm_hour % 12) / 6.0 + mytime->tm_min / 360.0 + mytime->tm_sec/21600.0)*M_PI;
+	draw_aa_line(BOX_SIZE/2,
+	             (BOX_SIZE-10)/2,
+	             BOX_SIZE/2 + 0.6*(BOX_SIZE-10)/2 * sin(theta),
+	             (BOX_SIZE-10)/2 - 0.6*(BOX_SIZE-10)/2 * cos(theta),
+	             hourcolor);
+
+	theta = (mytime->tm_min * 60000000 + mytime->tm_sec * 1000000 + tv.tv_usec) * M_PI / (3600000000u/2);
+	/* theta = (mytime->tm_min / 30.0 + mytime->tm_sec / 1800.0)*M_PI; */
+	draw_aa_line(BOX_SIZE/2,
+	             (BOX_SIZE-10)/2,
+	             BOX_SIZE/2 + 0.75*(BOX_SIZE-10)/2 * sin(theta),
+	             (BOX_SIZE-10)/2 - 0.75*(BOX_SIZE-10)/2 * cos(theta),
+	             mincolor);
+
+	theta = (mytime->tm_sec * 1000000 + tv.tv_usec) * M_PI / (60000000/2);
+	/* theta = mytime->tm_sec / 30.0 * M_PI; */
+	draw_aa_line(BOX_SIZE/2,
+	             (BOX_SIZE-10)/2,
+	             BOX_SIZE/2 + 0.95*(BOX_SIZE-10)/2 * sin(theta),
+	             (BOX_SIZE-10)/2 - 0.95*(BOX_SIZE-10)/2 * cos(theta),
+	             seccolor);
+}
+
+void alpha_date(struct tm * mytime) {
 	const char *roman[]={"I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"};
 	char format[32];
-  time_t mytt;
-  struct tm * mytime;
-  int mday=0, hours=0;
   int ii, width;
   unsigned char * rgbptr;
-
-  time(&mytt);
-  mytime = localtime(&mytt);
-  mday = mytime->tm_mday;
-
-  if (mytime->tm_hour<shifttime) {
-	  while (mday == mytime->tm_mday) {
-		  mytt -= 3600; hours++;
-		  mytime = localtime(&mytt);
-	  }
-	  mytime->tm_hour += hours;
-  }
 
   if (strftime(format,32,"%a %b %d",mytime) != 0) {
 	  for (width = ii = 0; ii < strlen(format); ii++)
@@ -1174,7 +1318,9 @@ void alpha_datetime(void) {
 	  draw_dtchr(format[ii],rgbptr);
 	  rgbptr += 3*datefont_widths[(unsigned char)format[ii]];
   }
+}
 
+void alpha_digitalclock(struct tm * mytime) {
   draw_largedigit(mytime->tm_hour/10,&bm.rgb_buf[3*(3+BOX_SIZE*13)]);
   draw_largedigit(mytime->tm_hour%10,&bm.rgb_buf[3*(16+BOX_SIZE*13)]);
   draw_largedigit(mytime->tm_min/10,&bm.rgb_buf[3*(30+BOX_SIZE*13)]);
