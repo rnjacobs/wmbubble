@@ -788,18 +788,14 @@ void bubblemon_update(int loadPercentage) {
 		         bubbles[bm.n_bubbles].x);
 #endif
 
-		if (bm.ripples_int != 0) {
-			/* Raise the water level above where the bubble is created */
-			if (bubbles[bm.n_bubbles].x > 2)
-				bm.waterlevels[bubbles[bm.n_bubbles].x - 2] -=
-					bm.ripples_int;
-			bm.waterlevels[bubbles[bm.n_bubbles].x - 1] -= bm.ripples_int;
-			bm.waterlevels[bubbles[bm.n_bubbles].x] -= bm.ripples_int;
-			bm.waterlevels[bubbles[bm.n_bubbles].x + 1] -= bm.ripples_int;
-			if (bubbles[bm.n_bubbles].x < (BOX_SIZE-3))
-				bm.waterlevels[bubbles[bm.n_bubbles].x + 2] -=
-					bm.ripples_int;
-		}
+		/* Raise the water level above where the bubble is created */
+		if (bubbles[bm.n_bubbles].x > 2)
+			bm.waterlevels[bubbles[bm.n_bubbles].x - 2] -= bm.ripples_int;
+		bm.waterlevels[bubbles[bm.n_bubbles].x - 1] -= bm.ripples_int;
+		bm.waterlevels[bubbles[bm.n_bubbles].x] -= bm.ripples_int;
+		bm.waterlevels[bubbles[bm.n_bubbles].x + 1] -= bm.ripples_int;
+		if (bubbles[bm.n_bubbles].x < (BOX_SIZE-3))
+			bm.waterlevels[bubbles[bm.n_bubbles].x + 2] -= bm.ripples_int;
 
 		/* Count the new bubble */
 		bm.n_bubbles++;
@@ -839,13 +835,10 @@ void bubblemon_update(int loadPercentage) {
 		
 		/* Did we lose it? */
 		if (bubbles[i].y < bm.waterlevels[bubbles[i].x]) {
-			if (bm.ripples_int != 0) {
-				/* Lower the water level around where the bubble is
-				   about to vanish */
-				bm.waterlevels[bubbles[i].x - 1] += bm.ripples_int;
-				bm.waterlevels[bubbles[i].x] += 3 * bm.ripples_int;
-				bm.waterlevels[bubbles[i].x + 1] += bm.ripples_int;
-			}
+			/* Lower the water level around where the bubble is about to vanish */
+			bm.waterlevels[bubbles[i].x - 1] += bm.ripples_int;
+			bm.waterlevels[bubbles[i].x] += 3 * bm.ripples_int;
+			bm.waterlevels[bubbles[i].x + 1] += bm.ripples_int;
 
 			bubbles[i].x = bubbles[bm.n_bubbles - 1].x;
 			bubbles[i].y = bubbles[bm.n_bubbles - 1].y;
