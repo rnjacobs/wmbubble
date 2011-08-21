@@ -1225,14 +1225,14 @@ void draw_clockhands(void) {
 	gettimeofday(&tv,NULL);
 	mytime = localtime(&tv.tv_sec);
 
-	theta = ((mytime->tm_hour % 12) / 6.0 + mytime->tm_min / 360.0 + mytime->tm_sec/21600.0)*M_PI;
+	theta = (mytime->tm_hour * 3600u + mytime->tm_min * 60u + mytime->tm_sec) * (M_PI / 21600.0);
 	draw_aa_line(BOX_SIZE/2,
 	             (BOX_SIZE-10)/2,
 	             BOX_SIZE/2 + 0.6*(BOX_SIZE-10)/2 * sin(theta),
 	             (BOX_SIZE-10)/2 - 0.6*(BOX_SIZE-10)/2 * cos(theta),
 	             hourcolor);
 
-	theta = (mytime->tm_min * 60000000u + mytime->tm_sec * 1000000u + tv.tv_usec) * M_PI / (3600000000u/2);
+	theta = (mytime->tm_min * 60000000u + mytime->tm_sec * 1000000u + tv.tv_usec) * (M_PI / 1800000000u);
 	/* theta = (mytime->tm_min / 30.0 + mytime->tm_sec / 1800.0)*M_PI; */
 	draw_aa_line(BOX_SIZE/2,
 	             (BOX_SIZE-10)/2,
@@ -1240,7 +1240,7 @@ void draw_clockhands(void) {
 	             (BOX_SIZE-10)/2 - 0.75*(BOX_SIZE-10)/2 * cos(theta),
 	             mincolor);
 
-	theta = (mytime->tm_sec * 1000000 + tv.tv_usec) * M_PI / (60000000/2);
+	theta = (mytime->tm_sec * 1000000u + tv.tv_usec) * (M_PI / 30000000u);
 	/* theta = mytime->tm_sec / 30.0 * M_PI; */
 	draw_aa_line(BOX_SIZE/2,
 	             (BOX_SIZE-10)/2,
