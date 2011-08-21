@@ -88,7 +88,8 @@ enum bubblebuf_values { watercolor, antialiascolor, aircolor };
 
 /* local prototypes *INDENT-OFF* */
 void bubblemon_allocate_buffers(void);
-void bubblemon_update(int cpu);
+void do_water_sim(int cpu);
+void draw_watertank(void);
 void bubblebuf_colorspace(void);
 void build_graphs(void);
 
@@ -509,7 +510,8 @@ int main(int argc, char **argv) {
 		}
 
 		/* bubblemon_update: 2.207us/frame */
-		bubblemon_update(loadPercentage);
+		do_water_sim(loadPercentage);
+		draw_watertank();
 		/* 18.68us/frame */
 		bubblebuf_colorspace();
 
@@ -673,15 +675,9 @@ void make_new_bubblemon_dockapp(void) {
  * This function, bubblemon_update, gets the CPU usage and updates
  * the bubble array and main rgb buffer.
  */
-void bubblemon_update(int loadPercentage) {
-	unsigned int i, x, y;
-	unsigned char *bubblebuf_ptr;
+void do_water_sim(int loadPercentage) {
+	unsigned int i, x;
 	unsigned int waterlevels_goal;
-
-	/* These values are for keeping track of where we have to start
-	   drawing water. */
-	unsigned int waterlevel_min, waterlevel_max;
-	unsigned int real_waterlevel_min, real_waterlevel_max;
 
 	/*
 	  The bubblebuf is made up of int8s (0..2), corresponding to the enum. A
@@ -691,9 +687,6 @@ void bubblemon_update(int loadPercentage) {
 
 	/* y coordinates are counted from here multiplied by MULTIPLIER
 	   to get actual screen coordinate, use REALY */
-
-	waterlevel_max = 0;
-	waterlevel_min = MAKEY(BOX_SIZE);
 
 	/* Move the water level with the current memory usage. */
 	waterlevels_goal = MAKEY(BOX_SIZE) - ((bm.mem_percent * MAKEY(BOX_SIZE)) / 100);
@@ -732,48 +725,7 @@ void bubblemon_update(int loadPercentage) {
 			bm.waterlevels[x] = 0;
 			bm.waterlevels_dy[x] = 0;
 		}
-		/* Keep track of the highest and lowest water levels */
-		if (bm.waterlevels[x] > waterlevel_max)
-			waterlevel_max = bm.waterlevels[x];
-		if (bm.waterlevels[x] < waterlevel_min)
-			waterlevel_min = bm.waterlevels[x];
 	}
-
-	real_waterlevel_min = REALY(waterlevel_min);
-	real_waterlevel_max = REALY(waterlevel_max);
-
-	/*
-	  Draw the air-and-water background
-
-	  The waterlevel_max is the HIGHEST Y VALUE for the water level, which is
-	  actually the LOWEST VISUAL POINT of the water.  Confusing enough?
-
-	  So we want to draw from top to bottom:
-	  Just air from (y == 0) to (y <= waterlevel_min)
-	  Mixed air and water from (y == waterlevel_min) to (y <= waterlevel_max)
-	  Just water from (y == waterlevel_max) to (y <= h)
-
-	  Three loops is more code than one, but should be faster (fewer comparisons)
-	*/
-
-	/* Air only */
-	memset(bm.bubblebuf, aircolor, real_waterlevel_min * BOX_SIZE);
-
-	/* Air and water */
-	for (x = 0; x < BOX_SIZE; x++) {
-		/* Air... */
-		for (y = real_waterlevel_min;
-		     y < REALY(bm.waterlevels[x]); y++)
-			bm.bubblebuf[y * BOX_SIZE + x] = aircolor;
-		
-		/* ... and water */
-		for (; y < real_waterlevel_max; y++)
-			bm.bubblebuf[y * BOX_SIZE + x] = watercolor;
-	}
-
-	/* Water only */
-	memset(bm.bubblebuf + real_waterlevel_max * BOX_SIZE, watercolor,
-	       (BOX_SIZE - real_waterlevel_max) * BOX_SIZE);
 
 	/* Create a new bubble if the planets are correctly aligned... */
 	if ((bm.n_bubbles < bm.maxbubbles)
@@ -800,7 +752,7 @@ void bubblemon_update(int loadPercentage) {
 		bm.n_bubbles++;
 	}
 
-	/* Update and draw the bubbles */
+	/* Update the bubbles */
 	for (i = 0; i < bm.n_bubbles; i++) {
 		/* Accelerate the bubble */
 		bm.bubbles[i].dy -= bm.gravity_int;
@@ -847,7 +799,26 @@ void bubblemon_update(int loadPercentage) {
 			i--;
 			continue;
 		}
+	}
+}
 
+void draw_watertank(void) {
+	int x, y, i;
+	unsigned char *bubblebuf_ptr;
+
+	/* Draw the air-and-water background */
+	for (x = 0; x < BOX_SIZE; x++) {
+		/* Air... */
+		for (y = 0;
+		     y < REALY(bm.waterlevels[x]); y++)
+			bm.bubblebuf[y * BOX_SIZE + x] = aircolor;
+		/* ... and water */
+		for (; y < BOX_SIZE; y++)
+			bm.bubblebuf[y * BOX_SIZE + x] = watercolor;
+	}
+
+	/* Draw the bubbles */
+	for (i = 0; i < bm.n_bubbles; i++) {
 		/*
 		  Clipping is not necessary for x, but it *is* for y.
 		  To prevent ugliness, we draw antialiascolor only on top of
