@@ -10,7 +10,6 @@ CFLAGS = -ansi -Wall -ggdb
 # test coverage cflags
 # CFLAGS = -ansi -Wall -ggdb -fprofile-arcs -ftest-coverage -DPRO=50000
 
-BINARY=bubblemon
 SHELL=sh
 OS = $(shell uname -s)
 OBJS = bubblemon.o wmx11pixmap.o
@@ -53,12 +52,10 @@ ifeq ($(OS), SunOS)
 	LIBS = -lX11 -lkstat -lm
 endif
 
-CFLAGS += -DNAME=\"$(BINARY)\"
+all: wmbubble
 
-all: $(BINARY)
-
-$(BINARY): $(OBJS)
-	$(CC) $(CFLAGS) -o $(BINARY) $(OBJS) $(LIBS)
+wmbubble: $(OBJS)
+	$(CC) $(CFLAGS) -o wmbubble $(OBJS) $(LIBS)
 
 bubblemon.o: bubblemon.c wmx11pixmap.h include/bubblemon.h \
  include/sys_include.h include/numbers-2.h include/ducks.h \
@@ -69,7 +66,7 @@ wmx11pixmap.o: wmx11pixmap.c wmx11pixmap.h
 sys_%.o: sys_%.c include/bubblemon.h include/sys_include.h
 
 clean:
-	rm -f $(BINARY) *.o *.bb* *.gcov gmon.* *.da *~
+	rm -f wmbubble *.o *.bb* *.gcov gmon.* *.da *~
 
 install:
-	install $(INSTALL) $(BINARY) $(PREFIX)/bin
+	install $(INSTALL) wmbubble $(PREFIX)/bin

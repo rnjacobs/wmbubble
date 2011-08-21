@@ -75,9 +75,7 @@
 
 /* #define DEBUG_DUCK 1 */
 
-#ifndef NAME
 #define NAME "wmbubble"
-#endif
 
 /* Want a better way to work with these. But we use them in two places now, so... */
 #define GET_RED(x) (((x)>>16)&255)
