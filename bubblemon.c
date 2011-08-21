@@ -825,20 +825,16 @@ void draw_watertank(void) {
 
 		/* Top row */
 		bubblebuf_ptr = &(bm.bubblebuf[(((REALY(bm.bubbles[i].y) - 1) * BOX_SIZE) + BOX_SIZE) + bm.bubbles[i].x - 1]);
-		if (bm.bubbles[i].y >= bm.waterlevels[bm.bubbles[i].x]) {
-			if (*bubblebuf_ptr < aircolor) 
-				(*bubblebuf_ptr)++; /* water becomes antialias; antialias becomes air for outside corners */
-			bubblebuf_ptr++;
+		if (*bubblebuf_ptr < aircolor)
+			(*bubblebuf_ptr)++; /* water becomes antialias; antialias becomes air for outside corners */
+		bubblebuf_ptr++;
 			
-			*bubblebuf_ptr = aircolor;
-			bubblebuf_ptr++;
+		*bubblebuf_ptr = aircolor;
+		bubblebuf_ptr++;
 			
-			if (*bubblebuf_ptr < aircolor) 
-				(*bubblebuf_ptr)++;
-			bubblebuf_ptr += BOX_SIZE-2;
-		} else {
-			bubblebuf_ptr += BOX_SIZE;
-		}
+		if (*bubblebuf_ptr < aircolor)
+			(*bubblebuf_ptr)++;
+		bubblebuf_ptr += BOX_SIZE-2;
 		
 		/* Middle row - no color clipping necessary */
 		*bubblebuf_ptr = aircolor;
