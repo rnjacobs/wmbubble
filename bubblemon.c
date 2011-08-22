@@ -587,7 +587,7 @@ int get_screen_selection(void) {
 }
 
 void make_new_bubblemon_dockapp(void) {
-	int cc, xx, yy;
+	int cc, xx, yy, maxwidth;
 	/* We begin with zero bubbles */
 	bm.n_bubbles = 0;
 
@@ -596,7 +596,7 @@ void make_new_bubblemon_dockapp(void) {
 
 	build_graphs();
 
-	sscanf(datefont_xpm[0],"%u %u %u %u",&xx,&yy,&datefont_offset,&cc);
+	sscanf(datefont_xpm[0],"%u %u %u %u",&maxwidth,&yy,&datefont_offset,&cc);
 	if (cc != 1) abort(); /* fuck that */
 
 	datefont_offset++; /* include header line */
@@ -610,7 +610,7 @@ void make_new_bubblemon_dockapp(void) {
 
 	/* calculate proportional spacing widths of font used for writing date */
 	for (cc = 33; cc < 128; cc++)
-		for (xx = 4; xx >= 0; xx--)
+		for (xx = maxwidth-1; xx >= 0; xx--)
 			for (yy = 0; yy < 8; yy++)
 				if (datefont_xpm[(cc-32)*8+yy+datefont_offset][xx] != datefont_transparent) {
 					datefont_widths[cc] = xx+2;
