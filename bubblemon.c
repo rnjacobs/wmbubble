@@ -544,6 +544,7 @@ int main(int argc, char **argv) {
 		time(&mytt);
 		mytime = localtime(&mytt);
 		mday = mytime->tm_mday;
+		hours = 0;
 
 		if (mytime->tm_hour<shifttime) {
 			while (mday == mytime->tm_mday) {
