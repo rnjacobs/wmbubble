@@ -176,98 +176,55 @@ int datefont_widths[256];
 char datefont_transparent;
 int datefont_offset;
 
-XrmOptionDescRec x_resource_options[] = {
-	{"-maxbubbles",    "*maxbubbles",     XrmoptionSepArg, (XPointer) NULL},
-	{"-air_noswap",    "*air_noswap",     XrmoptionSepArg, (XPointer) NULL},
-	{"-air_maxswap",   "*air_maxswap",    XrmoptionSepArg, (XPointer) NULL},
-	{"-liquid_noswap", "*liquid_noswap",  XrmoptionSepArg, (XPointer) NULL},
-	{"-liquid_maxswap","*liquid_maxswap", XrmoptionSepArg, (XPointer) NULL},
-	{"-duckbody",      "*duckbody",       XrmoptionSepArg, (XPointer) NULL},
-	{"-duckbill",      "*duckbill",       XrmoptionSepArg, (XPointer) NULL},
-	{"-duckeye",       "*duckeye",        XrmoptionSepArg, (XPointer) NULL},
-	{"-delay",         "*delay",          XrmoptionSepArg, (XPointer) NULL},
-	{"-ripples",       "*ripples",        XrmoptionSepArg, (XPointer) NULL},
-	{"-gravity",       "*gravity",        XrmoptionSepArg, (XPointer) NULL},
-	{"-volatility",    "*volatility",     XrmoptionSepArg, (XPointer) NULL},
-	{"-viscosity",     "*viscosity",      XrmoptionSepArg, (XPointer) NULL},
-	{"-speed_limit",   "*speed_limit",    XrmoptionSepArg, (XPointer) NULL},
-	{"-help",          ".help",           XrmoptionNoArg,  (XPointer) "1"},
-	{"-duck",          "*duck",           XrmoptionSepArg, (XPointer) NULL},
-	{"-d",             "*duck",           XrmoptionNoArg,  (XPointer) "no"}, /* disable duck */
-	{"-upsidedown",    "*upsidedown",     XrmoptionSepArg, (XPointer) NULL},
-	{"-u",             "*upsidedown",     XrmoptionNoArg,  (XPointer) "no"}, /* disable upside-down-ifying */
-	{"-cpumeter",      "*cpumeter",       XrmoptionSepArg, (XPointer) NULL},
-	{"-c",             "*cpumeter",       XrmoptionNoArg,  (XPointer) "no"}, /* disable numeric cpu gauge */
-	{"-graphdigit",    "*graphdigit",     XrmoptionSepArg, (XPointer) NULL},
-	{"-graphwarn",     "*graphwarn",      XrmoptionSepArg, (XPointer) NULL},
-	{"-graphlabel",    "*graphlabel",     XrmoptionSepArg, (XPointer) NULL},
-	{"-graphfield",    "*graphfield",     XrmoptionSepArg, (XPointer) NULL},
-	{"-graphgrid",     "*graphgrid",      XrmoptionSepArg, (XPointer) NULL},
-	{"-graphmax",      "*graphmax",       XrmoptionSepArg, (XPointer) NULL},
-	{"-graphbar",      "*graphbar",       XrmoptionSepArg, (XPointer) NULL},
-	{"-graphmarkers",  "*graphmarkers",   XrmoptionSepArg, (XPointer) NULL},
-	{"-p",             ".graphdigitpale", XrmoptionNoArg,  (XPointer) "1"},
-	{"-graphs",        "*graphs",         XrmoptionSepArg, (XPointer) NULL},
-	{"-m",             "*graphs",         XrmoptionNoArg,  (XPointer) "no"}, /* disable graphs */
-	{"-units",         "*units",          XrmoptionSepArg, (XPointer) NULL}, /* kB or MB */
-	{"-k",             "*units",          XrmoptionNoArg,  (XPointer) "m"},
-	{"-shifttime",     "*shifttime",      XrmoptionSepArg, (XPointer) NULL},
-	{"-digital",       "*digital",        XrmoptionSepArg, (XPointer) NULL},
-	{"-showdate",      "*showdate",       XrmoptionSepArg, (XPointer) NULL},
-	{"-analog",        "*analog" ,        XrmoptionSepArg, (XPointer) NULL},
-	{"-hourcolor",     "*hourcolor",      XrmoptionSepArg, (XPointer) NULL},
-	{"-mincolor",      "*mincolor",       XrmoptionSepArg, (XPointer) NULL},
-	{"-seccolor",      "*seccolor",       XrmoptionSepArg, (XPointer) NULL},
-};	
-
-const struct XrmExtras {
-	const char * const option; /* same as XrmOptionDescRec option */
+const struct XrmUnified {
+	char * const option;
+	char * const specifier;
+	const char * const valueifnoarg;
 	const enum { Is_Int, Is_Color, Is_Float, Is_Bool, No_Param } parse_as;
 	void * write_to;
 	const char * const description;
-} x_resource_extras[] = {
-	{"-maxbubbles",     Is_Int, &bm.maxbubbles, "Maximum number of simultaneous bubbles in the dockapp" },
-	{"-air_noswap",     Is_Color, &bm.air_noswap, "Color of air and bubbles when swap is at 0%" },
-	{"-air_maxswap",    Is_Color, &bm.air_maxswap, "Color of air and bubbles when swap is at 100%" },
-	{"-liquid_noswap",  Is_Color, &bm.liquid_noswap, "Color of water when swap is at 0%" },
-	{"-liquid_maxswap", Is_Color, &bm.liquid_maxswap, "Color of water when swap is at 100%" },
-	{"-duckbody",       Is_Color, &duck_colors[1], "Color of duck's body" },
-	{"-duckbill",       Is_Color, &duck_colors[2], "Color of duck's bill" },
-	{"-duckeye",        Is_Color, &duck_colors[3], "Color of duck's eye" },
-	{"-delay",          Is_Int,   &delay_time, "delay this number of microseconds between redraws" },
-	{"-ripples",        Is_Float, &bm.ripples, "Pixels to disturb the surface when a bubble is formed/pops" },
-	{"-gravity",        Is_Float, &bm.gravity, "Pixels/refresh/refresh to accelerate bubbles upwards" },
-	{"-volatility",     Is_Float, &bm.volatility, "Restorative force on water surface in proportion/refresh"},
-	{"-viscosity",      Is_Float, &bm.viscosity, "Attenuation of surface velocity in proportion/refresh"},
-	{"-speed_limit",    Is_Float, &bm.speed_limit, "Maximum water surface velocity in pixels/refresh" },
-	{"-help",           Is_Bool, &do_help, "Displays this help" },
-	{"-duck",           Is_Bool, &duck_enabled, "Draw the duck?"},
-	{"-d",              Is_Bool, &duck_enabled, "Just don't draw the duck" },
-	{"-upsidedown",     Is_Bool, &upside_down_duck_enabled, "Can the duck flip when the tank is overfull?" },
-	{"-u",              Is_Bool, &upside_down_duck_enabled, "The duck can never flip" },
-	{"-cpumeter",       Is_Bool, &cpu_enabled, "Show the current load at the bottom"},
-	{"-c",              Is_Bool, &cpu_enabled, "Don't show the current load"},
-	{"-graphdigit",     Is_Color, &graph_digit_color, "Color of the digits on the graphs"},
-	{"-graphwarn",      Is_Color, &graph_warning_digit_color, "Color of the digits on the memory graph when above 90%" },
-	{"-graphlabel",     Is_Color, &graph_labels, "Color of the 1 5 and 15 on load graph and m and s on mem graph" },
-	{"-graphfield",     Is_Color, &graph_field, "Color of the background of the graphs" },
-	{"-graphgrid",      Is_Color, &graph_grid, "Color of the grid lines in the graphs" },
-	{"-graphmax",       Is_Color, &graph_max, "Color of the top two pixels of the bar graph" },
-	{"-graphbar",       Is_Color, &graph_bar, "Color of the rest of the bar graph" },
-	{"-graphmarkers",   Is_Color, &graph_hundreds, "Color of the horizontal lines on the graph that indicate each integer load average" },
-	{"-p",              Is_Bool, &pale, "Adjust the digit colors to pale blue and cyan"},
-	{"-graphs",         Is_Bool, &memscreen_enabled, "Does hovering show the graphs" },
-	{"-m",              Is_Bool, &memscreen_enabled, "Graphs are never shown"},
-	{"-units",          Is_Bool, &memscreen_megabytes, "Units for memory in KB or MB"},
-	{"-k",              Is_Bool, &memscreen_megabytes, "Memory graphs use MB" },
-	{"-shifttime",      Is_Int, &shifttime, "Number of hours after midnight that are drawn as part of the previous day on digital clock and date" },
-	{"-digital",        Is_Bool, &do_digital_clock, "Draw 24h digital clock" },
-	{"-showdate",       Is_Bool, &do_date, "Draw day-of-week month day-of-month "},
-	{"-analog",         Is_Bool, &do_analog_clock, "Draw analog clock face" },
-	{"-hourcolor",      Is_Color, &hourcolor, "Color of hour hand on analog clock "},
-	{"-mincolor",       Is_Color, &mincolor, "Color of minute hand on analog clock "},
-	{"-seccolor",       Is_Color, &seccolor, "Color of second hand on analog clock "},
-};	
+} x_resource_unified[] = {
+	{"-maxbubbles",    "*maxbubbles",     NULL,	Is_Int, &bm.maxbubbles, "Maximum number of simultaneous bubbles in the dockapp" },
+	{"-air_noswap",    "*air_noswap",     NULL,	Is_Color, &bm.air_noswap, "Color of air and bubbles when swap is at 0%" },
+	{"-air_maxswap",   "*air_maxswap",    NULL,	Is_Color, &bm.air_maxswap, "Color of air and bubbles when swap is at 100%" },
+	{"-liquid_noswap", "*liquid_noswap",  NULL,	Is_Color, &bm.liquid_noswap, "Color of water when swap is at 0%" },
+	{"-liquid_maxswap","*liquid_maxswap", NULL,	Is_Color, &bm.liquid_maxswap, "Color of water when swap is at 100%" },
+	{"-duckbody",      "*duckbody",       NULL,	Is_Color, &duck_colors[1], "Color of duck's body" },
+	{"-duckbill",      "*duckbill",       NULL,	Is_Color, &duck_colors[2], "Color of duck's bill" },
+	{"-duckeye",       "*duckeye",        NULL,	Is_Color, &duck_colors[3], "Color of duck's eye" },
+	{"-delay",         "*delay",          NULL,	Is_Int,   &delay_time, "delay this number of microseconds between redraws" },
+	{"-ripples",       "*ripples",        NULL,	Is_Float, &bm.ripples, "Pixels to disturb the surface when a bubble is formed/pops" },
+	{"-gravity",       "*gravity",        NULL,	Is_Float, &bm.gravity, "Pixels/refresh/refresh to accelerate bubbles upwards" },
+	{"-volatility",    "*volatility",     NULL,	Is_Float, &bm.volatility, "Restorative force on water surface in proportion/refresh"},
+	{"-viscosity",     "*viscosity",      NULL,	Is_Float, &bm.viscosity, "Attenuation of surface velocity in proportion/refresh"},
+	{"-speed_limit",   "*speed_limit",    NULL,	Is_Float, &bm.speed_limit, "Maximum water surface velocity in pixels/refresh" },
+	{"-help",          ".help",           "1" ,	Is_Bool, &do_help, "Displays this help" },
+	{"-duck",          "*duck",           NULL,	Is_Bool, &duck_enabled, "Draw the duck?"},
+	{"-d",             "*duck",           "no",	Is_Bool, &duck_enabled, "Just don't draw the duck" },
+	{"-upsidedown",    "*upsidedown",     NULL,	Is_Bool, &upside_down_duck_enabled, "Can the duck flip when the tank is overfull?" },
+	{"-u",             "*upsidedown",     "no",	Is_Bool, &upside_down_duck_enabled, "The duck can never flip" },
+	{"-cpumeter",      "*cpumeter",       NULL,	Is_Bool, &cpu_enabled, "Show the current load at the bottom"},
+	{"-c",             "*cpumeter",       "no",	Is_Bool, &cpu_enabled, "Don't show the current load"},
+	{"-graphdigit",    "*graphdigit",     NULL,	Is_Color, &graph_digit_color, "Color of the digits on the graphs"},
+	{"-graphwarn",     "*graphwarn",      NULL,	Is_Color, &graph_warning_digit_color, "Color of the digits on the memory graph when above 90%" },
+	{"-graphlabel",    "*graphlabel",     NULL,	Is_Color, &graph_labels, "Color of the 1 5 and 15 on load graph and m and s on mem graph" },
+	{"-graphfield",    "*graphfield",     NULL,	Is_Color, &graph_field, "Color of the background of the graphs" },
+	{"-graphgrid",     "*graphgrid",      NULL,	Is_Color, &graph_grid, "Color of the grid lines in the graphs" },
+	{"-graphmax",      "*graphmax",       NULL,	Is_Color, &graph_max, "Color of the top two pixels of the bar graph" },
+	{"-graphbar",      "*graphbar",       NULL,	Is_Color, &graph_bar, "Color of the rest of the bar graph" },
+	{"-graphmarkers",  "*graphmarkers",   NULL,	Is_Color, &graph_hundreds, "Color of the horizontal lines on the graph that indicate each integer load average" },
+	{"-p",             ".graphdigitpale", "1" ,	Is_Bool, &pale, "Adjust the digit colors to pale blue and cyan"},
+	{"-graphs",        "*graphs",         NULL,	Is_Bool, &memscreen_enabled, "Does hovering show the graphs" },
+	{"-m",             "*graphs",         "no",	Is_Bool, &memscreen_enabled, "Graphs are never shown"},
+	{"-units",         "*units",          NULL,	Is_Bool, &memscreen_megabytes, "Units for memory in KB or MB"},
+	{"-k",             "*units",          "m" ,	Is_Bool, &memscreen_megabytes, "Memory graphs use MB" },
+	{"-shifttime",     "*shifttime",      NULL,	Is_Int, &shifttime, "Number of hours after midnight that are drawn as part of the previous day on digital clock and date" },
+	{"-digital",       "*digital",        NULL,	Is_Bool, &do_digital_clock, "Draw 24h digital clock" },
+	{"-showdate",      "*showdate",       NULL,	Is_Bool, &do_date, "Draw day-of-week month day-of-month "},
+	{"-analog",        "*analog" ,        NULL,	Is_Bool, &do_analog_clock, "Draw analog clock face" },
+	{"-hourcolor",     "*hourcolor",      NULL,	Is_Color, &hourcolor, "Color of hour hand on analog clock "},
+	{"-mincolor",      "*mincolor",       NULL,	Is_Color, &mincolor, "Color of minute hand on analog clock "},
+	{"-seccolor",      "*seccolor",       NULL,	Is_Color, &seccolor, "Color of second hand on analog clock "}};
 
 void bubblemon_session_defaults(XrmDatabase x_resource_database)
 {
@@ -295,30 +252,17 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 	bm.viscosity = .98;
 	bm.speed_limit = 6.0;
 
-	if (sizeof(x_resource_options) / sizeof(x_resource_options[0]) != 
-	    sizeof(x_resource_extras) / sizeof(x_resource_extras[0])) {
-		fprintf(stderr, "Compilation time error: X resource parser controls arrays don't match (%d, %d entries)\n",
-		        sizeof(x_resource_options) / sizeof(x_resource_options[0]),
-		        sizeof(x_resource_extras) / sizeof(x_resource_extras[0]));
-		abort();
-	}
-
-	for (i = 0; i < (sizeof(x_resource_options) / sizeof(x_resource_options[0])); i++) {
-		if (strcmp(x_resource_options[i].option,x_resource_extras[i].option) != 0) {
-			fprintf(stderr, "Compilation time error: element #%d doesn't match between arrays (%s != %s)\n",
-			        i,x_resource_options[i].option,x_resource_extras[i].option);
-			abort();
-		}
-		strncpy(name,NAME,BUFSIZ), strncat(name,x_resource_options[i].specifier,BUFSIZ-strlen(name));
+	for (i = 0; i < (sizeof(x_resource_unified) / sizeof(x_resource_unified[0])); i++) {
+		strncpy(name,NAME,BUFSIZ), strncat(name,x_resource_unified[i].specifier,BUFSIZ-strlen(name));
 		if (XrmGetResource(x_resource_database, name, name, &type, &val)) {
 			/* Type returned by XrmGetResource is useless, it seems to always return "String" */
 			if (val.size > 0)	/* prevent empty strings */
-				switch (x_resource_extras[i].parse_as) {
+				switch (x_resource_unified[i].parse_as) {
 				case Is_Int:
-					*(int *) x_resource_extras[i].write_to = strtol(val.addr,NULL,0);
+					*(int *) x_resource_unified[i].write_to = strtol(val.addr,NULL,0);
 					break;
 				case Is_Float:
-					*(double *) x_resource_extras[i].write_to = strtod(val.addr,NULL);
+					*(double *) x_resource_unified[i].write_to = strtod(val.addr,NULL);
 					break;
 				case Is_Color:
 					if (XParseColor(wmxp_display,
@@ -326,11 +270,11 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 					                                DefaultScreen(wmxp_display)),
 					                val.addr, &colorparsing) == 0) {
 						fprintf(stderr,"Couldn't parse color %s for control %s\n",
-						        val.addr,x_resource_extras[i].option);
+						        val.addr,x_resource_unified[i].option);
 						exit(-3);
 					}
-					*(int *) x_resource_extras[i].write_to = 
-						((colorparsing.red & 0xFF00) << 8) | 
+					*(int *) x_resource_unified[i].write_to =
+						((colorparsing.red & 0xFF00) << 8) |
 						((colorparsing.green & 0xFF00)) |
 						((colorparsing.blue & 0xFF00) >> 8);
 					break;
@@ -340,12 +284,12 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 					    tolower(val.addr[0]) == 'm' ||
 					    val.addr[0] == '1' ||
 					    (tolower(val.addr[0]) == 'o' && tolower(val.addr[1]) == 'n'))
-						*(int *) x_resource_extras[i].write_to = 1; /* bools are stored in ints, sorry */
+						*(int *) x_resource_unified[i].write_to = 1; /* bools are stored in ints, sorry */
 					else if (tolower(val.addr[0]) == 'n' ||
 					         tolower(val.addr[0]) == 'k' ||
 					         val.addr[0] == '0' ||
 					         (tolower(val.addr[0]) == 'o' && tolower(val.addr[1]) == 'f'))
-						*(int *) x_resource_extras[i].write_to = 0;
+						*(int *) x_resource_unified[i].write_to = 0;
 					else {
 						fprintf(stderr,"Couldn't parse %s as a boolean for resource %s\n",val.addr,name);
 						exit(-2);
@@ -353,7 +297,7 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 					break;
 				default:
 					fprintf(stderr, "Compilation time error: element #%d (%s) has not-understood parse type %d\n",
-					        i, x_resource_extras[i].option, x_resource_extras[i].parse_as);
+					        i, x_resource_unified[i].option, x_resource_unified[i].parse_as);
 					abort();
 					break;
 				}
@@ -378,8 +322,8 @@ void print_usage(void) {
 	printf("BubbleMon version "VERSION"\n"
 	       "Usage: "NAME" [switches] [program_1] [program_2]\n\n"
 	       "Permitted options are:\n");
-	for (i=0; i < sizeof(x_resource_extras) / sizeof(x_resource_extras[0]); i++)
-		printf("%-20s %s\n",x_resource_extras[i].option,x_resource_extras[i].description);
+	for (i=0; i < sizeof(x_resource_unified) / sizeof(x_resource_unified[0]); i++)
+		printf("%-20s %s\n",x_resource_unified[i].option,x_resource_unified[i].description);
 }
 
 int main(int argc, char **argv) {
@@ -389,6 +333,7 @@ int main(int argc, char **argv) {
 	int gaugedelay, gaugedivisor, graphdelay, graphdivisor;
 	int proximity = 0;
 	time_t mytt;
+	int ii;
 	struct tm * mytime;
 	int mday=0, hours=0;
 #ifdef FPS
@@ -401,6 +346,7 @@ int main(int argc, char **argv) {
 #endif
 	XEvent event;
 	XrmDatabase x_resource_db;
+	XrmOptionDescRec * x_resource_options;
 
 #ifdef FPS
 	frames_count = last_time = 0;
@@ -419,9 +365,17 @@ int main(int argc, char **argv) {
 	if (x_resources_as_string == NULL)
 		x_resources_as_string = "";
 	x_resource_db = XrmGetStringDatabase(x_resources_as_string);
-	XrmParseCommand(&x_resource_db, x_resource_options, 
-	                sizeof(x_resource_options)/sizeof(x_resource_options[0]), 
+	x_resource_options = (XrmOptionDescRec *)calloc(sizeof(XrmOptionDescRec),sizeof(x_resource_unified)/sizeof(x_resource_unified[0]));
+	for (ii = 0; ii < sizeof(x_resource_unified)/sizeof(x_resource_unified[0]); ii ++) {
+		x_resource_options[ii].option = x_resource_unified[ii].option;
+		x_resource_options[ii].specifier = x_resource_unified[ii].specifier;
+		x_resource_options[ii].value = (XPointer) x_resource_unified[ii].valueifnoarg;
+		x_resource_options[ii].argKind = (x_resource_unified[ii].valueifnoarg == NULL) ? XrmoptionSepArg : XrmoptionNoArg;
+	}
+	XrmParseCommand(&x_resource_db, x_resource_options,
+	                sizeof(x_resource_unified)/sizeof(x_resource_unified[0]),
 	                NAME, &argc, argv);
+	free(x_resource_options);
 	/* set default things, from Xresources or compiled-in defaults. Must come after initwmX11pixmap and we have a DISPLAY */
 	bubblemon_session_defaults(x_resource_db);
 
