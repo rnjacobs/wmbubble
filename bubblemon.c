@@ -212,9 +212,9 @@ XrmOptionDescRec x_resource_options[] = {
 	{"-units",         "*units",          XrmoptionSepArg, (XPointer) NULL}, /* kB or MB */
 	{"-k",             "*units",          XrmoptionNoArg,  (XPointer) "m"},
 	{"-shifttime",     "*shifttime",      XrmoptionSepArg, (XPointer) NULL},
-	{"-digital",       "*digital",        XrmoptionNoArg,  (XPointer) "1"},
-	{"-showdate",      "*showdate",       XrmoptionNoArg,  (XPointer) "1"},
-	{"-analog",        "*analog" ,        XrmoptionNoArg,  (XPointer) "1"},
+	{"-digital",       "*digital",        XrmoptionSepArg, (XPointer) NULL},
+	{"-showdate",      "*showdate",       XrmoptionSepArg, (XPointer) NULL},
+	{"-analog",        "*analog" ,        XrmoptionSepArg, (XPointer) NULL},
 	{"-hourcolor",     "*hourcolor",      XrmoptionSepArg, (XPointer) NULL},
 	{"-mincolor",      "*mincolor",       XrmoptionSepArg, (XPointer) NULL},
 	{"-seccolor",      "*seccolor",       XrmoptionSepArg, (XPointer) NULL},
