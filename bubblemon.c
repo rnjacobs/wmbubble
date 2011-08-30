@@ -1334,7 +1334,7 @@ static void duck_set(int x, int y, int nr, int rev, int upsidedown)
 	/* calculate this only once */
 	int ypos = (h + y) * 56;
 #ifdef UPSIDE_DOWN_DUCK
-	rh = (upsidedown && upside_down_duck_enabled) ? 17 - h : h;
+	rh = (upsidedown && upside_down_duck_enabled) ? 16 - h : h;
 #endif
 	for (w = di; w < dw; w++) {
 	    rw = (rev) ? 17 - w : w;
