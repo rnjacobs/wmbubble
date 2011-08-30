@@ -146,104 +146,104 @@ int pale = 0;
 
 #define INT_VAL 0
 #define DOUBLE_VAL 1
-#define COLOR_VAL 2
+ #define COLOR_VAL 2
 
 static void bubblemon_session_defaults(void)
 {
-    /* handy way to collect all this stuff in one place */
-    typedef struct {
-	char *name;		/* name as appears in Xdefaults */
-	int type;		/* int, double, or color, see up */
-	void *var;		/* pointer to value - only handles INT atm */
-    } xrm_vars;
+	/* handy way to collect all this stuff in one place */
+	typedef struct {
+		char *name;		/* name as appears in Xdefaults */
+		int type;		/* int, double, or color, see up */
+		void *var;		/* pointer to value - only handles INT atm */
+	} xrm_vars;
 
-    /* XResource stuff */
-    char name[BUFSIZ] = "", *ptr;
-    XrmDatabase db = NULL;
-    XrmValue val;
-    char *type;
-    int i;
+	/* XResource stuff */
+	char name[BUFSIZ] = "", *ptr;
+	XrmDatabase db = NULL;
+	XrmValue val;
+	char *type;
+	int i;
 
-    xrm_vars tab[] = {
-	{NAME".maxbubbles", INT_VAL, &bm.maxbubbles},
-	{NAME".air_noswap", COLOR_VAL, &bm.air_noswap},
-	{NAME".air_maxswap", COLOR_VAL, &bm.air_maxswap},
-	{NAME".liquid_noswap", COLOR_VAL, &bm.liquid_noswap},
-	{NAME".liquid_maxswap", COLOR_VAL, &bm.liquid_maxswap},
-	{NAME".ripples", DOUBLE_VAL, &bm.ripples},
-	{NAME".gravity", DOUBLE_VAL, &bm.gravity},
-	{NAME".volatility", DOUBLE_VAL, &bm.volatility},
-	{NAME".viscosity", DOUBLE_VAL, &bm.viscosity},
-	{NAME".speed_limit", DOUBLE_VAL, &bm.speed_limit}
-    };
+	xrm_vars tab[] = {
+		{NAME".maxbubbles", INT_VAL, &bm.maxbubbles},
+		{NAME".air_noswap", COLOR_VAL, &bm.air_noswap},
+		{NAME".air_maxswap", COLOR_VAL, &bm.air_maxswap},
+		{NAME".liquid_noswap", COLOR_VAL, &bm.liquid_noswap},
+		{NAME".liquid_maxswap", COLOR_VAL, &bm.liquid_maxswap},
+		{NAME".ripples", DOUBLE_VAL, &bm.ripples},
+		{NAME".gravity", DOUBLE_VAL, &bm.gravity},
+		{NAME".volatility", DOUBLE_VAL, &bm.volatility},
+		{NAME".viscosity", DOUBLE_VAL, &bm.viscosity},
+		{NAME".speed_limit", DOUBLE_VAL, &bm.speed_limit}
+	};
 
-    /* number of CPU load samples */
-    bm.samples = 16;
+	/* number of CPU load samples */
+	bm.samples = 16;
 
-    /* default colors.  changeable from Xdefaults */
-    bm.air_noswap = 0x2299ff;
-    bm.liquid_noswap = 0x0055ff;
-    bm.air_maxswap = 0xff0000;
-    bm.liquid_maxswap = 0xaa0000;
+	/* default colors.  changeable from Xdefaults */
+	bm.air_noswap = 0x2299ff;
+	bm.liquid_noswap = 0x0055ff;
+	bm.air_maxswap = 0xff0000;
+	bm.liquid_maxswap = 0xaa0000;
 
-    /* default bubble engine parameters.  Changeable from Xdefaults */
-    bm.maxbubbles = 100;
-    bm.ripples = .2;
-    bm.gravity = 0.06;
-    bm.volatility = 1;
-    bm.viscosity = .98;
-    bm.speed_limit = 6.0;
+	/* default bubble engine parameters.  Changeable from Xdefaults */
+	bm.maxbubbles = 100;
+	bm.ripples = .2;
+	bm.gravity = 0.06;
+	bm.volatility = 1;
+	bm.viscosity = .98;
+	bm.speed_limit = 6.0;
 
-    db = NULL;
-    XrmInitialize();
+	db = NULL;
+	XrmInitialize();
 
-    /* get users's local Xdefaults */
-    if ((ptr = getenv("HOME")) != NULL) {
-	snprintf(name, sizeof(name), "%s/.Xdefaults", ptr);
-    }
-
-    /* get the database and parse resources if we have some */
-    if ((db = XrmGetFileDatabase(name)) != NULL) {
-	for (i = 0; i < (sizeof(tab) / sizeof(tab[0])); i++) {
-	    if (XrmGetResource(db, tab[i].name, tab[i].name, &type, &val)) {
-		if (val.size > 0)	/* no empty strings and shit like that */
-		    switch (tab[i].type) {
-		    case INT_VAL:
-			*(int *) tab[i].var = atoi(val.addr);
-			break;
-		    case DOUBLE_VAL:
-			*(double *) tab[i].var = atof(val.addr);
-			break;
-		    case COLOR_VAL:
-			sscanf(val.addr, "#%x", (int *) tab[i].var);
-			break;
-		    default:
-			/* WTF? */
-			break;
-		    }
-	    }
+	/* get users's local Xdefaults */
+	if ((ptr = getenv("HOME")) != NULL) {
+		snprintf(name, sizeof(name), "%s/.Xdefaults", ptr);
 	}
-    }
-#define RANGE_CHECK(x, min, max, def) \
-    if ((x) > (max) || (x) < (min)) { \
-	fprintf(stderr, #x" value is out of range. Using default value ("#def")\n"); \
-	(x) = (def); \
-    }
 
-    /* range validation. 3l33t hackerz NO PASARAN */
-    RANGE_CHECK(bm.air_noswap, 0, 0xffffff, 0x2299ff);
-    RANGE_CHECK(bm.liquid_noswap, 0, 0xffffff, 0x0055ff);
-    RANGE_CHECK(bm.air_maxswap, 0, 0xffffff, 0xff0000);
-    RANGE_CHECK(bm.liquid_maxswap, 0, 0xffffff, 0xaa0000);
+	/* get the database and parse resources if we have some */
+	if ((db = XrmGetFileDatabase(name)) != NULL) {
+		for (i = 0; i < (sizeof(tab) / sizeof(tab[0])); i++) {
+			if (XrmGetResource(db, tab[i].name, tab[i].name, &type, &val)) {
+				if (val.size > 0)	/* no empty strings and shit like that */
+					switch (tab[i].type) {
+					case INT_VAL:
+						*(int *) tab[i].var = atoi(val.addr);
+						break;
+					case DOUBLE_VAL:
+						*(double *) tab[i].var = atof(val.addr);
+						break;
+					case COLOR_VAL:
+						sscanf(val.addr, "#%x", (int *) tab[i].var);
+						break;
+					default:
+						/* WTF? */
+						break;
+					}
+			}
+		}
+	}
+#define RANGE_CHECK(x, min, max, def) \
+	if ((x) > (max) || (x) < (min)) { \
+		fprintf(stderr, #x" value is out of range. Using default value ("#def")\n"); \
+		(x) = (def); \
+	}
+
+	/* range validation. 3l33t hackerz NO PASARAN */
+	RANGE_CHECK(bm.air_noswap, 0, 0xffffff, 0x2299ff);
+	RANGE_CHECK(bm.liquid_noswap, 0, 0xffffff, 0x0055ff);
+	RANGE_CHECK(bm.air_maxswap, 0, 0xffffff, 0xff0000);
+	RANGE_CHECK(bm.liquid_maxswap, 0, 0xffffff, 0xaa0000);
 
 #undef RANGE_CHECK
 
-    /* convert doubles into integer representation */
-    bm.ripples_int = MAKE_INTEGER(bm.ripples);
-    bm.gravity_int = MAKE_INTEGER(bm.gravity);
-    bm.volatility_int = MAKE_INTEGER(bm.volatility);
-    bm.viscosity_int = MAKE_INTEGER(bm.viscosity);
-    bm.speed_limit_int = MAKE_INTEGER(bm.speed_limit);
+	/* convert doubles into integer representation */
+	bm.ripples_int = MAKE_INTEGER(bm.ripples);
+	bm.gravity_int = MAKE_INTEGER(bm.gravity);
+	bm.volatility_int = MAKE_INTEGER(bm.volatility);
+	bm.viscosity_int = MAKE_INTEGER(bm.viscosity);
+	bm.speed_limit_int = MAKE_INTEGER(bm.speed_limit);
 }
 
 #undef INT_VAL
@@ -449,11 +449,30 @@ int main(int argc, char **argv)
 	/* render frames per second on bottom-right corner :)
 	 * This is GCC-specific (functions inside functions)
 	 * and very unoptimized. this is obfuscated 'cause its ugly */
-    	f++;{int b;void q(int sx,int sy,int dx,int dy){int i,j;char *from,*to;
-	for(j=0;j<8;j++){from=mem_screen+56*3*(sy+j)+sx*3;to=bm.rgb_buf+56*3*
-	(dy+j)+dx*3;i=12;while(i--)*to++=*from++;}}b=o;if(b>=100){q((b/100)*4,
-	60,43,46);b=b%100;}q((b/10)*4,60,47,46);q((b%10)*4,60,51,46);}if(time(
-	NULL)!=y){o=f;f=0;y=time(NULL);}
+    	f++;
+		int b;
+		void q(int sx,int sy,int dx,int dy){
+			int i,j;
+			char *from,*to;
+			for(j=0;j<8;j++) { 
+				from=NUMBERS+BOX_SIZE*3*(sy+j)+sx*3;
+				to=bm.rgb_buf+BOX_SIZE*3*(dy+j)+dx*3;
+				i=12;
+				while(i--) *to++=*from++;
+			}
+		}
+		b=o;
+		if (b>=100) {
+			q((b/100)*4,60,43,46);
+			b=b%100;
+		}
+		q((b/10)*4,60,47,46);
+		q((b%10)*4,60,51,46);}
+	if(time(NULL)!=y) {
+		o=f;
+		f=0;
+		y=time(NULL);
+	}
 #endif
 /* *INDENT-ON* */
 
@@ -549,92 +568,93 @@ static void make_new_bubblemon_dockapp(void)
  * the bubble array and main rgb buffer.
  */
 static void bubblemon_update(int proximity) {
-    Bubble *bubbles = bm.bubbles;
-    unsigned int i, loadPercentage, x, y;
-    unsigned char reds[3], grns[3], blus[3];
-    unsigned char *ptr, *bubblebuf_ptr;
-    enum bubblebuf_values { watercolor, antialiascolor, aircolor };
-    unsigned int waterlevels_goal;
+	Bubble *bubbles = bm.bubbles;
+	unsigned int i, loadPercentage, x, y;
+	unsigned char reds[3], grns[3], blus[3];
+	unsigned char *ptr, *bubblebuf_ptr;
+	enum bubblebuf_values { watercolor, antialiascolor, aircolor };
+	unsigned int waterlevels_goal;
 
-    /* These values are for keeping track of where we have to start
-       drawing water. */
-    unsigned int waterlevel_min, waterlevel_max;
-    unsigned int real_waterlevel_min, real_waterlevel_max;
+	/* These values are for keeping track of where we have to start
+	   drawing water. */
+	unsigned int waterlevel_min, waterlevel_max;
+	unsigned int real_waterlevel_min, real_waterlevel_max;
 
-    /* These values are for keeping track how deep the duck is inside water */
-    unsigned int action_min = BOX_SIZE;
-    static unsigned int last_action_min = 0;
+	/* These values are for keeping track how deep the duck is inside water */
+	unsigned int action_min = BOX_SIZE;
+	static unsigned int last_action_min = 0;
 
-    /* Find out the CPU load */
-    loadPercentage = system_cpu();
+	/* Find out the CPU load */
+	loadPercentage = system_cpu();
 
 #ifdef ENABLE_MEMSCREEN
-    /* get loadavg */
-    if (memscreen_enabled)
-	system_loadavg();
+	/* get loadavg */
+	if (memscreen_enabled)
+		system_loadavg();
 #endif				/* ENABLE_MEMSCREEN */
 
-    /*
-      The bubblebuf is made up of int8s (0..2), correspodning to the enum. A
-      pixel in the bubblebuf is accessed using the formula bubblebuf[row * w
-      + column].
-    */
+	/*
+	  The bubblebuf is made up of int8s (0..2), correspodning to the enum. A
+	  pixel in the bubblebuf is accessed using the formula bubblebuf[row * w
+	  + column].
+	*/
 
-    /* y coordinates are counted from here multiplied by 256 */
-    /* to get actual screen coordinate, divide by 256 */
+	/* y coordinates are counted from here multiplied by 256
+	   to get actual screen coordinate, divide by 256 */
 
-    waterlevel_max = 0;
-    waterlevel_min = MAKEY(BOX_SIZE);
+	waterlevel_max = 0;
+	waterlevel_min = MAKEY(BOX_SIZE);
 
-    /* Move the water level with the current memory usage. */
-    waterlevels_goal = MAKEY(BOX_SIZE) - ((bm.mem_percent * MAKEY(BOX_SIZE)) / 100);
+	/* Move the water level with the current memory usage. */
+	waterlevels_goal = MAKEY(BOX_SIZE) - ((bm.mem_percent * MAKEY(BOX_SIZE)) / 100);
 
-    /* Guard against boundary errors */
-    waterlevels_goal -= (1 << (POWER2 - 1));
+	/* Guard against boundary errors */
+	waterlevels_goal -= (1 << (POWER2 - 1));
 
-    bm.waterlevels[0] = waterlevels_goal;
-    bm.waterlevels[BOX_SIZE-1] = waterlevels_goal;
+	bm.waterlevels[0] = waterlevels_goal;
+	bm.waterlevels[BOX_SIZE-1] = waterlevels_goal;
 
-    for (x = 1; x < BOX_SIZE-1; x++) {
-	/* Accelerate the current waterlevel towards its correct value */
-	bm.waterlevels_dy[x] +=
-	    (((bm.waterlevels[x - 1] + bm.waterlevels[x + 1] -
-	       2 * bm.waterlevels[x]) * bm.volatility_int) >> (POWER2 + 1));
+	for (x = 1; x < BOX_SIZE-1; x++) {
+		/* Accelerate the current waterlevel towards its correct value */
+		bm.waterlevels_dy[x] +=
+			(((bm.waterlevels[x - 1] + bm.waterlevels[x + 1] -
+			   2 * bm.waterlevels[x]) * bm.volatility_int) >> (POWER2 + 1));
 
-	bm.waterlevels_dy[x] *= bm.viscosity_int;
-	bm.waterlevels_dy[x] >>= POWER2;
+		bm.waterlevels_dy[x] *= bm.viscosity_int;
+		bm.waterlevels_dy[x] >>= POWER2;
 
-	if (bm.waterlevels_dy[x] > bm.speed_limit_int)
-	    bm.waterlevels_dy[x] = bm.speed_limit_int;
-	else if (bm.waterlevels_dy[x] < -bm.speed_limit_int)
-	    bm.waterlevels_dy[x] = -bm.speed_limit_int;
-    }
-
-    for (x = 1; x < BOX_SIZE-1; x++) {
-	/* Move the current water level */
-	bm.waterlevels[x] = bm.waterlevels[x] + bm.waterlevels_dy[x];
-
-	if (bm.waterlevels[x] > MAKEY(BOX_SIZE)) {
-	    /* Stop the wave if it hits the floor... */
-	    bm.waterlevels[x] = MAKEY(BOX_SIZE);
-	    bm.waterlevels_dy[x] = 0;
-	} else if (bm.waterlevels[x] < 0) {
-	    /* ... or the ceiling. */
-	    bm.waterlevels[x] = 0;
-	    bm.waterlevels_dy[x] = 0;
+		if (bm.waterlevels_dy[x] > bm.speed_limit_int)
+			bm.waterlevels_dy[x] = bm.speed_limit_int;
+		else if (bm.waterlevels_dy[x] < -bm.speed_limit_int)
+			bm.waterlevels_dy[x] = -bm.speed_limit_int;
 	}
-	/* Keep track of the highest and lowest water levels */
-	if (bm.waterlevels[x] > waterlevel_max)
-	    waterlevel_max = bm.waterlevels[x];
-	if (bm.waterlevels[x] < waterlevel_min)
-	    waterlevel_min = bm.waterlevels[x];
-    }
 
-    real_waterlevel_min = REALY(waterlevel_min);
-    real_waterlevel_max = REALY(waterlevel_max);
+	for (x = 1; x < BOX_SIZE-1; x++) {
+		/* Move the current water level */
+		bm.waterlevels[x] = bm.waterlevels[x] + bm.waterlevels_dy[x];
 
-    if (action_min > real_waterlevel_min)
-	action_min = real_waterlevel_min;
+		if (bm.waterlevels[x] > MAKEY(BOX_SIZE)) {
+			/* Stop the wave if it hits the floor... */
+			bm.waterlevels[x] = MAKEY(BOX_SIZE);
+			bm.waterlevels_dy[x] = 0;
+		} else if (bm.waterlevels[x] < 0) {
+			/* ... or the ceiling. */
+			bm.waterlevels[x] = 0;
+			bm.waterlevels_dy[x] = 0;
+		}
+		/* Keep track of the highest and lowest water levels */
+		if (bm.waterlevels[x] > waterlevel_max)
+			waterlevel_max = bm.waterlevels[x];
+		if (bm.waterlevels[x] < waterlevel_min)
+			waterlevel_min = bm.waterlevels[x];
+	}
+
+	real_waterlevel_min = REALY(waterlevel_min);
+	real_waterlevel_max = REALY(waterlevel_max);
+
+	if (action_min > real_waterlevel_min)
+		action_min = real_waterlevel_min;
+	
 
     /*
        Draw the air-and-water background
@@ -669,93 +689,93 @@ static void bubblemon_update(int proximity) {
     memset(bm.bubblebuf + real_waterlevel_max * BOX_SIZE, watercolor,
            (BOX_SIZE - real_waterlevel_max) * BOX_SIZE);
 
-    /* Create a new bubble if the planets are correctly aligned... */
-    if ((bm.n_bubbles < bm.maxbubbles)
-	&& ((rand() % 101) <= loadPercentage)) {
-	/* We don't allow bubbles on the edges 'cause we'd have to clip them */
-	bubbles[bm.n_bubbles].x = (rand() % (BOX_SIZE-2)) + 1;
-	bubbles[bm.n_bubbles].y = MAKEY(BOX_SIZE) - 256;
-	bubbles[bm.n_bubbles].dy = 0;
+	/* Create a new bubble if the planets are correctly aligned... */
+	if ((bm.n_bubbles < bm.maxbubbles)
+	    && ((rand() % 101) <= loadPercentage)) {
+		/* We don't allow bubbles on the edges 'cause we'd have to clip them */
+		bubbles[bm.n_bubbles].x = (rand() % (BOX_SIZE-2)) + 1;
+		bubbles[bm.n_bubbles].y = MAKEY(BOX_SIZE) - 256;
+		bubbles[bm.n_bubbles].dy = 0;
 #ifdef DEBUG_DUCK
-	fprintf (stderr, "new bubble:  bubbles[bm.n_bubbles].x = %i\n",
-			 bubbles[bm.n_bubbles].x);
+		fprintf (stderr, "new bubble:  bubbles[bm.n_bubbles].x = %i\n",
+		         bubbles[bm.n_bubbles].x);
 #endif
 
-	if (bm.ripples_int != 0) {
-	    /* Raise the water level above where the bubble is created */
-	    if (bubbles[bm.n_bubbles].x > 2)
-		bm.waterlevels[bubbles[bm.n_bubbles].x - 2] -=
-		    bm.ripples_int;
-	    bm.waterlevels[bubbles[bm.n_bubbles].x - 1] -= bm.ripples_int;
-	    bm.waterlevels[bubbles[bm.n_bubbles].x] -= bm.ripples_int;
-	    bm.waterlevels[bubbles[bm.n_bubbles].x + 1] -= bm.ripples_int;
-	    if (bubbles[bm.n_bubbles].x < (BOX_SIZE-3))
-		bm.waterlevels[bubbles[bm.n_bubbles].x + 2] -=
-		    bm.ripples_int;
+		if (bm.ripples_int != 0) {
+			/* Raise the water level above where the bubble is created */
+			if (bubbles[bm.n_bubbles].x > 2)
+				bm.waterlevels[bubbles[bm.n_bubbles].x - 2] -=
+					bm.ripples_int;
+			bm.waterlevels[bubbles[bm.n_bubbles].x - 1] -= bm.ripples_int;
+			bm.waterlevels[bubbles[bm.n_bubbles].x] -= bm.ripples_int;
+			bm.waterlevels[bubbles[bm.n_bubbles].x + 1] -= bm.ripples_int;
+			if (bubbles[bm.n_bubbles].x < (BOX_SIZE-3))
+				bm.waterlevels[bubbles[bm.n_bubbles].x + 2] -=
+					bm.ripples_int;
+		}
+
+		/* Count the new bubble */
+		bm.n_bubbles++;
 	}
 
-	/* Count the new bubble */
-	bm.n_bubbles++;
-    }
+	/* Update and draw the bubbles */
+	for (i = 0; i < bm.n_bubbles; i++) {
+		/* Accelerate the bubble */
+		bubbles[i].dy -= bm.gravity_int;
 
-    /* Update and draw the bubbles */
-    for (i = 0; i < bm.n_bubbles; i++) {
-	/* Accelerate the bubble */
-	bubbles[i].dy -= bm.gravity_int;
+		/* Move the bubble vertically */
+		bubbles[i].y += bubbles[i].dy;
 
-	/* Move the bubble vertically */
-	bubbles[i].y += bubbles[i].dy;
-
-	/* is the bubble grossly out of bounds? */
-	if (bubbles[i].x < 1 || bubbles[i].x > (BOX_SIZE-2) ||
-	    bubbles[i].y > MAKEY(BOX_SIZE)) {
+		/* is the bubble grossly out of bounds? */
+		if (bubbles[i].x < 1 || bubbles[i].x > (BOX_SIZE-2) ||
+		    bubbles[i].y > MAKEY(BOX_SIZE)) {
 #ifdef DEBUG_DUCK
-		fprintf (stderr, "bubble out of bounds "
-				"bubbles[%i].x=%i, bubbles[%i].y=%i\n", 
-				i, bubbles[i].x, i, bubbles[i].y);
+			fprintf (stderr, "bubble out of bounds "
+			         "bubbles[%i].x=%i, bubbles[%i].y=%i\n", 
+			         i, bubbles[i].x, i, bubbles[i].y);
 #endif
 		
-	    /* Yes; nuke it */
-	    bubbles[i].x = bubbles[bm.n_bubbles - 1].x;
-	    bubbles[i].y = bubbles[bm.n_bubbles - 1].y;
-	    bubbles[i].dy = bubbles[bm.n_bubbles - 1].dy;
+			/* Yes; nuke it */
+			bubbles[i].x = bubbles[bm.n_bubbles - 1].x;
+			bubbles[i].y = bubbles[bm.n_bubbles - 1].y;
+			bubbles[i].dy = bubbles[bm.n_bubbles - 1].dy;
 	    bm.n_bubbles--;
 
 	    /*
-	       We must check the previously last bubble, which is
-	       now the current bubble, also.
-	     */
+	      We must check the previously last bubble, which is
+	      now the current bubble, also.
+	    */
 	    i--;
 	    continue;
-	}
+		}
 		
-	/* Did we lose it? */
-	if (bubbles[i].y < bm.waterlevels[bubbles[i].x]) {
-	    if (bm.ripples_int != 0) {
-		/* Lower the water level around where the bubble is
-		   about to vanish */
-		bm.waterlevels[bubbles[i].x - 1] += bm.ripples_int;
-		bm.waterlevels[bubbles[i].x] += 3 * bm.ripples_int;
-		bm.waterlevels[bubbles[i].x + 1] += bm.ripples_int;
-	    }
+		/* Did we lose it? */
+		if (bubbles[i].y < bm.waterlevels[bubbles[i].x]) {
+			if (bm.ripples_int != 0) {
+				/* Lower the water level around where the bubble is
+				   about to vanish */
+				bm.waterlevels[bubbles[i].x - 1] += bm.ripples_int;
+				bm.waterlevels[bubbles[i].x] += 3 * bm.ripples_int;
+				bm.waterlevels[bubbles[i].x + 1] += bm.ripples_int;
+			}
 
-	    /* Yes; nuke it */
-	    bubbles[i].x = bubbles[bm.n_bubbles - 1].x;
-	    bubbles[i].y = bubbles[bm.n_bubbles - 1].y;
-	    bubbles[i].dy = bubbles[bm.n_bubbles - 1].dy;
-	    bm.n_bubbles--;
+			/* Yes; nuke it */
+			bubbles[i].x = bubbles[bm.n_bubbles - 1].x;
+			bubbles[i].y = bubbles[bm.n_bubbles - 1].y;
+			bubbles[i].dy = bubbles[bm.n_bubbles - 1].dy;
+			bm.n_bubbles--;
 
-	    /*
-	       We must check the previously last bubble, which is
-	       now the current bubble, also.
-	     */
-	    i--;
-	    continue;
-	}
+			/*
+			  We must check the previously last bubble, which is
+			  now the current bubble, also.
+			*/
+			i--;
+			continue;
+		}
 
-	/* Draw the bubble */
-	x = bubbles[i].x;
-	y = bubbles[i].y;
+		/* Draw the bubble */
+		x = bubbles[i].x;
+		y = bubbles[i].y;
 
 	/*
 	  Clipping is not necessary for x, but it *is* for y.
@@ -763,51 +783,51 @@ static void bubblemon_update(int proximity) {
 	  watercolor, and aircolor on top of antialiascolor.
 	*/
 
-	/* Top row */
-	bubblebuf_ptr = &(bm.bubblebuf[(((REALY(y) - 1) * BOX_SIZE) + BOX_SIZE) + x - 1]);
-	if (y >= bm.waterlevels[x]) {
-	    if (*bubblebuf_ptr < aircolor) 
-		(*bubblebuf_ptr)++; /* water becomes antialias; antialias becomes air for outside corners */
-	    bubblebuf_ptr++;
-	    
-	    *bubblebuf_ptr = aircolor;
-	    bubblebuf_ptr++;
-	    
-	    if (*bubblebuf_ptr < aircolor) 
-		(*bubblebuf_ptr)++;
-	    bubblebuf_ptr += BOX_SIZE-2;
-	} else {
-	    bubblebuf_ptr += BOX_SIZE;
-	}
-	
-	/* Middle row - no color clipping necessary */
-	*bubblebuf_ptr = aircolor;
-	bubblebuf_ptr++;
-	*bubblebuf_ptr = aircolor;
-	bubblebuf_ptr++;
-	*bubblebuf_ptr = aircolor;
-	bubblebuf_ptr += BOX_SIZE-2;
+		/* Top row */
+		bubblebuf_ptr = &(bm.bubblebuf[(((REALY(y) - 1) * BOX_SIZE) + BOX_SIZE) + x - 1]);
+		if (y >= bm.waterlevels[x]) {
+			if (*bubblebuf_ptr < aircolor) 
+				(*bubblebuf_ptr)++; /* water becomes antialias; antialias becomes air for outside corners */
+			bubblebuf_ptr++;
+			
+			*bubblebuf_ptr = aircolor;
+			bubblebuf_ptr++;
+			
+			if (*bubblebuf_ptr < aircolor) 
+				(*bubblebuf_ptr)++;
+			bubblebuf_ptr += BOX_SIZE-2;
+		} else {
+			bubblebuf_ptr += BOX_SIZE;
+		}
+		
+		/* Middle row - no color clipping necessary */
+		*bubblebuf_ptr = aircolor;
+		bubblebuf_ptr++;
+		*bubblebuf_ptr = aircolor;
+		bubblebuf_ptr++;
+		*bubblebuf_ptr = aircolor;
+		bubblebuf_ptr += BOX_SIZE-2;
 
-	/* Bottom row */
-	if (y < (MAKEY(BOX_SIZE) - 256)) {
-	    if (*bubblebuf_ptr < aircolor) {
-		(*bubblebuf_ptr)++;
-	    }
-	    bubblebuf_ptr++;
-	    
-	    *bubblebuf_ptr = aircolor;
-	    bubblebuf_ptr++;
-	    
-	    if (*bubblebuf_ptr < aircolor) {
-		(*bubblebuf_ptr)++;
-	    }
+		/* Bottom row */
+		if (y < (MAKEY(BOX_SIZE) - 256)) {
+			if (*bubblebuf_ptr < aircolor) {
+				(*bubblebuf_ptr)++;
+			}
+			bubblebuf_ptr++;
+			
+			*bubblebuf_ptr = aircolor;
+			bubblebuf_ptr++;
+			
+			if (*bubblebuf_ptr < aircolor) {
+				(*bubblebuf_ptr)++;
+			}
+		}
 	}
-    }
 
-    /*
-      Vary the colors of air and water with how many percent of the available
-      swap space that is in use.
-    */
+	/*
+	  Vary the colors of air and water with how many percent of the available
+	  swap space that is in use.
+	*/
 #define GET_RED(x) (((x)>>16)&255)
 #define GET_GRN(x) (((x)>> 8)&255)
 #define GET_BLU(x) (((x)    )&255)
@@ -851,11 +871,11 @@ static void bubblemon_update(int proximity) {
 		bubblebuf_ptr++;
 	}
 #ifdef ENABLE_DUCK
-    if (duck_enabled) {
-	duck_swimmer((last_action_min <
-		      action_min) ? last_action_min - 14 : action_min -
-		     14);
-    }
+	if (duck_enabled) {
+		duck_swimmer((last_action_min < action_min) ? 
+		             last_action_min - 14 : 
+		             action_min - 14);
+	}
 #endif
 
 #if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
@@ -870,13 +890,14 @@ static void bubblemon_update(int proximity) {
 	    memscreen_enabled
 #endif
 	    ) {
-	realtime_alpha_blend_of_cpu_usage(loadPercentage, proximity);
-    }
+		realtime_alpha_blend_of_cpu_usage(loadPercentage, proximity);
+	}
 #endif
 
-    /* Remember where we have been poking around this round */
-    last_action_min = action_min;
-}				/* bubblemon_update */
+	/* Remember where we have been poking around this round */
+	last_action_min = action_min;
+}	/* bubblemon_update */
+
 
 #ifdef ENABLE_MEMSCREEN
 /* draws 4x8 digits for the memory/swap panel */
@@ -936,154 +957,152 @@ static void draw_pixel(unsigned int x, unsigned int y, unsigned char *buf, char 
  * this is called not very often: only 1 time out of 250 */
 static void draw_history(int num, int size, unsigned int *history, unsigned char *buf)
 {
-    int pixels_per_byte;
-    int j, k;
-    int d;
+	int pixels_per_byte;
+	int j, k;
+	int d;
 
-    pixels_per_byte = 100;
+	pixels_per_byte = 100;
 
-    for (j = 0; j < num; j++) {
+	for (j = 0; j < num; j++) {
 		while (history[j] > pixels_per_byte) /* autoscaling */
-	    pixels_per_byte += 100;
+			pixels_per_byte += 100;
 	}
 
-    for (k = 0; k < num; k++) {
-	d = size * history[k] / pixels_per_byte;
+	  for (k = 0; k < num; k++) {
+		d = size * history[k] / pixels_per_byte;
 
-	for (j = 0; j < size; j++) {
-	    if (j < d - 2)
-		draw_pixel(k, size - j - 1, buf, "\x00\x7d\x71"); /* dark cyan for lower part of bar graph */
-	    else if (j < d)
-		draw_pixel(k, size - j - 1, buf, "\x20\xb6\xae"); /* seagreen for top two pixels */
+		for (j = 0; j < size; j++) {
+			if (j < d - 2)
+				draw_pixel(k, size - j - 1, buf, "\x00\x7d\x71"); /* dark cyan for lower part of bar graph */
+			else if (j < d)
+				draw_pixel(k, size - j - 1, buf, "\x20\xb6\xae"); /* seagreen for top two pixels */
+		}
 	}
-    }
-
-    for (j = pixels_per_byte - 100; j > 0; j -= 100) { /* draw lines for each 100s */
-	for (k = 0; k < num; k++) {
-	    d = size * j / pixels_per_byte;
-	    draw_pixel(k, size - d - 1, buf, "\x71\xe3\x71"); /* spring green */
+	
+	for (j = pixels_per_byte - 100; j > 0; j -= 100) { /* draw lines for each 100s */
+		for (k = 0; k < num; k++) {
+			d = size * j / pixels_per_byte;
+			draw_pixel(k, size - d - 1, buf, "\x71\xe3\x71"); /* spring green */ 
+		}
 	}
-    }
 }
 
 /* refreshes memory/swap screen */
 static void render_secondary(void)
 {
-    char percent[4];
-    char number[8];
-    int i;
-    /* mem: 2, 24
-     * mem %: 38, 24
-     * swap: 2, 43
-     * 38, 43
-     * digits: 0, 60 and 0, 69 */
+	char percent[4];
+	char number[8];
+	int i;
+	/* mem: 2, 24
+	 * mem %: 38, 24
+	 * swap: 2, 43
+	 * 38, 43
+	 * digits: 0, 60 and 0, 69 */
 
-    /* make a clean buffer with blank spaces. */
-    memcpy(bm.mem_buf, bm.screen_type ? load_screen.pixel_data : mem_screen.pixel_data,
-           BOX_SIZE * BOX_SIZE * 3);
+	/* make a clean buffer with blank spaces. */
+	memcpy(bm.mem_buf, bm.screen_type ? load_screen.pixel_data : mem_screen.pixel_data,
+	       BOX_SIZE * BOX_SIZE * 3);
 
-    if (bm.screen_type) {
-	for (i = 0; i < 3; i++) {
-	    sprintf(number, "%2d", bm.loadavg[i].i);
-	    draw_string(number, 1+(4*4+2+1)*i, 9, 0);
-	    sprintf(number, "%02d", bm.loadavg[i].f);
-	    draw_string(number, 1+(4*4+2+1)*i + 4*2 + 2, 9, 0);
+	if (bm.screen_type) {
+		for (i = 0; i < 3; i++) {
+			sprintf(number, "%2d", bm.loadavg[i].i);
+			draw_string(number, 1+(4*4+2+1)*i, 9, 0);
+			sprintf(number, "%02d", bm.loadavg[i].f);
+			draw_string(number, 1+(4*4+2+1)*i + 4*2 + 2, 9, 0);
+		}
+		/* copy history graph from previous rollover */
+		memcpy(bm.mem_buf + 19 * BOX_SIZE * 3, bm.his_bufb, BOX_SIZE * 33 * 3);
+	} else {
+		/* draw memory */
+		if (memscreen_megabytes)
+			snprintf(number, 8, "%6lluM", bm.mem_used >> 20);
+		else
+			snprintf(number, 8, "%6lluK", bm.mem_used >> 10);
+		snprintf(percent, 4, "%03d", bm.mem_percent);
+		draw_string(number, 3, 2, (bm.mem_percent > 90) ? 1 : 0);
+		draw_string(percent, 39, 2, (bm.mem_percent > 90) ? 1 : 0);
+
+		/* draw swap */
+		if (memscreen_megabytes)
+			snprintf(number, 8, "%6lluM", bm.swap_used >> 20);
+		else
+			snprintf(number, 8, "%6lluK", bm.swap_used >> 10);
+		snprintf(percent, 4, "%03d", bm.swap_percent);
+		draw_string(number, 3, 11, (bm.swap_percent > 90) ? 1 : 0);
+		draw_string(percent, 39, 11, (bm.swap_percent > 90) ? 1 : 0);
+
+		/* copy history graph from previous rollover */
+		memcpy(bm.mem_buf + 21 * BOX_SIZE * 3, bm.his_bufa, BOX_SIZE * 31 * 3);
 	}
-	/* copy history graph from previous rollover */
-	memcpy(bm.mem_buf + 19 * BOX_SIZE * 3, bm.his_bufb, BOX_SIZE * 33 * 3);
-    } else {
-	/* draw memory */
-	if (memscreen_megabytes)
-	    snprintf(number, 8, "%6lluM", bm.mem_used >> 20);
-	else
-	    snprintf(number, 8, "%6lluK", bm.mem_used >> 10);
-	snprintf(percent, 4, "%03d", bm.mem_percent);
-	draw_string(number, 3, 2, (bm.mem_percent > 90) ? 1 : 0);
-	draw_string(percent, 39, 2, (bm.mem_percent > 90) ? 1 : 0);
-
-	/* draw swap */
-	if (memscreen_megabytes)
-	    snprintf(number, 8, "%6lluM", bm.swap_used >> 20);
-	else
-	    snprintf(number, 8, "%6lluK", bm.swap_used >> 10);
-	snprintf(percent, 4, "%03d", bm.swap_percent);
-	draw_string(number, 3, 11, (bm.swap_percent > 90) ? 1 : 0);
-	draw_string(percent, 39, 11, (bm.swap_percent > 90) ? 1 : 0);
-
-	/* copy history graph from previous rollover */
-	memcpy(bm.mem_buf + 21 * BOX_SIZE * 3, bm.his_bufa, BOX_SIZE * 31 * 3);
-    }
 }
 
 static void roll_membuffer(void) {
-    static int delay;
+	static int delay;
 
-    if (++delay < 30)
-	return;
+	if (++delay < 30)
+		return;
 
-    delay = 0;
-    render_secondary();
+	delay = 0;
+	render_secondary();
 }
 
 static void roll_history(void)  {
-    static int update, doit;
+	static int update, doit;
 
-    if (--doit <= 0) {
-	doit = ROLLVALUE; /* how many redraws before we sample new data */
-	if (--update <= 0) {
-	    /* reset counter; 5 = the number of samples to average into one point on 
-	       the bar graph. Probably should be configurable. */
+	if (--doit <= 0) {
+		doit = ROLLVALUE; /* how many redraws before we sample new data */
+		if (--update <= 0) {
+			/* reset counter; 5 = the number of samples to average into one point on 
+			   the bar graph. Probably should be configurable. */
+			update = 5;
 
+			/* roll history buffers, averaging last 5 samples */
+			if (bm.hisadd)
+				bm.history[BOX_SIZE-4] /= bm.hisadd;
+			if (bm.memadd)
+				bm.memhist[BOX_SIZE-4] /= bm.memadd;
 
-	    /* roll history buffers, averaging last 5 samples */
-	    if (bm.hisadd)
-		bm.history[BOX_SIZE-4] /= bm.hisadd;
-	    if (bm.memadd)
-		bm.memhist[BOX_SIZE-4] /= bm.memadd;
+			memmove(&bm.history[0], &bm.history[1], sizeof(bm.history));
+			memmove(&bm.memhist[0], &bm.memhist[1], sizeof(bm.memhist));
 
-	    memmove(&bm.history[0], &bm.history[1], sizeof(bm.history));
-	    memmove(&bm.memhist[0], &bm.memhist[1], sizeof(bm.memhist));
+			bm.history[BOX_SIZE-4] = 0;
+			bm.hisadd = 0;
+			bm.memhist[BOX_SIZE-4] = 0;
+			bm.memadd = 0;
 
-	    bm.history[BOX_SIZE-4] = 0;
-	    bm.hisadd = 0;
-	    bm.memhist[BOX_SIZE-4] = 0;
-	    bm.memadd = 0;
+			/* refresh backgrounds */
+			memcpy(bm.his_bufa, mem_screen.pixel_data + 21 * BOX_SIZE * 3, 31 * BOX_SIZE * 3);
+			memcpy(bm.his_bufb, load_screen.pixel_data + 19 * BOX_SIZE * 3, 33 * BOX_SIZE * 3);
 
-	    /* refresh backgrounds */
-	    memcpy(bm.his_bufa, mem_screen.pixel_data + 21 * BOX_SIZE * 3, 31 * BOX_SIZE * 3);
-	    memcpy(bm.his_bufb, load_screen.pixel_data + 19 * BOX_SIZE * 3, 33 * BOX_SIZE * 3);
+			/* render memory graph */
+			draw_history(BOX_SIZE-4, 31, bm.memhist, bm.his_bufa);
+			/* render load average graph */
+			draw_history(BOX_SIZE-4, 33, bm.history, bm.his_bufb);
 
-	    /* render memory graph */
-	    draw_history(BOX_SIZE-4, 31, bm.memhist, bm.his_bufa);
-	    /* render load average graph */
-	    draw_history(BOX_SIZE-4, 33, bm.history, bm.his_bufb);
+		}
 
-	    /* reset counter */
-	    update = 5;
+		/* do load average history update */
+		bm.history[BOX_SIZE-4] += bm.loadavg[0].f + (bm.loadavg[0].i * 100);
+		bm.hisadd++;
+
+		/* do memory history update */
+		bm.memhist[BOX_SIZE-4] += bm.mem_percent;
+		bm.memadd++;
 	}
-
-	/* do load average history update */
-	bm.history[BOX_SIZE-4] += bm.loadavg[0].f + (bm.loadavg[0].i * 100);
-	bm.hisadd++;
-
-	/* do memory history update */
-	bm.memhist[BOX_SIZE-4] += bm.mem_percent;
-	bm.memadd++;
-    }
 }
 #endif				/* ENABLE_MEMSCREEN */
 
 #ifdef ENABLE_CPU
 static void draw_cpudigit(int what, unsigned char *whither) {
-    unsigned int len, y;
-    unsigned char *to, *from;
-    for (y = 0; y < 9; y++) { /* magic numbers suck. */
-	len = 7*3;
-	to = whither + y * 3*25;
-	from = digits + y * 3*95 + what*3*6;
-	while (len--)
-	    *to++ = *from++;
-    }
+	unsigned int len, y;
+	unsigned char *to, *from;
+	for (y = 0; y < 9; y++) { /* magic numbers suck. */
+		len = 7*3;
+		to = whither + y * 3*25;
+		from = digits + y * 3*95 + what*3*6;
+		while (len--)
+			*to++ = *from++;
+	}
 }
 #endif				/* ENABLE_CPU */
 
@@ -1178,133 +1197,133 @@ static void draw_datetime(unsigned char * rgbbuf) {
 #if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
 static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 {
-    /* where is the text going to be (now, bottom-center) */
+	/* where is the text going to be (now, bottom-center) */
 #define POSX (BOX_SIZE/2-12)
 #define POSY (BOX_SIZE-10)
-    int bob;
+	int bob;
 
-    /* memory window */
-    static int blend = MAXBLEND;
+	/* memory window */
+	static int blend = MAXBLEND;
 #ifdef ENABLE_MEMSCREEN
-    static int memblend = 256;
-    static int showmem = 0;
+	static int memblend = 256;
+	static int showmem = 0;
 #endif				/* ENABLE_MEMSCREEN */
 #ifdef ENABLE_CPU
-    static int yoh;
-    static int avg;
-    int hibyte, y, pos;
+	static int yoh;
+	static int avg;
+	int hibyte, y, pos;
 
-    /* CPU load buffer */
-    static unsigned char kit[25 * 3 * 9 + 1]; /* 9 high, 25 wide, 3bpp */
-    unsigned char *kitptr;
+	/* CPU load buffer */
+	static unsigned char kit[25 * 3 * 9 + 1]; /* 9 high, 25 wide, 3bpp */
+	unsigned char *kitptr;
 
-    /* the plan is simple.  we don't want to redraw the digits every update
-     * because that doesn't look so good.  so we average it, and draw only
-     * once every N updates. 
+	/* the plan is simple.  we don't want to redraw the digits every update
+	 * because that doesn't look so good.  so we average it, and draw only
+	 * once every N updates. 
 
-     * We alpha blend the static buffer so we still get cool transparency
-     * effects. */
-    avg += cpu;
+	 * We alpha blend the static buffer so we still get cool transparency
+	 * effects. */
+	avg += cpu;
 
-    /* 2 here is adjusted to mean 100ms*2=5Hz. Originally it was 15ms*10 meaning 7Hz */
-    while (++yoh > 2) {
-	cpu = avg / 2;
-	avg = yoh = 0;
-	hibyte = cpu / 10;
-	if (hibyte == 10) {
-	    draw_cpudigit(1, kit);
-	    draw_cpudigit(0, &kit[3*6]);
-	    draw_cpudigit(0, &kit[3*12]);
-	} else {
-	    draw_cpudigit(12, kit);
-	    draw_cpudigit(hibyte, &kit[3*6]);
-	    draw_cpudigit(cpu % 10, &kit[3*12]);
-	}
+	/* 2 here is adjusted to mean 100ms*2=5Hz. Originally it was 15ms*10 meaning 7Hz */
+	while (++yoh > 2) {
+		cpu = avg / 2;
+		avg = yoh = 0;
+		hibyte = cpu / 10;
+		if (hibyte == 10) {
+			draw_cpudigit(1, kit);
+			draw_cpudigit(0, &kit[3*6]);
+			draw_cpudigit(0, &kit[3*12]);
+		} else {
+			draw_cpudigit(12, kit);
+			draw_cpudigit(hibyte, &kit[3*6]);
+			draw_cpudigit(cpu % 10, &kit[3*12]);
+		}
 	/* percent sign is always there */
 	draw_cpudigit(10, &kit[3*18]);
-    }
+	}
 #endif				/* ENABLE_CPU */
 
-    /* sexy fade effect */
-    if (proximity) {
-	blend -= 4*6;
-	if (blend < MINBLEND) {
-	    blend = MINBLEND;
+	/* sexy fade effect */
+	if (proximity) {
+		blend -= 4*6;
+		if (blend < MINBLEND) {
+			blend = MINBLEND;
 #ifdef ENABLE_MEMSCREEN
-	    if (memscreen_enabled) {
-		if (!showmem) {
-		    /* first time here, update memory stats */
-		    render_secondary();
-		}
-		showmem = 1;
-		if (!bm.picture_lock)
-		    memblend -= 6*6;
-		if (memblend < 40) {
-		    roll_membuffer();
-		    memblend = 40;
-		}
-	    }
+			if (memscreen_enabled) {
+				if (!showmem) {
+					/* first time here, update memory stats */
+					render_secondary();
+				}
+				showmem = 1;
+				if (!bm.picture_lock)
+					memblend -= 6*6;
+				if (memblend < 40) {
+					roll_membuffer();
+					memblend = 40;
+				}
+			}
 #endif				/* ENABLE_MEMSCREEN */
 	}
     } else {
 	blend += 4*6;
 #ifdef ENABLE_MEMSCREEN
-	if (bm.picture_lock)
-	    roll_membuffer();
+		if (bm.picture_lock)
+			roll_membuffer();
 
-	if (memscreen_enabled && !bm.picture_lock)
-	    memblend += 10*6;
+		if (memscreen_enabled && !bm.picture_lock)
+			memblend += 10*6;
 #endif				/* ENABLE_MEMSCREEN */
-	if (blend > MAXBLEND) {
-	    blend = MAXBLEND;
-	}
+		if (blend > MAXBLEND) {
+			blend = MAXBLEND;
+		}
 #ifdef ENABLE_MEMSCREEN
-	if (memscreen_enabled && memblend > 256) {
-	    memblend = 256;
-	    showmem = 0;
-	}
+		if (memscreen_enabled && memblend > 256) {
+			memblend = 256;
+			showmem = 0;
+		}
 #endif				/* ENABLE_MEMSCREEN */
-    }
+	}
 
 #ifdef ENABLE_CPU
-    if (cpu_enabled) {
-	/* bit shifts result in smaller and faster code without an extra jns
-	 * which appears if we / 128 instead of >> 7. 
-	 */
-	kitptr = kit;
-	for (y = 0; y < 9; y++) {
-	    unsigned char src;
-	    pos = (y + POSY) * BOX_SIZE * 3 + (POSX * 3);
-	    bob = 75;		/* 25 * 3 */
-	    while (bob--) {
-		src = bm.rgb_buf[pos];
-
-		if (!src)
-		    bm.rgb_buf[pos++] = *kitptr++;
-		else
-		    bm.rgb_buf[pos++] =
-			(blend * src + (256 - blend) * *kitptr++) >> 8;
-	    }
+	if (cpu_enabled) {
+		/* bit shifts result in smaller and faster code without an extra jns
+		 * which appears if we / 128 instead of >> 7. 
+		 */
+		kitptr = kit;
+		for (y = 0; y < 9; y++) {
+			unsigned char src;
+			pos = (y + POSY) * BOX_SIZE * 3 + (POSX * 3);
+			bob = 75;		/* 25 * 3 */
+			while (bob--) {
+				src = bm.rgb_buf[pos];
+				
+				if (!src)
+					bm.rgb_buf[pos++] = *kitptr++;
+				else
+					bm.rgb_buf[pos++] =
+						(blend * src + (256 - blend) * *kitptr++) >> 8;
+			}
+		}
 	}
-    }
-#endif				/* ENABLE_CPU */
+#endif /* ENABLE_CPU */
 
-    draw_datetime(bm.rgb_buf);
+	draw_datetime(bm.rgb_buf);
 
 
 #ifdef ENABLE_MEMSCREEN
-    /* we hovered long enough to print some memory info */
-    if (memscreen_enabled && showmem) {
-	unsigned char *ptr, *ptr2, src;
-	ptr = bm.mem_buf;
-	ptr2 = bm.rgb_buf;
-	bob = BOX_SIZE * BOX_SIZE * 3;
-	while (bob--) {
-	    src = *ptr2;
-	    *ptr2++ = (memblend * src + (256 - memblend) * *ptr++) >> 8;
+	/* we hovered long enough to print some memory info */
+	if (memscreen_enabled && showmem) {
+		unsigned char *ptr, *ptr2, src;
+		ptr = bm.mem_buf;
+		ptr2 = bm.rgb_buf;
+		bob = BOX_SIZE * BOX_SIZE * 3;
+		while (bob--) {
+			src = *ptr2;
+			*ptr2++ = (memblend * src + (256 - memblend) * *ptr++) >> 8;
+		}
 	}
-    }
-#endif				/* ENABLE_MEMSCREEN */
+#endif /* ENABLE_MEMSCREEN */
 #undef POSY
 #undef POSX
 }
@@ -1333,7 +1352,7 @@ static void duck_set(int x, int y, int nr, int rev, int upsidedown)
 	dh = BOX_SIZE - y;
     dw = 18;
     if (x > BOX_SIZE-18)
-	dw = 18 - (x - (BOX_SIZE-18));
+	    dw = 18 - (x - (BOX_SIZE-18));
     di = 0;
     if (x < 0)
 	di = -(x);
@@ -1385,19 +1404,19 @@ static void duck_set(int x, int y, int nr, int rev, int upsidedown)
 
 static int animate_correctly(void)
 {
-    /* returns the correct order of framenumber 0,1,2,1,0,1,2...
-       instead of 0,1,2,0,1,2 <- this way the duck looks really ugly
-       instead of keeping 2 counters we just made it longer */
+	/* returns the correct order of framenumber 0,1,2,1,0,1,2...
+	   instead of 0,1,2,0,1,2 <- this way the duck looks really ugly
+	   instead of keeping 2 counters we just made it longer */
 
-    const int outp[16] =
-	{ 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1
-	};
-    static int totalcounter = -1;
+	const int outp[16] =
+		{ 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1
+		};
+	static int totalcounter = -1;
 
-    if (++totalcounter > 15)
-	totalcounter = 0;
+	if (++totalcounter > 15)
+		totalcounter = 0;
 
-    return outp[totalcounter];
+	return outp[totalcounter];
 }
 
 static void duck_swimmer(int posy)
@@ -1440,55 +1459,54 @@ static void duck_swimmer(int posy)
 }
 #endif				/* ENABLE_DUCK */
 
-static void bubblemon_setup_samples(void)
-{
-    int i;
-    u_int64_t load = 0, total = 0;
+static void bubblemon_setup_samples(void) {
+	int i;
+	u_int64_t load = 0, total = 0;
 
-    if (bm.load) {
-	load = bm.load[bm.loadIndex];
-	free(bm.load);
-    }
+	if (bm.load) {
+		load = bm.load[bm.loadIndex];
+		free(bm.load);
+	}
 
-    if (bm.total) {
-	total = bm.total[bm.loadIndex];
-	free(bm.total);
-    }
+	if (bm.total) {
+		total = bm.total[bm.loadIndex];
+		free(bm.total);
+	}
 
-    bm.loadIndex = 0;
-    bm.load = malloc(bm.samples * sizeof(u_int64_t));
-    bm.total = malloc(bm.samples * sizeof(u_int64_t));
-    for (i = 0; i < bm.samples; i++) {
-	bm.load[i] = load;
-	bm.total[i] = total;
-    }
+	bm.loadIndex = 0;
+	bm.load = malloc(bm.samples * sizeof(u_int64_t));
+	bm.total = malloc(bm.samples * sizeof(u_int64_t));
+	for (i = 0; i < bm.samples; i++) {
+		bm.load[i] = load;
+		bm.total[i] = total;
+	}
 }
 
 static void bubblemon_allocate_buffers(void)
 {
-    int i;
+	int i;
 
-    /* storage for bubbles */
-    bm.bubbles = (Bubble *) malloc(sizeof(Bubble) * bm.maxbubbles);
+	/* storage for bubbles */
+	bm.bubbles = (Bubble *) malloc(sizeof(Bubble) * bm.maxbubbles);
 
-    /* Allocate (zeroed) bubble memory */
-    if (bm.bubblebuf)
-	free(bm.bubblebuf);
+	/* Allocate (zeroed) bubble memory */
+	if (bm.bubblebuf)
+		free(bm.bubblebuf);
 
 	bm.bubblebuf = calloc(BOX_SIZE * (BOX_SIZE+4), sizeof(char));
 
-    /* Allocate water level memory */
-    if (bm.waterlevels)
-	free(bm.waterlevels);
+	/* Allocate water level memory */
+	if (bm.waterlevels)
+		free(bm.waterlevels);
 
 	bm.waterlevels = malloc(BOX_SIZE * sizeof(int));
 	for (i = 0; i < BOX_SIZE; i++) {
 		bm.waterlevels[i] = MAKEY(BOX_SIZE);
 	}
 
-    /* Allocate water level velocity memory */
-    if (bm.waterlevels_dy)
-	free(bm.waterlevels_dy);
+	/* Allocate water level velocity memory */
+	if (bm.waterlevels_dy)
+		free(bm.waterlevels_dy);
 
 	bm.waterlevels_dy = calloc(BOX_SIZE, sizeof(int));
 }
