@@ -11,11 +11,13 @@ PREFIX = /usr/local
 # no user serviceable parts below
 EXTRA += $(WMAN)
 # optimization cflags
-CFLAGS = -O3 -ansi -Wall `gtk-config --cflags` ${EXTRA}
+USER_CFLAGS = -O3 -ansi -Wall
 # profiling cflags
-# CFLAGS = -ansi -Wall -pg -O3 `gtk-config --cflags` ${EXTRA} -DPRO
+# USER_CFLAGS = -ansi -Wall -pg -O3 -DPRO
 # test coverage cflags
-# CFLAGS = -fprofile-arcs -ftest-coverage -Wall -ansi -g `gtk-config --cflags` ${EXTRA} -DPRO
+# USER_CFLAGS = -fprofile-arcs -ftest-coverage -Wall -ansi -g -DPRO
+BUILD_CFLAGS = `gtk-config --cflags`
+CFLAGS = $(USER_CFLAGS) $(BUILD_CFLAGS) ${EXTRA}
 
 BINARY=bubblemon
 SHELL=sh
@@ -55,13 +57,13 @@ ifeq ($(OS), SunOS)
     # if not, fix up CC and the CFLAGS for the Sun compiler
     ifeq ($(COMPILER), suncc)
 	CC=cc
-	CFLAGS=-v -xO3
+	USER_CFLAGS=-v -xO3
     endif
 
     ifeq ($(COMPILER), gcc)
-	CFLAGS=-O3 -Wall
+	USER_CFLAGS=-O3 -Wall
     endif
-    CFLAGS +=`gtk-config --cflags` ${EXTRA}
+    CFLAGS = $(USER_CFLAGS) $(BUILD_CFLAGS) ${EXTRA}
     OBJS += sys_sunos.o
     LIBS = `gtk-config --libs` -lkstat -lm
     INSTALL = -m 755
