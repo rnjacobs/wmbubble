@@ -1,4 +1,4 @@
-/*  BubbleMon dockapp 1.32
+/*  BubbleMon dockapp 1.46r
  *
  *  - dockapp for Window Maker/Blackbox/E/Afterstep/SawBabble
  *  - Code outside of bubblemon_update copyright 2000, 2001
@@ -44,7 +44,7 @@
  */
 #define _GNU_SOURCE
 
-#define VERSION "1.41"
+#define VERSION "1.46r"
 
 /* general includes */
 #include <stdio.h>
@@ -190,11 +190,11 @@ static void bubblemon_session_defaults(void)
 
     /* default bubble engine parameters.  Changeable from Xdefaults */
     bm.maxbubbles = 100;
-    bm.ripples = 0.2;
-    bm.gravity = 0.01;
-    bm.volatility = 1.0;
-    bm.viscosity = 0.98;
-    bm.speed_limit = 1.0;
+    bm.ripples = .2;
+    bm.gravity = 0.06;
+    bm.volatility = 1;
+    bm.viscosity = .98;
+    bm.speed_limit = 6.0;
 
     db = NULL;
     XrmInitialize();
@@ -237,13 +237,6 @@ static void bubblemon_session_defaults(void)
     RANGE_CHECK(bm.liquid_noswap, 0, 0xffffff, 0x0055ff);
     RANGE_CHECK(bm.air_maxswap, 0, 0xffffff, 0xff0000);
     RANGE_CHECK(bm.liquid_maxswap, 0, 0xffffff, 0xaa0000);
-
-    RANGE_CHECK(bm.maxbubbles, 10, 200, 100);
-    RANGE_CHECK(bm.ripples, 0, 1, 0.2);
-    RANGE_CHECK(bm.gravity, 0.005, 0.5, 0.01);
-    RANGE_CHECK(bm.volatility, 0.1, 2, 1.0);
-    RANGE_CHECK(bm.viscosity, 0, 1.0, 0.98);
-    RANGE_CHECK(bm.speed_limit, 0.5, 2, 1.0);
 
 #undef RANGE_CHECK
 
@@ -469,7 +462,7 @@ int main(int argc, char **argv)
 	    }
 	}
 #ifndef PRO
-	usleep(15000);
+	usleep(100000);
 #else
 	/* amazingly enough just calling this function takes insane
 	 * amount of time.
@@ -1321,9 +1314,10 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 	draw_cpudigit(180, 54, kit);
     }
 #endif				/* ENABLE_CPU */
+
     /* sexy fade effect */
     if (proximity) {
-	blend -= 4;
+	blend -= 4*6;
 	if (blend < MINBLEND) {
 	    blend = MINBLEND;
 #ifdef ENABLE_MEMSCREEN
@@ -1334,7 +1328,7 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 		}
 		showmem = 1;
 		if (!bm.picture_lock)
-		    memblend -= 6;
+		    memblend -= 6*6;
 		if (memblend < 40) {
 		    roll_membuffer();
 		    memblend = 40;
@@ -1343,13 +1337,13 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 #endif				/* ENABLE_MEMSCREEN */
 	}
     } else {
-	blend += 4;
+	blend += 4*6;
 #ifdef ENABLE_MEMSCREEN
 	if (bm.picture_lock)
 	    roll_membuffer();
 
 	if (memscreen_enabled && !bm.picture_lock)
-	    memblend += 10;
+	    memblend += 10*6;
 #endif				/* ENABLE_MEMSCREEN */
 	if (blend > MAXBLEND) {
 	    blend = MAXBLEND;
