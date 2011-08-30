@@ -17,7 +17,7 @@ CFLAGS = -O3 -ansi -Wall `gtk-config --cflags` ${EXTRA}
 # test coverage cflags
 # CFLAGS = -fprofile-arcs -ftest-coverage -Wall -ansi -g `gtk-config --cflags` ${EXTRA} -DPRO
 
-
+BINARY=bubblemon
 SHELL=sh
 OS = $(shell uname -s)
 OBJS = bubblemon.o
@@ -67,14 +67,15 @@ ifeq ($(OS), SunOS)
     INSTALL = -m 755
 endif
 
+CFLAGS += -DNAME=\"$(BINARY)\"
 
-all: bubblemon
+all: $(BINARY)
 
-bubblemon: $(OBJS)
-	$(CC) $(CFLAGS) -o bubblemon $(OBJS) $(LIBS)
+$(BINARY): $(OBJS)
+	$(CC) $(CFLAGS) -o $(BINARY) $(OBJS) $(LIBS)
 
 clean:
-	rm -f bubblemon *.o *.bb* *.gcov gmon.* *.da *~
+	rm -f $(BINARY) *.o *.bb* *.gcov gmon.* *.da *~
 
 install:
-	install $(INSTALL) bubblemon $(PREFIX)/bin
+	install $(INSTALL) $(BINARY) $(PREFIX)/bin

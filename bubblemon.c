@@ -76,6 +76,10 @@
 
 /* #define DEBUG_DUCK 1 */
 
+#ifndef NAME
+#define NAME "bubblemon"
+#endif
+
 /* local prototypes *INDENT-OFF* */
 static void bubblemon_setup_samples(void);
 static void bubblemon_setup_colors(void);
@@ -152,16 +156,16 @@ static void bubblemon_session_defaults(void)
     int i;
 
     xrm_vars tab[] = {
-	{"bubblemon.maxbubbles", INT_VAL, &bm.maxbubbles},
-	{"bubblemon.air_noswap", COLOR_VAL, &bm.air_noswap},
-	{"bubblemon.air_maxswap", COLOR_VAL, &bm.air_maxswap},
-	{"bubblemon.liquid_noswap", COLOR_VAL, &bm.liquid_noswap},
-	{"bubblemon.liquid_maxswap", COLOR_VAL, &bm.liquid_maxswap},
-	{"bubblemon.ripples", DOUBLE_VAL, &bm.ripples},
-	{"bubblemon.gravity", DOUBLE_VAL, &bm.gravity},
-	{"bubblemon.volatility", DOUBLE_VAL, &bm.volatility},
-	{"bubblemon.viscosity", DOUBLE_VAL, &bm.viscosity},
-	{"bubblemon.speed_limit", DOUBLE_VAL, &bm.speed_limit}
+	{NAME".maxbubbles", INT_VAL, &bm.maxbubbles},
+	{NAME".air_noswap", COLOR_VAL, &bm.air_noswap},
+	{NAME".air_maxswap", COLOR_VAL, &bm.air_maxswap},
+	{NAME".liquid_noswap", COLOR_VAL, &bm.liquid_noswap},
+	{NAME".liquid_maxswap", COLOR_VAL, &bm.liquid_maxswap},
+	{NAME".ripples", DOUBLE_VAL, &bm.ripples},
+	{NAME".gravity", DOUBLE_VAL, &bm.gravity},
+	{NAME".volatility", DOUBLE_VAL, &bm.volatility},
+	{NAME".viscosity", DOUBLE_VAL, &bm.viscosity},
+	{NAME".speed_limit", DOUBLE_VAL, &bm.speed_limit}
     };
 
     /* number of CPU load samples */
@@ -249,7 +253,7 @@ static void print_usage(void)
 {
     char *usage;
     usage = "BubbleMon version "VERSION", features: %s\n"
-	    "Usage: bubblemon [switches] [program_1] [program_2]\n\n"
+	    "Usage: "NAME" [switches] [program_1] [program_2]\n\n"
 	    "Disable compiled-in features\n"
 #ifdef ENABLE_DUCK
 	    " -d\tdisable swimming duck\n"
@@ -549,13 +553,13 @@ static void make_new_bubblemon_dockapp(void)
 
     attr.width = 64;
     attr.height = 64;
-    attr.title = "bubblemon";
+    attr.title = NAME;
     attr.event_mask = MASK;
     attr.wclass = GDK_INPUT_OUTPUT;
     attr.visual = gdk_visual_get_system();
     attr.colormap = gdk_colormap_get_system();
-    attr.wmclass_name = "bubblemon";
-    attr.wmclass_class = "bubblemon";
+    attr.wmclass_name = NAME;
+    attr.wmclass_class = NAME;
     attr.window_type = GDK_WINDOW_TOPLEVEL;
 
     sizehints.flags = USSize;
@@ -570,13 +574,13 @@ static void make_new_bubblemon_dockapp(void)
 
     attri.width = 64;
     attri.height = 64;
-    attri.title = "bubblemon";
+    attri.title = NAME;
     attri.event_mask = MASK;
     attri.wclass = GDK_INPUT_OUTPUT;
     attri.visual = gdk_visual_get_system();
     attri.colormap = gdk_colormap_get_system();
-    attri.wmclass_name = "bubblemon";
-    attri.wmclass_class = "bubblemon";
+    attri.wmclass_name = NAME;
+    attri.wmclass_class = NAME;
     attri.window_type = GDK_WINDOW_TOPLEVEL;
 
     bm.iconwin = gdk_window_new(bm.win, &attri,
