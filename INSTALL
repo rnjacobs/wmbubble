@@ -1,0 +1,22 @@
+Install instructions:
+
+1. read README
+1a. On Linux 2.6, edit Makefile and uncommend top line that adds -DKERNEL_26
+2. make (on FreeBSD, make -f Makefile.FreeBSD)
+3. make install (this will put bubblemon in /usr/local/bin)
+4. bubblemon &
+
+Using GNU make bubblemon should compile without changes on any system listed
+in SUPPORTED_SYSTEMS file.  If not, feel free to fix it and send me a diff -u.
+
+Check README file for configuration options - you can either permanently
+disable a feature by editing Makefile and commenting out any of the EXTRA
+defines, or disable it at run-time by using command-line switches. Colors
+and bubble physics can also be configured through ~/.Xdefaults file.
+
+If your FreeBSD system doesn't have GNU Make, use Makefile.FreeBSD. If it
+does, regular Makefile should be able to detect things correctly. Also,
+on FreeBSD, you can do make install as root to install in /usr/local/bin
+and give bubblemon proper permissions, or you'll have to give bubblemon
+kmem access yourself:
+root:~# chown root:kmem bubblemon; chmod g+s bubblemon

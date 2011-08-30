@@ -1,0 +1,128 @@
+For copyright/authors/contributors see top of bubblemon.c.  For list of
+supported operating systems, see SUPPORTED_SYSTEMS.
+
+Abstract:
+
+This program is a dockapp-style CPU, memory, swap and load average monitor.
+Based on the GNOME BubbleMon applet, this program has been considerably
+improved.  Many new features have been added.  This is version 1.3.
+
+Features:
+
+On the surface, dockapp BubbleMon follows the same style as original GNOME
+applet. Main screen area is split into 2 parts - air and water. Water level
+depends on how much physical and virtual memory is used by the system. CPU
+activity makes water "boil" and creates bubbles. CPU meter near the bottom
+shows actual value in percent. As memory usage increases, water level goes
+up. When system runs out of physical memory and begins using swap, both
+water and air colors change depending on amount of swap used. There is a
+cute yellow duck swimming from one corner of the dockapp to another. The
+duck really doesn't do anything at the moment, but in a future version it's
+speed might correspond to system load average or another variable. This is
+the "main" mode of BubbleMon.
+
+There are 2 additional screens available - memory and load average.  Load
+average screen is accessed by simply hovering the mouse pointer over BubbleMon
+window. Memory screen is accessed same way, except you must hold down either
+left or right "Shift" key before moving the mouse pointer over BubbleMon
+window. Both Memory and Load average screens fade in slowly for a reason -
+during fade, you can click "Right" mouse button to lock currently fading
+screen.  This way you can see both CPU load screen and either memory or load
+average screen. To exit "locked" mode, simply move the mouse pointer in and
+out of the BubbleMon window.
+
+Memory screen displays current amount of free memory and swap, in kilobytes
+and percent.  Top number is amount of used memory, in kilobytes and percent,
+and bottom number is amount of used swap.  Under Linux implementation, used
+swap is set to "0" until 100% of system memory is used.  Below these numbers
+is a graph of recent memory use.  Unless you are running something that
+dynamically allocates and deallocates huge amounts of memory, this graph is
+most likely going to be more or less a straight line. Percentage and kilobyte
+counters will change color in case of memory or swap use over 90%.
+Load average screen displays system load average, same way as presented by
+"uptime" command. Approximately last 3 minutes of system load are graphed
+below the load average numbers.  Default "light blue" color of load average
+and memory screens can be changed to a "pale" version by using "-p" command
+line switch.
+
+You can start BubbleMon with up to 2 command-line argumens (not counting
+switches), each being a path to a program or shell script to execute when
+you click Left or Middle mouse button inside BubbleMon window. These must
+be the last 2 parameters.  There is a .wav file and a simple shell script
+to play it, inside misc/ directory, which you can use to make some duck
+sounds with bubblemon.
+
+Configuration:
+
+BubbleMon is very configurable. Previous section explains many features, but
+all of them can be disabled, either through compile-time settings or with
+command-line switches at startup. Either the general Makefile or FreeBSD-
+specific Makefile contain compilation defines near the top. You can comment out
+a particular line, to disable that feature. Alternatively, you can run
+"bubblemon -h" for a list of command line options. This will show command-line
+switches which can be used to disable certain BubbleMon modes, and modify color
+scheme used in memory and load average screens. You can also change colors of
+the air, water, various physics constants which control bubble generation, and
+maximum number of bubbles to make. All of these settings are read on start-up
+from the user's HOME directory, using .Xdefaults file. If you don't have a
+.Xdefaults file in your home directory, you can copy Xdefaults.sample which
+is distributed with BubbleMon. If you already have some settings in .Xdefaults
+you can simply append BubbleMon settings file to your current configuration:
+hostname:~$ cat /path/to/bubblemon-src/Xdefaults.sample >> ~/.Xdefaults
+However if you are happy with the current color scheme or bubble physics, you
+don't need to do anything at all, because BubbleMon has default settings
+compiled in.
+
+Information about original GNOME BubbleMon applet:
+
+You can get the original BubbleMon applet from
+http://www.nada.kth.se/~d92-jwa/code - but that version requires GNOME, does
+not have a cute duck, uses more CPU, and doesn't allow you to start programs
+by clicking on it. But, I guess if you like GNOME, you might want to check
+it out.
+
+Programming details:
+
+It's been a long tradition that dockapps use Xlib to draw, mainly because
+that's what the first dockapp used and because there are some abstraction
+layers to hide some of Xlib ugliness (libdockapp, wmgeneral, etc). Xlib is
+fine if all you do is change a couple pixels every other second, like most
+dockapps do. But if you deal with 3D, or any kind of large amount of pixel
+shuffling, Xlib really starts to suck. Common mistake when doing lots of
+pixel shuffling in Xlib is using XPutPixel or XCopyArea. Say, you got a 
+56x56 dockapp, and 80% of it is changed every 10ms. That's almost 2.5
+thousand pixel ops. And a 1x1 XCopyArea takes as much server overhead as a
+64x64 XCopyArea. Since X11 sucks, each one of these puts a request in the
+server queue and will waste ungodly amounts of bandwidth (if you run a
+remote X session) and use CPU time on the server machine. X11 really doesn't
+provide any simple way to deal with drawing stuff on screen without messing
+with colormaps or other serious ugliness. If you are familiar with game
+programming and that kind of stuff, you know that screen is usually drawn on
+a back buffer and then switched, so the user sees smooth animation instead
+of watching the screen redraw. X11 doesn't really have this feature, because
+even drawing to a off-screen pixmap is still slow - and requires contacting
+the server, and still requires dealing with colormaps.
+
+Solution is simple. GDK. Gimp Drawing toolKit. And a large buffer to draw
+in. Render your screen on the "back buffer", which is completely in memory
+and thus doesn't need to contact the server, and then use gdk_draw_rgb_image
+to quicky slap that on-screen. That's about the only GDK function you will
+ever need to use. Results are impressive - very complex scenes could be
+rendered in local memory, fast, and the only network I/O generated is from
+copying backbuffer to the screen, which is minimal compared to updating the
+same screen pixel by pixel. Since bubblemon does a lot of pixel shuffling,
+it uses this technique to draw. Thanks to gdkrgb, BubbleMon achieves fluid
+animation at 33 frames per second.  Some window managers, like BlackBox,
+don't require dockapps to draw on the main window, only on the icon window.
+You can run make with "make WMAN=-DBLACKBOX" to remove code dealing with
+drawing on main window, for a marginal performance improvement, though it's
+very unlikely you will notice the difference unless you are profiling.
+
+timecop@japan.co.jp
+
+
+Notes from the FreeBSD port author:
+For FreeBSD, the percentage of used memory is calculated as
+number_of_active_pages / total_number_of_pages_in_the_system * 100%.
+If you have any concerns regarding this or FreeBSD port of BubbleMon
+in general, please email oleg dashevskii <od@iclub.nsu.ru>.

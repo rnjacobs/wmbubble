@@ -1,0 +1,12 @@
+! BubbleMon settings 
+! vim: syntax=xdefaults
+bubblemon.maxbubbles: 100
+bubblemon.air_noswap: #2299FF
+bubblemon.air_maxswap: #FF0000
+bubblemon.liquid_noswap: #0055FF
+bubblemon.liquid_maxswap: #AA0000
+bubblemon.ripples: 0.2
+bubblemon.gravity: 0.01
+bubblemon.volatility: 1.0
+bubblemon.viscosity: 0.98
+bubblemon.speed_limit: 1.0

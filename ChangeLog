@@ -1,0 +1,154 @@
+This ChangeLog file is backwards.  Press "G" in vi to go to the end of it.
+
+Sun, 7 Jan 2001 - 1.0
+    Initial FreeBSD port
+
+Fri, 12 Jan 2001 - 1.0pl1
+    Duck "upside down" mode
+    Initial version of "memory info" screen
+
+Mon, 15 Jan 2001 - 1.0pl2
+    FreeBSD memory code fixes
+
+Tue, 16 Jan 2001 - 1.0pl3
+    Most drawing operations rewritten and optimized
+    Modular changes - extra features under #ifdef
+    FreeBSD fixes
+
+Tue, 16 Jan 2001 - 1.0pl4
+    More fixes
+
+Thu, 18 Jan 2001 - 1.0pl6
+    Code reorganization
+    Command line options
+
+Thu, 18 Jan 2001 - 1.0pl7
+    All floating point calculations eliminated
+    FreeBSD changes
+    Added Xresource parsing for color, etc options
+    Load average/Memory screen toggle via shift key
+
+Sun, 21 Jan 2001 - 1.0pl8
+    Load average graph inside load average screen
+    system-dependent code updates
+    more features #ifdef'd
+
+Sun, 21 Jan 2001 - 1.0pl9
+    Load average / memory info screens, "picture lock".
+
+Sun, 21 Jan 2001 - 1.1test1
+    bubblemon_update() cleanup
+    bubblemon.h cleanup
+    load average graph updates
+    session_defaults() update
+    documentation updates
+
+Sun, 21 Jan 2001 - 1.1test2
+    argv count bug found and fixed
+    range checking for values read from Xdefaults
+    performance improvements in bubblemon_update()
+    FreeBSD memory code changes
+    documentation updates
+    removed last pieces of floating point numbers
+
+Mon, 22 Jan 2001 - 1.1test3
+    bubblemon_update() cleanup
+
+Thu, 25 Jan 2001 - 1.1test4
+    Code reorganization
+    Main Makefile will detect OS if GNU make is used
+    Moved system dependent code into sys_(uname).c
+    Changes to system-dependent code structure
+    Reorganization of include files and directory structure
+    History graphs for load average and memory use updates
+    Performance improvements
+    Some functions renamed
+    Off-by-one error in rgb image data fixed
+    BlackBox don't-draw-on-win feature
+    bubblemon_update() cleanup
+    Swapped load / memory screen order
+    FreeBSD memory code updates
+
+Sun, 28 Jan 2001 - 1.1test5
+    Load average logic change, update to Linux and FreeBSD dependent code
+    Other misc changes
+
+Mon, 29 Jan 2001 - 1.1test6
+    BubbleMonData is now a static structure
+    Performance improvements
+
+Wed, 31 Jan 2001 - 1.1test7
+    Documentation updates
+    Possible buffer overflow fix in session_defaults()
+
+Thu 01 Feb 2001 - 1.1
+    Minor documentation update
+    sys_freebsd math update
+    Version 1.1 released
+
+Wed 14 Feb 2001 - 1.2test1
+    SunOS port added
+
+Thu 15 Feb 2001 - 1.2
+    SunOS port fixed
+    Version 1.2 released
+
+Mon 19 Feb 2001 - 1.21test1
+    Various updates to the SunOS port
+    Added -k command line switch to display memory/swap in megabytes instead
+    of kilobytes.  Useful for machines with > 1024mb memory, since kilobytes
+    display stops at 999mb for both swap and physical ram
+    Portability fixes
+
+Thu 22 Feb 2001 - 1.21
+    Fix for FreeBSD CPU usage problem under high load
+    Released version 1.21
+
+Sun 25 Feb 2001 - 1.22
+    Fixed segfault which occured under certain low memory conditions, found
+    and fixed by "John H. Robinson, IV" <jaqque@ucsd.edu>
+    Released version 1.22
+
+Sat 10 Mar 2001 - 1.23
+    Patch from Dan Price to fix Shift Key detection on all platforms
+    Tracked down another segfault related to off-by-one-scanline error
+    Increased bm.bubblebuf allocation because bubbles created at the very
+    bottom of the "water" are drawn outside of 56x56 region.
+    Released version 1.23
+
+Fri 16 Mar 2001 - 1.3
+    Fixed load average graph - I don't know what the hell I was doing that
+    it worked before, but the way the code was written it was never supposed
+    to work :)
+    Added some contributed code to hopefully catch most of bubble-related
+    segfaults.  Thanks to "John H. Robinson, IV" <jaqque@ucsd.edu>
+    Updated Makefile to use proper libs when linking with gdk, etc.  Should
+    stop complaints about "missing library dependencies"
+    This is a recommented upgrade if you use bubblemon version 1.2 or newer.
+    Released version 1.3
+
+Sat 14 Apr 2001 - 1.31
+    FreeBSD machines were compiling bubblemon as "big-endian", resulting in
+    fairly weird looking color problem.  This has been fixed :)  Minor change
+    to Makefile.FreeBSD to put bubblemon in /usr/X11R6 during install.
+    Released version 1.31
+    
+Mon 16 Apr 2001 - 1.32
+    Important security update for FreeBSD - previous versions did not drop
+    kmem privileges, and programs started by clicking on the dockapp were
+    started with elevated privileges.  This is a required upgrade for FreeBSD
+    users.
+
+Tue 28 Aug 2001 - 1.4
+    Added OpenBSD support. Thanks to Peter Stromberg <wilfried@openbsd.org>.
+
+Wed  1 Oct 2003 - 1.41
+    Added support for Linux kernel 2.6
+    Fixed 101% cpu usage problem on kernel 2.6
+
+Thu 13 May 2004 - 1.45
+    Added support for NetBSD. Thanks to Metalhead <metalhead@metalhead.ws>
+    This support is untested, use Makefile.NetBSD to compile.
+
+Sat 15 May 2004 - 1.46
+    Compile fix for FreeBSD-5.x, forgotten include. 

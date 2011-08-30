@@ -1,0 +1,37 @@
+# bubblemon configuration
+EXTRA = -DENABLE_DUCK
+EXTRA += -DENABLE_CPU 
+EXTRA += -DENABLE_MEMSCREEN
+EXTRA += -DUPSIDE_DOWN_DUCK
+
+EXTRA += $(WMAN)
+
+# no user serviceable parts below
+CC = gcc
+
+# optimization cflags
+CFLAGS = -O3 -ansi -Wall `gtk-config --cflags` ${EXTRA}
+# profiling cflags
+# CFLAGS = -ansi -Wall -pg -O3 `gtk-config --cflags` ${EXTRA} -DPRO
+# test coverage cflags
+# CFLAGS = -fprofile-arcs -ftest-coverage -Wall -ansi -g `gtk-config --cflags` ${EXTRA} -DPRO
+
+LIBS = `gtk-config --libs | sed "s/-l.*//g"` -lgdk12 -lkvm
+PREFIX = /usr/X11R6
+VPATH = include
+
+all: bubblemon
+
+bubblemon: bubblemon.o sys_freebsd.o
+	gcc ${CFLAGS} -o bubblemon bubblemon.o sys_freebsd.o ${LIBS}
+
+clean:
+	rm -f bubblemon bubblemon.o *.o *.bb* *.gcov gmon.* *.da winglue.c bubblemon32 *.so win32.spec *~ *.gmon *.s *.core
+
+install:
+	install -c -g kmem -m 2755 -o root bubblemon ${PREFIX}/bin
+
+bubblemon.o: bubblemon.h ducks.h master.xpm sys_include.h digits.h \
+	load_screen.h mem_screen.h
+
+sys_freebsd.o: bubblemon.h

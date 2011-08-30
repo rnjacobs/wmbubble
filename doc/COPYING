@@ -1,0 +1,3 @@
+#include <GPL.v2>
+On a Debian system, you can find the GPL license in
+/usr/share/common-licenses/GPL
