@@ -63,6 +63,9 @@
 #include "include/bubblemon.h"
 #include "include/sys_include.h"
 
+#include "include/clockfont.h"
+#include "include/numbers-2.h"
+
 #ifdef ENABLE_DUCK
 #include "include/ducks.h"
 #endif
@@ -105,6 +108,10 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity);
 static void roll_membuffer(void);
 static void roll_history(void);
 #endif
+
+static void draw_datetime(unsigned char *display);
+static void draw_dtchr(const char letter, unsigned char *where);
+
 #ifdef ENABLE_DUCK
 static int animate_correctly(void);
 static void duck_set(int x, int y, int nr, int rev, int upsidedown);
@@ -114,6 +121,8 @@ static void duck_swimmer(int posy);
 extern int init_stuff();	/* defined in sys_{freebsd,linux}.c */
 #endif
 /* local prototypes end *INDENT-ON* */
+
+extern char * optarg;
 
 /* global variables */
 BubbleMonData bm;
@@ -134,6 +143,8 @@ int cpu_enabled = 1;
 int memscreen_enabled = 1;
 int memscreen_megabytes = 0;
 #endif				/* ENABLE_MEMSCREEN */
+
+int shifttime = 0;
 
 #define INT_VAL 0
 #define DOUBLE_VAL 1
@@ -326,6 +337,8 @@ int main(int argc, char **argv)
     strcat(options, "MEMSCREEN ");
     strcat(execute, "pmk");
 #endif				/* ENABLE_MEMSCREEN */
+    strcat(options, "SHIFTTIME ");
+    strcat(execute, "t:");
 
     /* command line options */
     while ((ch = getopt(argc, argv, execute)) != -1) {
@@ -385,6 +398,9 @@ int main(int argc, char **argv)
 	    memscreen_megabytes = 1;
 	    break;
 #endif				/* ENABLE_MEMSCREEN */
+	case 't':
+	    shifttime = atoi(optarg);
+	    break;
 	default:
 	    print_usage();
 	    exit(-1);
@@ -1174,6 +1190,90 @@ static void draw_cpudigit(const int what, const int where,
 }
 #endif				/* ENABLE_CPU */
 
+static void draw_dtchr(const char letter, unsigned char * rgbbuf) {
+  int x,y;
+
+  if (letter>='0' && letter<='9') {
+    for (y=0;y<7;y++)
+      for (x=0;x<5;x++) 
+	if (clockdigit[x+(y*10+(letter-'0'))*6]=='M') {
+	  rgbbuf[(x+y*56)*3  ]>>=1;
+ 	  rgbbuf[(x+y*56)*3+1]>>=1;
+ 	  rgbbuf[(x+y*56)*3+2]>>=1;
+	}
+  } else if (letter>='@' && letter<='~') {
+    for (y=0;y<7;y++)
+      for (x=0;x<4;x++) 
+	if (clockalpha[x+(y*63+(letter-'@'))*5]=='M') {
+	  rgbbuf[(x+y*56)*3  ]>>=1;
+ 	  rgbbuf[(x+y*56)*3+1]>>=1;
+ 	  rgbbuf[(x+y*56)*3+2]>>=1;
+	}
+  } else if (letter==':') {
+    rgbbuf[3*56*3  ]>>=1;
+    rgbbuf[3*56*3+1]>>=1;
+    rgbbuf[3*56*3+2]>>=1;
+    rgbbuf[5*56*3  ]>>=1;
+    rgbbuf[5*56*3+1]>>=1;
+    rgbbuf[5*56*3+2]>>=1;
+  }
+}
+
+static void draw_largedigit(char number, unsigned char * rgbbuf) {
+  int x,y;
+  int t,v;
+
+  if (number>='0' && number<='9') number-='0';
+  if (number>=0 && number<=9) {
+    for (y=0;y<32;y++)
+      for (x=0;x<13;x++) {
+	v=bigdigits[number*13+x+y*130]>>2;
+        t=rgbbuf[(x+y*56)*3  ]+v; if (t>255) t=255; rgbbuf[(x+y*56)*3  ]=t;
+        t=rgbbuf[(x+y*56)*3+1]+v; if (t>255) t=255; rgbbuf[(x+y*56)*3+1]=t;
+        t=rgbbuf[(x+y*56)*3+2]+v; if (t>255) t=255; rgbbuf[(x+y*56)*3+2]=t;
+      }
+  }
+}
+
+static void draw_datetime(unsigned char * rgbbuf) {
+  const char months[12][3]={"Jan","Feb","Mar","Apr","May","Jun",
+			 "Jul","Aug","Sep","Oct","Nov","Dec"};
+  const char days[7][3]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+  time_t mytt;
+  struct tm * mytime;
+
+  time(&mytt);
+  mytime = localtime(&mytt);
+
+  if (mytime->tm_hour<shifttime) {
+    mytt-=86400;
+    mytime = localtime(&mytt);
+    mytime->tm_hour+=24;
+  }  
+
+  /* Sat Jan 04 */
+
+#define DOWx  6
+#define MONx 22
+#define DOMx 38
+  /* draw day-of-week (14 px)*/
+  draw_dtchr(days[mytime->tm_wday][0],rgbbuf+(DOWx   )*3+56*3);
+  draw_dtchr(days[mytime->tm_wday][1],rgbbuf+(DOWx+ 5)*3+56*3);
+  draw_dtchr(days[mytime->tm_wday][2],rgbbuf+(DOWx+10)*3+56*3);
+  /* draw month (14 px) */
+  draw_dtchr(months[mytime->tm_mon][0],rgbbuf+(MONx   )*3+56*3);
+  draw_dtchr(months[mytime->tm_mon][1],rgbbuf+(MONx+ 5)*3+56*3);
+  draw_dtchr(months[mytime->tm_mon][2],rgbbuf+(MONx+10)*3+56*3);
+  /* draw day-of-month (11 px) */
+  draw_dtchr((mytime->tm_mday)/10+'0',rgbbuf+(DOMx   )*3+56*3);
+  draw_dtchr((mytime->tm_mday)%10+'0',rgbbuf+(DOMx+ 6)*3+56*3);
+
+  draw_largedigit(mytime->tm_hour/10,rgbbuf+1*3+56*3*13);
+  draw_largedigit(mytime->tm_hour%10,rgbbuf+14*3+56*3*13);
+  draw_largedigit(mytime->tm_min/10,rgbbuf+27*3+56*3*13);
+  draw_largedigit(mytime->tm_min%10,rgbbuf+40*3+56*3*13);
+}
+
 #if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
 static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 {
@@ -1284,6 +1384,9 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 	}
     }
 #endif				/* ENABLE_CPU */
+
+    draw_datetime(bm.rgb_buf);
+
 
 #ifdef ENABLE_MEMSCREEN
     /* we hovered long enough to print some memory info */
