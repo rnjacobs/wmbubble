@@ -655,39 +655,38 @@ static void bubblemon_update(int proximity) {
 	if (action_min > real_waterlevel_min)
 		action_min = real_waterlevel_min;
 	
+	/*
+	  Draw the air-and-water background
 
-    /*
-       Draw the air-and-water background
+	  The waterlevel_max is the HIGHEST Y VALUE for the water level, which is
+	  actually the LOWEST VISUAL POINT of the water.  Confusing enough?
 
-       The waterlevel_max is the HIGHEST VALUE for the water level, which is
-       actually the LOWEST VISUAL POINT of the water.  Confusing enough?
+	  So we want to draw from top to bottom:
+	  Just air from (y == 0) to (y <= waterlevel_min)
+	  Mixed air and water from (y == waterlevel_min) to (y <= waterlevel_max)
+	  Just water from (y == waterlevel_max) to (y <= h)
 
-       So we want to draw from top to bottom:
-       Just air from (y == 0) to (y <= waterlevel_min)
-       Mixed air and water from (y == waterlevel_min) to (y <= waterlevel_max)
-       Just water from (y == waterlevel_max) to (y <= h)
+	  Three loops is more code than one, but should be faster (fewer comparisons)
+	*/
 
-       Three loops is more code than one, but should be faster (fewer comparisons)
-     */
+	/* Air only */
+	memset(bm.bubblebuf, aircolor, real_waterlevel_min * BOX_SIZE);
 
-    /* Air only */
-    memset(bm.bubblebuf, aircolor, real_waterlevel_min * BOX_SIZE);
+	/* Air and water */
+	for (x = 0; x < BOX_SIZE; x++) {
+		/* Air... */
+		for (y = real_waterlevel_min;
+		     (signed) y < REALY(bm.waterlevels[x]); y++) /* why the (signed) ? */
+			bm.bubblebuf[y * BOX_SIZE + x] = aircolor;
+		
+		/* ... and water */
+		for (; y < real_waterlevel_max; y++)
+			bm.bubblebuf[y * BOX_SIZE + x] = watercolor;
+	}
 
-    /* Air and water */
-    for (x = 0; x < BOX_SIZE; x++) {
-	/* Air... */
-	for (y = real_waterlevel_min;
-	     (signed) y < REALY(bm.waterlevels[x]); y++) /* why the (signed) ? */
-	    bm.bubblebuf[y * BOX_SIZE + x] = aircolor;
-	
-	/* ... and water */
-	for (; y < real_waterlevel_max; y++)
-	    bm.bubblebuf[y * BOX_SIZE + x] = watercolor;
-    }
-
-    /* Water only */
-    memset(bm.bubblebuf + real_waterlevel_max * BOX_SIZE, watercolor,
-           (BOX_SIZE - real_waterlevel_max) * BOX_SIZE);
+	/* Water only */
+	memset(bm.bubblebuf + real_waterlevel_max * BOX_SIZE, watercolor,
+	       (BOX_SIZE - real_waterlevel_max) * BOX_SIZE);
 
 	/* Create a new bubble if the planets are correctly aligned... */
 	if ((bm.n_bubbles < bm.maxbubbles)
@@ -777,11 +776,11 @@ static void bubblemon_update(int proximity) {
 		x = bubbles[i].x;
 		y = bubbles[i].y;
 
-	/*
-	  Clipping is not necessary for x, but it *is* for y.
-	  To prevent ugliness, we draw antialiascolor only on top of
-	  watercolor, and aircolor on top of antialiascolor.
-	*/
+		/*
+		  Clipping is not necessary for x, but it *is* for y.
+		  To prevent ugliness, we draw antialiascolor only on top of
+		  watercolor, and aircolor on top of antialiascolor.
+		*/
 
 		/* Top row */
 		bubblebuf_ptr = &(bm.bubblebuf[(((REALY(y) - 1) * BOX_SIZE) + BOX_SIZE) + x - 1]);
@@ -968,7 +967,7 @@ static void draw_history(int num, int size, unsigned int *history, unsigned char
 			pixels_per_byte += 100;
 	}
 
-	  for (k = 0; k < num; k++) {
+	for (k = 0; k < num; k++) {
 		d = size * history[k] / pixels_per_byte;
 
 		for (j = 0; j < size; j++) {
@@ -1239,10 +1238,10 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 			draw_cpudigit(hibyte, &kit[3*6]);
 			draw_cpudigit(cpu % 10, &kit[3*12]);
 		}
-	/* percent sign is always there */
-	draw_cpudigit(10, &kit[3*18]);
+		/* percent sign is always there */
+		draw_cpudigit(10, &kit[3*18]);
 	}
-#endif				/* ENABLE_CPU */
+#endif /* ENABLE_CPU */
 
 	/* sexy fade effect */
 	if (proximity) {
@@ -1264,9 +1263,9 @@ static void realtime_alpha_blend_of_cpu_usage(int cpu, int proximity)
 				}
 			}
 #endif				/* ENABLE_MEMSCREEN */
-	}
-    } else {
-	blend += 4*6;
+		}
+	} else {
+		blend += 4*6;
 #ifdef ENABLE_MEMSCREEN
 		if (bm.picture_lock)
 			roll_membuffer();
