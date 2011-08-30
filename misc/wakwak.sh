@@ -1,3 +1,2 @@
 #!/bin/sh
-play wak.wav > /dev/null
-play wak.wav > /dev/null
+play /usr/share/wmbubble/wak.wav /usr/share/wmbubble/wak.wav > /dev/null
