@@ -1234,15 +1234,19 @@ static void draw_datetime(unsigned char * rgbbuf) {
   const char days[7][3]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
   time_t mytt;
   struct tm * mytime;
+  int mday=0, hours=0;
 
   time(&mytt);
   mytime = localtime(&mytt);
+  mday = mytime->tm_mday;
 
   if (mytime->tm_hour<shifttime) {
-    mytt-=86400;
-    mytime = localtime(&mytt);
-    mytime->tm_hour+=24;
-  }  
+	  while (mday == mytime->tm_mday) {
+		  mytt -= 3600; hours++;
+		  mytime = localtime(&mytt);
+	  }
+	  mytime->tm_hour += hours;
+  }
 
   /* Sat Jan 04 */
 
