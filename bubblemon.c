@@ -247,7 +247,8 @@ static void bubblemon_session_defaults(void)
 /* *INDENT-OFF* */
 static void print_usage(void)
 {
-    printf( "BubbleMon version "VERSION", features: %s\n"
+    char *usage;
+    usage = "BubbleMon version "VERSION", features: %s\n"
 	    "Usage: bubblemon [switches] [program_1] [program_2]\n\n"
 	    "Disable compiled-in features\n"
 #ifdef ENABLE_DUCK
@@ -267,7 +268,8 @@ static void print_usage(void)
 	    " -p\tuse alternative color scheme in memory info screen\n"
 	    " -k\tdisplay memory and swap statistics in megabytes\n"
 #endif
-	    " -h\tdisplay this help\n",
+	    " -h\tdisplay this help\n";
+    printf(usage,
 	    options /* this is the global static string with compiled features */
     );
 }
