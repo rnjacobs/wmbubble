@@ -106,8 +106,8 @@ static int animate_correctly(void);
 static void duck_set(int x, int y, int nr, int rev, int upsidedown);
 static void duck_swimmer(int posy);
 #endif
-#ifdef __FreeBSD__
-extern int init_stuff();	/* defined in sys_freebsd.c */
+#if defined(__FreeBSD__) || defined(__linux__)
+extern int init_stuff();	/* defined in sys_{freebsd,linux}.c */
 #endif
 /* local prototypes end *INDENT-ON* */
 
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
     /* zero data structure */
     memset(&bm, 0, sizeof(bm));
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__linux__)
     if (init_stuff())
 	exit(-1);
 #endif
