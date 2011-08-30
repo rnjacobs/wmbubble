@@ -1,0 +1,15 @@
+This is Debian GNU/Linux's prepackaged version of timecop's bubblemon.
+
+This package was debianized by John H. Robinson, IV <jaqque@debian.org>. The
+name was changed to wmbubble to prevent confusion between this package, and the
+GNOME applet of the name bubblemon.
+
+It was downloaded from http://www.ne.jp/asahi/linux/timecop/
+
+Upstream Author: timecop@japan.co.jp
+
+Copyright (C) 2001 Tim Copperfield <timecop@japan.co.jp>
+
+You are free to distribute this software under the terms of the GNU General
+Public License.  On Debian systems, the complete text of the GNU General Public
+License can be found in /usr/share/common-licenses/GPL file.

@@ -19,14 +19,14 @@
 #ifndef _BUBBLEMON_H_
 #define _BUBBLEMON_H_
 
-#include <gdk/gdk.h>
-#include <gdk/gdkx.h>
+/* Terrible place for it, but must be the same as in other include file */
+#define BOX_SIZE 58
 
 /* CPU load alpha-blending: smaller values = ligher text
  * minblend = mouseout
  * maxblend = mousein 
  * min = 0
- * max = 128 */
+ * max = 256 */
 #if defined(ENABLE_CPU) || defined(ENABLE_MEMSCREEN)
 # define MINBLEND 80
 # define MAXBLEND 190
@@ -41,7 +41,9 @@
 #define REALY(y) ((y) >> POWER2)
 #define MAKEY(y) ((y) << POWER2)
 #define MAKE_INTEGER(x) ((int)((x)*MULTIPLIER+0.5))
-#define ROLLVALUE 100		/* frequency of history rollover */
+#define ROLLVALUE 1		/* frequency of history rollover */
+
+#include <X11/Xlib.h>
 
 #ifdef sun
 #include <sys/types.h>
@@ -66,22 +68,18 @@ typedef struct {
 typedef struct {
     /* X11 stuff */
     Display *display;
-    GdkWindow *win;		/* main window */
-    GdkWindow *iconwin;		/* icon window */
-    GdkGC *gc;			/* drawing GC */
-    GdkPixmap *pixmap;		/* main dockapp pixmap */
-    GdkBitmap *mask;		/* dockapp mask */
+    XImage * xim;
 
     /* main image buffer */
-    unsigned char rgb_buf[56 * 56 * 3 + 1];
+    unsigned char rgb_buf[BOX_SIZE * BOX_SIZE * 3 + 1];
 
 #ifdef ENABLE_MEMSCREEN
     /* memory / swap screen buffer */
-    unsigned char mem_buf[56 * 56 * 3 + 1];
+    unsigned char mem_buf[BOX_SIZE * BOX_SIZE * 3 + 1];
     /* memory screen graph buffer */
-    unsigned char his_bufa[56 * 31 * 3 + 1];
+    unsigned char his_bufa[BOX_SIZE * 31 * 3 + 1];
     /* loadavg screen graph buffer */
-    unsigned char his_bufb[56 * 33 * 3 + 1];
+    unsigned char his_bufb[BOX_SIZE * 33 * 3 + 1];
 
     int screen_type;		/* 0 - memory, 1 - cpu */
     int picture_lock;		/* blend coeff not changed when this is not 0 */
@@ -90,7 +88,7 @@ typedef struct {
     /* bubble stuff */
     int samples;
     unsigned char *bubblebuf;
-    int *colors;
+
     int *waterlevels;
     int *waterlevels_dy;
     Bubble *bubbles;
@@ -127,13 +125,13 @@ typedef struct {
     unsigned int swap_percent;	/* swap used, in percent */
     unsigned int mem_percent;	/* memory used, in percent */
     /* history of memory use */
-    unsigned int memhist[53];
+    unsigned int memhist[BOX_SIZE-3];
     unsigned int memadd;
 
     /* loadavg stuff */
     LoadAvg loadavg[3];
     /* history of loadavgs */
-    unsigned int history[53];
+    unsigned int history[BOX_SIZE-3];
     unsigned int hisadd;
 } BubbleMonData;
 #endif				/* _BUBBLEMON_H_ */

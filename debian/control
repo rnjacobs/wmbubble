@@ -1,0 +1,19 @@
+Source: wmbubble
+Section: x11
+Priority: optional
+Maintainer: John H. Robinson, IV <jaqque@debian.org>
+Build-Depends: debhelper (>= 5.0), dpatch, libx11-dev
+Standards-Version: 3.8.0.1
+
+Package: wmbubble
+Architecture: any
+Depends: ${shlibs:Depends}
+Suggests: sox, x-terminal-emulator
+Description:  A system-load meter for Window Maker that features a duck
+ A Window Maker dockapp (though it does not specifically require the Window
+ Maker window manager) that indicates the system load.
+ .
+ The more profuse the bubbles, the higher the CPU usage. The higher the water,
+ the more memory being used.
+ .
+ Up to two user-specified programs may be launched from this dockapp.
