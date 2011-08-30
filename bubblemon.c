@@ -418,7 +418,7 @@ int main(int argc, char **argv)
 		    break;
 		case GDK_BUTTON_PRESS:
 		    if (event->button.button == 3) {
-			bm.picture_lock = 1;
+			bm.picture_lock = bm.picture_lock ? 0 : 1;
 			break;
 		    }
 		    if (event->button.button <= argc) {
@@ -433,8 +433,8 @@ int main(int argc, char **argv)
 		     * meminfo */
 		    proximity = 1;
 
-		    bm.screen_type = get_screen_selection();
-		    bm.picture_lock = 0;
+		    if (!bm.picture_lock)
+			bm.screen_type = get_screen_selection();
 		    break;
 		case GDK_LEAVE_NOTIFY:
 		    /* mouse out: back to light */
