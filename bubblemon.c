@@ -1,4 +1,4 @@
-/*  BubbleMon dockapp 1.50r
+/*  WMBubble dockapp 1.50r
  *
  * Todo: merge in wmfishtime/bubblefishymon, reduce number of
  * compilation-time settings, make more things configurable via xresources.
@@ -180,7 +180,7 @@ const struct XrmUnified {
 	char * const option;
 	char * const specifier;
 	const char * const valueifnoarg;
-	const enum { Is_Int, Is_Color, Is_Float, Is_Bool, No_Param } parse_as;
+	const enum { Is_Int, Is_Color, Is_Float, Is_Bool } parse_as;
 	void * write_to;
 	const char * const description;
 } x_resource_unified[] = {
@@ -318,12 +318,30 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 }
 
 void print_usage(void) {
+	char preformat[32];
 	int i;
-	printf("BubbleMon version "VERSION"\n"
+	printf("WMBubble version "VERSION"\n"
 	       "Usage: "NAME" [switches] [program_1] [program_2]\n\n"
 	       "Permitted options are:\n");
-	for (i=0; i < sizeof(x_resource_unified) / sizeof(x_resource_unified[0]); i++)
-		printf("%-20s %s\n",x_resource_unified[i].option,x_resource_unified[i].description);
+	for (i=0; i < sizeof(x_resource_unified) / sizeof(x_resource_unified[0]); i++) {
+		strncpy(preformat,x_resource_unified[i].option,32);
+		switch(x_resource_unified[i].parse_as) {
+		case Is_Int:
+			strncat(preformat," [num]",32-strlen(preformat));
+			break;
+		case Is_Color:
+			strncat(preformat," [color]",32-strlen(preformat));
+			break;
+		case Is_Float:
+			strncat(preformat," [float]",32-strlen(preformat));
+			break;
+		case Is_Bool:
+			if (x_resource_unified[i].valueifnoarg == NULL)
+				strncat(preformat," [y/n]",32-strlen(preformat));
+			break;
+		}
+		printf("%-24s %s\n",preformat,x_resource_unified[i].description);
+	}
 }
 
 int main(int argc, char **argv) {
@@ -383,6 +401,8 @@ int main(int argc, char **argv) {
 		print_usage();
 		exit(0);
 	}
+
+	argv++; argc--; /* Otherwise we'll make more of ourselves on a left click */
 
 #ifdef __FreeBSD__
 	if (init_stuff())
