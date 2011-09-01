@@ -238,13 +238,13 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 	/* number of CPU load samples */
 	bm.samples = 16;
 
-	/* default colors.  changeable from Xdefaults */
+	/* default colors.  changeable from Xresources */
 	bm.air_noswap = 0x2299ff;
 	bm.liquid_noswap = 0x0055ff;
 	bm.air_maxswap = 0xff0000;
 	bm.liquid_maxswap = 0xaa0000;
 
-	/* default bubble engine parameters.  Changeable from Xdefaults */
+	/* default bubble engine parameters.  Changeable from Xresources */
 	bm.maxbubbles = 100;
 	bm.ripples = .2;
 	bm.gravity = 0.06;

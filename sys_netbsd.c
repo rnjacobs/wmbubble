@@ -1,4 +1,4 @@
-/*  BubbleMon dockapp 1.2 - NetBSD specific code
+/*  WMBubble dockapp 1.2 - NetBSD specific code
  *  Copyright (C) 2001, Peter Stromberg <wilfried@openbsd.org>
  *  
  *  This program is free software; you can redistribute it and/or modify

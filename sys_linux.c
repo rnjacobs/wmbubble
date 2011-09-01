@@ -1,4 +1,4 @@
-/*  BubbleMon dockapp 1.2 - Linux specific code
+/*  WMBubble dockapp 1.2 - Linux specific code
  *  Copyright 2000, 2001 timecop@japan.co.jp
  *  
  *  This program is free software; you can redistribute it and/or modify

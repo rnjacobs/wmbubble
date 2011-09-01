@@ -1,4 +1,4 @@
-/*  BubbleMon dockapp 1.2 - FreeBSD specific code
+/*  WMBubble dockapp 1.2 - FreeBSD specific code
  *  Copyright (C) 2001, oleg dashevskii <od@iclub.nsu.ru>
  *  
  *  This program is free software; you can redistribute it and/or modify

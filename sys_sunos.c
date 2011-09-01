@@ -1,4 +1,4 @@
-/*  BubbleMon dockapp 1.2 - SunOS specific code
+/*  WMBubble dockapp 1.2 - SunOS specific code
  *  Copyright 2001 Phil Lu <wplu13@netscape.net>
  *  Copyright 2001 Dan Price <dp@rampant.org>
  *  vim: ts=4 sw=4

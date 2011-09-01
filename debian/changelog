@@ -1,3 +1,9 @@
+wmbubble (1.50) upstream; urgency=low
+
+  * New upstream, new upstream release
+
+ -- Robert Jacobs <rnjacobs@mit.edu>  Wed, 31 Aug 2011 18:00:12 -0700
+
 wmbubble (1.46-2.1) unstable; urgency=low
 
   * debian/control
