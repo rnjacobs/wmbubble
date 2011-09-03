@@ -152,7 +152,7 @@ int do_date = 0;
 
 int do_help = 0;
 
-int delay_time = 100000;
+int delay_time = 15000;
 
 int gauge_alpha = CPUMAXBLEND;
 int graph_alpha = GRAPHMAXBLEND;
@@ -247,10 +247,10 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 	/* default bubble engine parameters.  Changeable from Xresources */
 	bm.maxbubbles = 100;
 	bm.ripples = .2;
-	bm.gravity = 0.06;
+	bm.gravity = 0.01;
 	bm.volatility = 1;
 	bm.viscosity = .98;
-	bm.speed_limit = 6.0;
+	bm.speed_limit = 1.0;
 
 	for (i = 0; i < (sizeof(x_resource_unified) / sizeof(x_resource_unified[0])); i++) {
 		strncpy(name,NAME,BUFSIZ), strncat(name,x_resource_unified[i].specifier,BUFSIZ-strlen(name));
