@@ -1,0 +1,281 @@
+.TH WMBUBBLE 1x "September 2, 2011"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+wmbubble \- system load monitor
+.SH SYNOPSIS
+.B wmbubble
+.RI [ options ] " " [ program1 ] " " [ program2 ]
+.br
+.SH DESCRIPTION
+This manual page documents briefly the
+.B wmbubble
+command.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+.B wmbubble
+is a dockapp-style CPU, memory, swap and load average monitor.  Based on the
+GNOME BubbleMon applet, this program has been considerably improved.
+.PP
+The higher the water level, the more memory is in use. The more profuse the
+bubbles, the higher the CPU usage. There is also a real-time CPU percentage
+display.
+.PP
+When the mouse is moved into the window, the display will change to show
+the load history, or, if either shift key is held, the current memory
+usage. If you press the right mouse button, the window will freeze in
+that state. You can unfreeze the display by pressing the right mouse
+button again.
+.PP
+.B program1
+and
+.B program2
+are the programs to spawn when either the left or middle mouse button
+is pressed, respectively.
+.\"
+.SH OPTIONS
+.TP
+.B \-maxbubbles
+Maximum number of simultaneous bubbles in the dockapp
+.TP
+.B \-air_noswap
+Color of air and bubbles when swap is at 0%
+.TP
+.B \-air_maxswap
+Color of air and bubbles when swap is at 100%
+.TP
+.B \-liquid_noswap
+Color of water when swap is at 0%
+.TP
+.B \-liquid_maxswap
+Color of water when swap is at 100%
+.TP
+.B \-duckbody
+Color of duck's body
+.TP
+.B \-duckbill
+Color of duck's bill
+.TP
+.B \-duckeye
+Color of duck's eye
+.TP
+.B \-delay
+delay this number of microseconds between redraws
+.TP
+.B \-ripples
+Pixels to disturb the surface when a bubble is formed/pops
+.TP
+.B \-gravity
+Pixels/refresh/refresh to accelerate bubbles upwards
+.TP
+.B \-volatility
+Restorative force on water surface in proportion/refresh
+.TP
+.B \-viscosity
+Attenuation of surface velocity in proportion/refresh
+.TP
+.B \-speed_limit
+Maximum water surface velocity in pixels/refresh
+.TP
+.B \-help
+Displays this help
+.TP
+.B \-duck
+Draw the duck?
+.TP
+.B \-d
+Equivalent to -duck no
+.TP
+.B \-upsidedown
+Can the duck flip when the tank is overfull?
+.TP
+.B \-u
+Equivalent to -upsidedown no
+.TP
+.B \-cpumeter
+Show the current load at the bottom
+.TP
+.B \-c
+Equivalent to -cpumeter no
+.TP
+.B \-graphdigit
+Color of the digits on the graphs
+.TP
+.B \-graphwarn
+Color of the digits on the memory graph when above 90%
+.TP
+.B \-graphlabel
+Color of the 1 5 and 15 on load graph and m and s on mem graph
+.TP
+.B \-graphfield
+Color of the background of the graphs
+.TP
+.B \-graphgrid
+Color of the grid lines in the graphs
+.TP
+.B \-graphmax
+Color of the top two pixels of the bar graph
+.TP
+.B \-graphbar
+Color of the rest of the bar graph
+.TP
+.B \-graphmarkers
+Color of the horizontal lines on the graph that indicate each integer load average
+.TP
+.B \-p
+Adjust the digit colors to pale blue and cyan
+.TP
+.B \-graphs
+Does hovering show the graphs
+.TP
+.B \-m
+Equivalent to -graphs no
+.TP
+.B \-units
+Units for memory in KB or MB
+.TP
+.B \-k
+Equivalent to -units megabytes
+.TP
+.B \-shifttime
+Number of hours after midnight that are drawn as part of the previous day on digital clock and date
+.TP
+.B \-digital
+Draw 24h digital clock
+.TP
+.B \-showdate
+Draw day-of-week month day-of-month
+.TP
+.B \-analog
+Draw analog clock face
+.TP
+.B \-hourcolor
+Color of hour hand on analog clock
+.TP
+.B \-mincolor
+Color of minute hand on analog clock
+.TP
+.B \-seccolor
+Color of second hand on analog clock
+.SH RESOURCES
+.TP
+.B wmbubble*maxbubbles
+Maximum number of simultaneous bubbles in the dockapp
+.TP
+.B wmbubble*air_noswap
+Color of air and bubbles when swap is at 0%
+.TP
+.B wmbubble*air_maxswap
+Color of air and bubbles when swap is at 100%
+.TP
+.B wmbubble*liquid_noswap
+Color of water when swap is at 0%
+.TP
+.B wmbubble*liquid_maxswap
+Color of water when swap is at 100%
+.TP
+.B wmbubble*duckbody
+Color of duck's body
+.TP
+.B wmbubble*duckbill
+Color of duck's bill
+.TP
+.B wmbubble*duckeye
+Color of duck's eye
+.TP
+.B wmbubble*delay
+delay this number of microseconds between redraws
+.TP
+.B wmbubble*ripples
+Pixels to disturb the surface when a bubble is formed/pops
+.TP
+.B wmbubble*gravity
+Pixels/refresh/refresh to accelerate bubbles upwards
+.TP
+.B wmbubble*volatility
+Restorative force on water surface in proportion/refresh
+.TP
+.B wmbubble*viscosity
+Attenuation of surface velocity in proportion/refresh
+.TP
+.B wmbubble*speed_limit
+Maximum water surface velocity in pixels/refresh
+.TP
+.B wmbubble*duck
+Draw the duck?
+.TP
+.B wmbubble*upsidedown
+Can the duck flip when the tank is overfull?
+.TP
+.B wmbubble*cpumeter
+Show the current load at the bottom
+.TP
+.B wmbubble*graphdigit
+Color of the digits on the graphs
+.TP
+.B wmbubble*graphwarn
+Color of the digits on the memory graph when above 90%
+.TP
+.B wmbubble*graphlabel
+Color of the 1 5 and 15 on load graph and m and s on mem graph
+.TP
+.B wmbubble*graphfield
+Color of the background of the graphs
+.TP
+.B wmbubble*graphgrid
+Color of the grid lines in the graphs
+.TP
+.B wmbubble*graphmax
+Color of the top two pixels of the bar graph
+.TP
+.B wmbubble*graphbar
+Color of the rest of the bar graph
+.TP
+.B wmbubble*graphmarkers
+Color of the horizontal lines on the graph that indicate each integer load average
+.TP
+.B wmbubble*graphs
+Does hovering show the graphs
+.TP
+.B wmbubble*units
+Units for memory in KB or MB
+.TP
+.B wmbubble*shifttime
+Number of hours after midnight that are drawn as part of the previous day on digital clock and date
+.TP
+.B wmbubble*digital
+Draw 24h digital clock
+.TP
+.B wmbubble*showdate
+Draw day-of-week month day-of-month
+.TP
+.B wmbubble*analog
+Draw analog clock face
+.TP
+.B wmbubble*hourcolor
+Color of hour hand on analog clock
+.TP
+.B wmbubble*mincolor
+Color of minute hand on analog clock
+.TP
+.B wmbubble*seccolor
+Color of second hand on analog clock
+.SH AUTHOR
+wmbubble was originally written by timecop <timecop@japan.co.jp> but is now
+maintained by Robert Jacobs <rnjacobs@mit.edu>
+
+This manual page was originally written by John H. Robinson, IV
+<jaqque@debian.org>, for the Debian GNU/Linux system but has since been
+moved upstream.
