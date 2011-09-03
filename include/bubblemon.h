@@ -73,20 +73,16 @@ typedef struct {
 
     /* memory / swap screen buffer */
     unsigned char mem_buf[BOX_SIZE * BOX_SIZE * 3 + 1];
-    /* memory screen graph buffer */
-    unsigned char his_bufa[BOX_SIZE * 31 * 3 + 1];
-    /* loadavg screen graph buffer */
-    unsigned char his_bufb[BOX_SIZE * 33 * 3 + 1];
 
     int screen_type;		/* 0 - memory, 1 - cpu */
     int picture_lock;		/* blend coeff not changed when this is not 0 */
 
     /* bubble stuff */
     int samples;
-    unsigned char *bubblebuf;
+    unsigned char bubblebuf[BOX_SIZE * (BOX_SIZE+4)];;
 
-    int *waterlevels;
-    int *waterlevels_dy;
+    int waterlevels[BOX_SIZE];
+    int waterlevels_dy[BOX_SIZE];
     Bubble *bubbles;
     int n_bubbles;
 

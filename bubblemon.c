@@ -1436,17 +1436,10 @@ void bubblemon_allocate_buffers(void) {
 	/* storage for bubbles */
 	bm.bubbles = (Bubble *) malloc(sizeof(Bubble) * bm.maxbubbles);
 
-	/* Allocate (zeroed) bubble memory */
-	bm.bubblebuf = calloc(BOX_SIZE * (BOX_SIZE+4), sizeof(char));
-
 	/* Allocate water level memory */
-	bm.waterlevels = malloc(BOX_SIZE * sizeof(int));
 	for (ii = 0; ii < BOX_SIZE; ii++) {
 		bm.waterlevels[ii] = MAKEY(BOX_SIZE);
 	}
-
-	/* Allocate water level velocity memory */
-	bm.waterlevels_dy = calloc(BOX_SIZE, sizeof(int));
 
 	empty_loadgraph = calloc(BOX_SIZE * BOX_SIZE,3);
 	empty_memgraph = calloc(BOX_SIZE * BOX_SIZE,3);
