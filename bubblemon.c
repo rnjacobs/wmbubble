@@ -1061,36 +1061,36 @@ void draw_cpugauge(int cpu) {
 }
 
 void draw_dtchr(const char letter, unsigned char * rgbbuf) {
-  int x,y;
-  unsigned char * attenuator;
-  char * xpm_line;
+	int x,y;
+	unsigned char * attenuator;
+	char * xpm_line;
 
-  for (y=0;y<8;y++) {
-	  xpm_line = datefont_xpm[((unsigned char)letter-32)*8+y+datefont_offset];
-	  for (x=0,attenuator=&rgbbuf[y*BOX_SIZE*3];x<datefont_widths[(unsigned char)letter]-1;x++)
-		  if (xpm_line[x] == datefont_transparent) {
-			  attenuator += 3;
-		  } else {
-			  *(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
-		  }
-  }
+	for (y=0;y<8;y++) {
+		xpm_line = datefont_xpm[((unsigned char)letter-32)*8+y+datefont_offset];
+		for (x=0,attenuator=&rgbbuf[y*BOX_SIZE*3];x<datefont_widths[(unsigned char)letter]-1;x++)
+			if (xpm_line[x] == datefont_transparent) {
+				attenuator += 3;
+			} else {
+				*(attenuator++)>>=1; *(attenuator++)>>=1; *(attenuator++)>>=1;
+			}
+	}
 }
 
 void draw_largedigit(char number, unsigned char * rgbbuf) {
-  int x,y;
-  int t,v;
-  unsigned char * from, * to;
+	int x,y;
+	int t,v;
+	unsigned char * from, * to;
 
-  if (number>='0' && number<='9') number-='0';
-  if (number>=0 && number<=9) {
-	  for (y=0;y<32;y++)
-		  for (x=0,from=&bigdigits[number*13+y*130],to=&rgbbuf[y*BOX_SIZE*3];x<13;x++) {
-	      v=*from++>>2;
-	      t=*to+v; *(to++)=(t>255)?255:t;
-	      t=*to+v; *(to++)=(t>255)?255:t;
-	      t=*to+v; *(to++)=(t>255)?255:t;
-      }
-  }
+	if (number>='0' && number<='9') number-='0';
+	if (number>=0 && number<=9) {
+		for (y=0;y<32;y++)
+			for (x=0,from=&bigdigits[number*13+y*130],to=&rgbbuf[y*BOX_SIZE*3];x<13;x++) {
+				v=*from++>>2;
+				t=*to+v; *(to++)=(t>255)?255:t;
+				t=*to+v; *(to++)=(t>255)?255:t;
+				t=*to+v; *(to++)=(t>255)?255:t;
+			}
+	}
 }
 
 void draw_rgba_pixel(unsigned char * whither, int color, float opacity) {
@@ -1211,36 +1211,36 @@ void draw_clockhands(void) {
 void alpha_date(struct tm * mytime) {
 	const char *roman[]={"I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"};
 	char format[32];
-  int ii, width;
-  unsigned char * rgbptr;
+	int ii, width;
+	unsigned char * rgbptr;
 
-  if (strftime(format,32,"%a %b %d",mytime) != 0) {
-	  for (width = ii = 0; ii < strlen(format); ii++)
-		  width += datefont_widths[(unsigned char)format[ii]];
-	  if (width > BOX_SIZE - 1) { /* if too wide */
-		  snprintf(format,32,"%s-%d",roman[mytime->tm_mon],mytime->tm_mday);
-		  for (width = ii = 0; ii < strlen(format); ii++)
-			  width += datefont_widths[(unsigned char)format[ii]];
-	  }
-  } else { /* if strftime failed */
-	  snprintf(format,32,"%s-%d",roman[mytime->tm_mon],mytime->tm_mday);
-	  for (width = ii = 0; ii < strlen(format); ii++)
-		  width += datefont_widths[(unsigned char)format[ii]];
-  }
+	if (strftime(format,32,"%a %b %d",mytime) != 0) {
+		for (width = ii = 0; ii < strlen(format); ii++)
+			width += datefont_widths[(unsigned char)format[ii]];
+		if (width > BOX_SIZE - 1) { /* if too wide */
+			snprintf(format,32,"%s-%d",roman[mytime->tm_mon],mytime->tm_mday);
+			for (width = ii = 0; ii < strlen(format); ii++)
+				width += datefont_widths[(unsigned char)format[ii]];
+		}
+	} else { /* if strftime failed */
+		snprintf(format,32,"%s-%d",roman[mytime->tm_mon],mytime->tm_mday);
+		for (width = ii = 0; ii < strlen(format); ii++)
+			width += datefont_widths[(unsigned char)format[ii]];
+	}
 
-  rgbptr = &bm.rgb_buf[3*(2*BOX_SIZE+(BOX_SIZE-width)/2)]; /* calculate centered */
+	rgbptr = &bm.rgb_buf[3*(2*BOX_SIZE+(BOX_SIZE-width)/2)]; /* calculate centered */
 
-  for (ii = 0; ii < strlen(format); ii++) {
-	  draw_dtchr(format[ii],rgbptr);
-	  rgbptr += 3*datefont_widths[(unsigned char)format[ii]];
-  }
+	for (ii = 0; ii < strlen(format); ii++) {
+		draw_dtchr(format[ii],rgbptr);
+		rgbptr += 3*datefont_widths[(unsigned char)format[ii]];
+	}
 }
 
 void alpha_digitalclock(struct tm * mytime) {
-  draw_largedigit(mytime->tm_hour/10,&bm.rgb_buf[3*(3+BOX_SIZE*13)]);
-  draw_largedigit(mytime->tm_hour%10,&bm.rgb_buf[3*(16+BOX_SIZE*13)]);
-  draw_largedigit(mytime->tm_min/10,&bm.rgb_buf[3*(30+BOX_SIZE*13)]);
-  draw_largedigit(mytime->tm_min%10,&bm.rgb_buf[3*(43+BOX_SIZE*13)]);
+	draw_largedigit(mytime->tm_hour/10,&bm.rgb_buf[3*(3+BOX_SIZE*13)]);
+	draw_largedigit(mytime->tm_hour%10,&bm.rgb_buf[3*(16+BOX_SIZE*13)]);
+	draw_largedigit(mytime->tm_min/10,&bm.rgb_buf[3*(30+BOX_SIZE*13)]);
+	draw_largedigit(mytime->tm_min%10,&bm.rgb_buf[3*(43+BOX_SIZE*13)]);
 }
 
 void calculate_transparencies(int proximity) {
