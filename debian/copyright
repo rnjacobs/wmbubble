@@ -1,7 +1,7 @@
 Format: http://anonscm.debian.org/viewvc/dep/web/deps/dep5.mdwn?revision=174
 X-Format: http://dep.debian.net/deps/dep5
 Upstream-Name: wmbubble
-Upstream-Contact: Robert Jacobs <debbtsb06@eamp.org>
+Upstream-Contact: Robert Jacobs <rnjacobs@mit.edu>
 Source: https://github.com/rnjacobs/wmbubble/commits/master
 X-Upstream-Vcs: git
 X-Upstream-Bugs: https://github.com/rnjacobs/wmbubble.git
@@ -13,13 +13,13 @@ X-Comment:
 
 Files: *
 Copyright:
- 2011 Robert Jacobs <debbtsb06@eamp.org>, <rnjacobs@mit.edu>
+ 2011 Robert Jacobs <rnjacobs@mit.edu>
  2001 Tim Copperfield <timecop@japan.co.jp>
 License: GPL-2+
 
 Files: debian/*
 Copyright:
- 2011 Robert Jacobs <debbtsb06@eamp.org>
+ 2011 Robert Jacobs <rnjacobs@mit.edu>
  2010 Jari Aalto <jari.aalto@cante.net>
  2007 Margarita Manterola <marga@debian.org>
  2004 Romain Francoise <rfrancoise@debian.org>
