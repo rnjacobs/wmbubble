@@ -32,9 +32,9 @@ clean: unpatch
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	dh_prep
 	dh_installdirs
-	
+
 	$(MAKE) install PREFIX=$(CURDIR)/debian/wmbubble/usr
 	dh_install misc/wak.wav misc/wakwak.sh usr/share/wmbubble/
 	chmod +x $(CURDIR)/debian/wmbubble/usr/share/wmbubble/wakwak.sh
