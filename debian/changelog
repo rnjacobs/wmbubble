@@ -78,7 +78,7 @@ wmbubble (1.41-0.1) unstable; urgency=low
   * New upstream release (closes: #220643):
     - Upstream support for Linux 2.6 (closes: #207377)
     - Apply patch from Romain Francoise <rfrancoise@debian.org> to add
-      runtime detection of the running kernel (upstream added support 
+      runtime detection of the running kernel (upstream added support
       as a compile-time option which doesn't suit Debian at all).
   * Apply patch from Romain Francoise <rfrancoise@debian.org> to require a
     second mouse click to unfreeze the load display (closes: #217455).
