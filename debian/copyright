@@ -1,15 +1,45 @@
-This is Debian GNU/Linux's prepackaged version of timecop's bubblemon.
+Format: http://anonscm.debian.org/viewvc/dep/web/deps/dep5.mdwn?revision=174
+X-Format: http://dep.debian.net/deps/dep5
+Upstream-Name: wmbubble
+Upstream-Contact: Robert Jacobs <debbtsb06@eamp.org>
+Source: https://github.com/rnjacobs/wmbubble/commits/master
+X-Upstream-Vcs: git
+X-Upstream-Bugs: https://github.com/rnjacobs/wmbubble.git
+X-Comment:
+ The original package was debianized 2001 by John H. Robinson, IV
+ <jaqque@debian.org>. The name was changed to wmbubble to prevent
+ confusion between this package, and the GNOME applet of the name
+ bubblemon.
 
-This package was debianized by John H. Robinson, IV <jaqque@debian.org>. The
-name was changed to wmbubble to prevent confusion between this package, and the
-GNOME applet of the name bubblemon.
+Files: *
+Copyright:
+ 2011 Robert Jacobs <debbtsb06@eamp.org>, <rnjacobs@mit.edu>
+ 2001 Tim Copperfield <timecop@japan.co.jp>
+License: GPL-2+
 
-It was downloaded from http://www.ne.jp/asahi/linux/timecop/
+Files: debian/*
+Copyright:
+ 2011 Robert Jacobs <debbtsb06@eamp.org>
+ 2010 Jari Aalto <jari.aalto@cante.net>
+ 2007 Margarita Manterola <marga@debian.org>
+ 2004 Romain Francoise <rfrancoise@debian.org>
+ 2001 LaMont Jones <lamont@debian.org>
+ 2001, 2004, 2008 John H. Robinson, IV <jaqque@ucsd.edu>
+License: GPL-2+
 
-Upstream Author: timecop@japan.co.jp
-
-Copyright (C) 2001 Tim Copperfield <timecop@japan.co.jp>
-
-You are free to distribute this software under the terms of the GNU General
-Public License.  On Debian systems, the complete text of the GNU General Public
-License can be found in /usr/share/common-licenses/GPL file.
+License: GPL-2+
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License can be found in "/usr/share/common-licenses/GPL-2".
