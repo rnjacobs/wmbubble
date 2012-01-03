@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: John H. Robinson, IV <jaqque@debian.org>
 Build-Depends: debhelper (>= 8), libx11-dev
 Standards-Version: 3.9.2
+Homepage: https://github.com/rnjacobs/wmbubble
 
 Package: wmbubble
 Architecture: any
