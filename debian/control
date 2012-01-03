@@ -7,7 +7,7 @@ Standards-Version: 3.8.0.1
 
 Package: wmbubble
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:DEpends}
 Suggests: sox, x-terminal-emulator
 Description: A system-load meter for Window Maker that features a duck
  A Window Maker dockapp (though it does not specifically require the Window
