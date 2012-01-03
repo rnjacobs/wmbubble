@@ -5,9 +5,6 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-# This package uses dpatch
-include /usr/share/dpatch/dpatch.make
-
 CFLAGS = -Wall -g
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
     CFLAGS += -O0
@@ -16,12 +13,12 @@ else
 endif
 
 build: build-stamp
-build-stamp: patch-stamp
+build-stamp:
 	dh_testdir
 	$(MAKE) CFLAGS="$(CFLAGS)"
 	touch build-stamp
 
-clean: unpatch
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp
@@ -61,4 +58,4 @@ binary-arch: build install
 	dh_builddeb
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install patch-stamp unpatch
+.PHONY: build clean binary-indep binary-arch binary install
