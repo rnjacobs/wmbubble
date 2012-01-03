@@ -1,6 +1,7 @@
-wmbubble (1.49rc1) upstream; urgency=low
+wmbubble (1.49rc1-1) unstable; urgency=low
 
-  * New upstream, new upstream release
+  * New maintainer (Closes: #632876)
+    - New new upstream maintainer.
 
  -- Robert Jacobs <rnjacobs@mit.edu>  Sat, 03 Sep 2011 19:26:12 -0700
 
@@ -78,7 +79,7 @@ wmbubble (1.41-0.1) unstable; urgency=low
   * New upstream release (closes: #220643):
     - Upstream support for Linux 2.6 (closes: #207377)
     - Apply patch from Romain Francoise <rfrancoise@debian.org> to add
-      runtime detection of the running kernel (upstream added support 
+      runtime detection of the running kernel (upstream added support
       as a compile-time option which doesn't suit Debian at all).
   * Apply patch from Romain Francoise <rfrancoise@debian.org> to require a
     second mouse click to unfreeze the load display (closes: #217455).
@@ -125,7 +126,3 @@ wmbubble (1.1-1) unstable; urgency=low
   * Changed meaning of -u flag
 
  -- John H. Robinson, IV <jaqque@ucsd.edu>  Thu,  1 Feb 2001 22:06:04 -0800
-
-Local variables:
-mode: debian-changelog
-End:
