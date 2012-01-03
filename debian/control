@@ -2,7 +2,7 @@ Source: wmbubble
 Section: x11
 Priority: optional
 Maintainer: John H. Robinson, IV <jaqque@debian.org>
-Build-Depends: debhelper (>= 5.0), dpatch, libx11-dev
+Build-Depends: debhelper (>= 8), dpatch, libx11-dev
 Standards-Version: 3.9.2
 
 Package: wmbubble
