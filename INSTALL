@@ -8,10 +8,8 @@ Install instructions:
 Using GNU make wmbubble should compile without changes on any system listed
 in SUPPORTED_SYSTEMS file.  If not, feel free to fix it and send me a diff -u.
 
-Check README file for configuration options - you can either permanently
-disable a feature by editing Makefile and commenting out any of the EXTRA
-defines, or disable it at run-time by using command-line switches. Colors
-and bubble physics can also be configured through ~/.Xresources file.
+Check README file for configuration options - you can disable or adjust all
+features at run-time by using command-line switches or X resources.
 
 On BSDs, you can do make install as root to install in /usr/local/bin
 and give wmbubble proper permissions, or you'll have to give wmbubble

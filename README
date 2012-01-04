@@ -55,16 +55,14 @@ sounds with WMBubble.
 Configuration:
 
 WMBubble is very configurable. Previous section explains many features, but
-all of them can be disabled, either through compile-time settings or with
-command-line switches at startup. The general Makefile contains
- compilation defines near the top. You can comment out
-a particular line, to disable that feature. Alternatively, you can run
-"wmbubble -help" for a list of command line options. This will show command-line
-switches which can be used to disable certain WMBubble modes, and modify color
-scheme used in memory and load average screens. You can also change colors of
-the air, water, various physics constants which control bubble generation, and
-maximum number of bubbles to make. All of these settings are read on start-up
-from the Xserver's loaded xresources, probably loaded from the .Xresources files.
+all of them can be disabled with command-line switches at startup. You can
+run "wmbubble -help" for a list of command line options. This will show
+command-line switches which can be used to disable certain WMBubble modes,
+and modify color scheme used in memory and load average screens. You can
+also change colors of the air, water, various physics constants which
+control bubble generation, and maximum number of bubbles to make. All of
+these settings are read on start-up from the Xserver's loaded xresources,
+probably loaded from the .Xresources files.
 
 If you don't have a .Xresources file in your home directory, you can copy
 Xresources.sample which is distributed with WMBubble. If you already have
