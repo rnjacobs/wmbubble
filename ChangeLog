@@ -153,5 +153,8 @@ Thu 13 May 2004 - 1.45
 Sat 15 May 2004 - 1.46
     Compile fix for FreeBSD-5.x, forgotten include. 
 
-Sat 03 Sep 2011 - 1.49rc1
-    Add digital and analog clocks. And tons of run-time customizability.
+Sat 03 Sep 2011 - 1.50
+    Add calendar, digital and analog clocks. Dropped gdk for Ximage. Make
+    border half-transparent instead of solid. Use Xresources instead of
+    Xdefaults. Almost everything is now customizable at run time, and all
+    the build-time customizations have been removed.
