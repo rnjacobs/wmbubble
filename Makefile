@@ -2,9 +2,9 @@
 PREFIX = /usr/local
 
 # default build flags
-CFLAGS = -ansi -Wall -ggdb
+# CFLAGS = -ansi -Wall -ggdb
 # optimization cflags
-# CFLAGS = -ansi -Wall -O3
+CFLAGS = -ansi -Wall -O3
 # profiling cflags
 # CFLAGS = -ansi -Wall -O3 -pg -DPRO=50000
 # test coverage cflags
