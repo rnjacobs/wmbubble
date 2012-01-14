@@ -85,6 +85,7 @@ clean:
 	rm -f $(PACKAGE) *.o *.bb* *.gcov gmon.* *.da *~
 
 install:
+	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
 	install $(INSTALL) $(PACKAGE) $(DESTDIR)$(PREFIX)/bin
 
 dist-tar:
