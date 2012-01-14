@@ -1,5 +1,14 @@
+ifneq (,)
+This makefile requires GNU Make.
+endif
+
+PACKAGE = wmbubble
+VERSION = $(shell cat VERSION)
+INSTALL = -m 755
+
 # where to install this program
-PREFIX = /usr/local
+DESTDIR =
+PREFIX  = /usr/local
 
 # default build flags
 # CFLAGS = -ansi -Wall -ggdb
@@ -59,10 +68,10 @@ ifeq ($(OS), SunOS)
 	LIBS = -lX11 -lkstat -lm
 endif
 
-all: wmbubble
+all: $(PACKAGE)
 
-wmbubble: $(OBJS)
-	$(CC) $(CFLAGS) -o wmbubble $(OBJS) $(LIBS)
+$(PACKAGE): $(OBJS)
+	$(CC) $(CFLAGS) -o $(PACKAGE) $(OBJS) $(LIBS)
 
 bubblemon.o: bubblemon.c wmx11pixmap.h include/bubblemon.h \
  include/sys_include.h include/numbers-2.h include/ducks.h \
@@ -73,7 +82,18 @@ wmx11pixmap.o: wmx11pixmap.c wmx11pixmap.h
 sys_%.o: sys_%.c include/bubblemon.h include/sys_include.h
 
 clean:
-	rm -f wmbubble *.o *.bb* *.gcov gmon.* *.da *~
+	rm -f $(PACKAGE) *.o *.bb* *.gcov gmon.* *.da *~
 
 install:
-	install $(INSTALL) wmbubble $(PREFIX)/bin
+	install $(INSTALL) $(PACKAGE) $(DESTDIR)$(PREFIX)/bin
+
+dist-tar:
+	git archive --format=tar --prefix=$(PACKAGE)-$(VERSION)/ master \
+	 	> ../$(PACKAGE)-$(VERSION).tar
+
+	gzip --best ../$(PACKAGE)-$(VERSION).tar
+
+	# The Debian *.orig file
+	cp -a ../$(PACKAGE)-$(VERSION).tar.gz ../$(PACKAGE)_$(VERSION).orig.tar.gz
+
+dist: dist-tar
