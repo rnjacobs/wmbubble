@@ -3,7 +3,7 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-override_dh_install:
+override_dh_auto_install:
 	$(MAKE) install PREFIX=$(CURDIR)/debian/wmbubble/usr
 	dh_install misc/wak.wav misc/wakwak.sh usr/share/wmbubble/
 
