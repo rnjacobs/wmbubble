@@ -1,4 +1,12 @@
+ifneq (,)
+This makefile requires GNU Make.
+endif
+
+INSTALL = -m 755
+VERSION = $(shell git describe --tags)
+
 # where to install this program
+DESTDIR =
 PREFIX = /usr/local
 
 # default build flags
@@ -75,5 +83,17 @@ sys_%.o: sys_%.c include/bubblemon.h include/sys_include.h
 clean:
 	rm -f wmbubble *.o *.bb* *.gcov gmon.* *.da *~
 
-install:
-	install $(INSTALL) wmbubble $(PREFIX)/bin
+install: wmbubble wmbubble.1
+	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
+	install $(INSTALL) wmbubble $(DESTDIR)$(PREFIX)/bin
+	install -m 755 -d $(DESTDIR)$(PREFIX)/share/man/man1
+	install -m 644 wmbubble.1 $(DESTDIR)$(PREFIX)/share/man/man1
+
+dist-tar:
+	git archive -v -9 --prefix=wmbubble-$(VERSION)/ master \
+		-o ../wmbubble-$(VERSION).tar.gz
+
+dist: dist-tar
+
+dist-debian: ../wmbubble-$(VERSION).tar.gz
+	cp $< ../wmbubble_$(VERSION).orig.tar.gz
