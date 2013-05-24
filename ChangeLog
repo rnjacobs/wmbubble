@@ -145,7 +145,3 @@ Tue 28 Aug 2001 - 1.4
 Wed  1 Oct 2003 - 1.41
     Added support for Linux kernel 2.6
     Fixed 101% cpu usage problem on kernel 2.6
-
-Thu 13 May 2004 - 1.45
-    Added support for NetBSD. Thanks to Metalhead <metalhead@metalhead.ws>
-    This support is untested, use Makefile.NetBSD to compile.
