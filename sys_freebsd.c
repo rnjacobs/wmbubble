@@ -19,7 +19,6 @@
 
 #include <kvm.h>
 #include <fcntl.h>
-#include <sys/types.h>
 #include <sys/dkstat.h>
 #include <sys/vmmeter.h>
 #include <stdlib.h>

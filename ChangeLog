@@ -149,6 +149,3 @@ Wed  1 Oct 2003 - 1.41
 Thu 13 May 2004 - 1.45
     Added support for NetBSD. Thanks to Metalhead <metalhead@metalhead.ws>
     This support is untested, use Makefile.NetBSD to compile.
-
-Sat 15 May 2004 - 1.46
-    Compile fix for FreeBSD-5.x, forgotten include. 
