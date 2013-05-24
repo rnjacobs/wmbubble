@@ -44,7 +44,7 @@
  */
 #define _GNU_SOURCE
 
-#define VERSION "1.41"
+#define VERSION "1.4"
 
 /* general includes */
 #include <stdio.h>
@@ -606,10 +606,6 @@ static void make_new_bubblemon_dockapp(void)
     gdk_window_set_back_pixmap(bm.iconwin, bm.pixmap, False);
 
     gdk_window_show(bm.win);
-#ifdef KDE_DOCKAPP
-    /* makes the dockapp visible inside KDE wm */
-    gdk_window_show(bm.iconwin);
-#endif
 
     /* We begin with zero bubbles */
     bm.n_bubbles = 0;

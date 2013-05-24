@@ -1,7 +1,6 @@
 Install instructions:
 
 1. read README
-1a. On Linux 2.6, edit Makefile and uncommend top line that adds -DKERNEL_26
 2. make (on FreeBSD, make -f Makefile.FreeBSD)
 3. make install (this will put bubblemon in /usr/local/bin)
 4. bubblemon &

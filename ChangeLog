@@ -141,7 +141,3 @@ Mon 16 Apr 2001 - 1.32
 
 Tue 28 Aug 2001 - 1.4
     Added OpenBSD support. Thanks to Peter Stromberg <wilfried@openbsd.org>.
-
-Wed  1 Oct 2003 - 1.41
-    Added support for Linux kernel 2.6
-    Fixed 101% cpu usage problem on kernel 2.6
