@@ -17,7 +17,7 @@ CFLAGS = -O3 -ansi -Wall `gtk-config --cflags` ${EXTRA}
 # CFLAGS = -fprofile-arcs -ftest-coverage -Wall -ansi -g `gtk-config --cflags` ${EXTRA} -DPRO
 
 LIBS = `gtk-config --libs | sed "s/-l.*//g"` -lgdk12 -lkvm
-PREFIX = /usr/X11R6
+PREFIX = /usr/local
 VPATH = include
 
 all: bubblemon

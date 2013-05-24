@@ -1,4 +1,4 @@
-/*  BubbleMon dockapp 1.31
+/*  BubbleMon dockapp 1.3
  *
  *  - dockapp for Window Maker/Blackbox/E/Afterstep/SawBabble
  *  - Code outside of bubblemon_update copyright 2000, 2001
@@ -44,7 +44,7 @@
  */
 #define _GNU_SOURCE
 
-#define VERSION "1.31"
+#define VERSION "1.3"
 
 /* general includes */
 #include <stdio.h>
@@ -908,7 +908,7 @@ static void bubblemon_update(int proximity)
 
     while (i--) {
 	unsigned char *rgb = (unsigned char *) &col[*buf_ptr++];
-#if (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(_LITTLE_ENDIAN) || (BYTE_ORDER == LITTLE_ENDIAN)
+#if (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(_LITTLE_ENDIAN)
 	*ptr++ = rgb[2];
 	*ptr++ = rgb[1];
 	*ptr++ = rgb[0];
