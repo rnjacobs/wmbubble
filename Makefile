@@ -36,12 +36,6 @@ ifeq ($(OS), FreeBSD)
     INSTALL = -c -g kmem -m 2755 -o root
 endif
 
-# special things for OpenBSD
-ifeq ($(OS), OpenBSD)
-    OBJS += sys_openbsd.o
-    LIBS = `gtk-config --libs | sed "s/-lgtk//g"`
-endif
-
 #special things for SunOS
 ifeq ($(OS), SunOS)
 

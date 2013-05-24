@@ -138,6 +138,3 @@ Mon 16 Apr 2001 - 1.32
     kmem privileges, and programs started by clicking on the dockapp were
     started with elevated privileges.  This is a required upgrade for FreeBSD
     users.
-
-Tue 28 Aug 2001 - 1.4
-    Added OpenBSD support. Thanks to Peter Stromberg <wilfried@openbsd.org>.

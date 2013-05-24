@@ -44,7 +44,7 @@
  */
 #define _GNU_SOURCE
 
-#define VERSION "1.4"
+#define VERSION "1.32"
 
 /* general includes */
 #include <stdio.h>
