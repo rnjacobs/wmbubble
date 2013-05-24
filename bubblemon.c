@@ -1,4 +1,4 @@
-/*  BubbleMon dockapp 1.32
+/*  BubbleMon dockapp 1.31
  *
  *  - dockapp for Window Maker/Blackbox/E/Afterstep/SawBabble
  *  - Code outside of bubblemon_update copyright 2000, 2001
@@ -44,7 +44,7 @@
  */
 #define _GNU_SOURCE
 
-#define VERSION "1.32"
+#define VERSION "1.31"
 
 /* general includes */
 #include <stdio.h>

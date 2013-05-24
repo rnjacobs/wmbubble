@@ -71,15 +71,6 @@ int init_stuff()
 	return 2;
     }
 
-    /* drop setgid & setuid (the latter should not be there really) */
-    seteuid(getuid());
-    setegid(getgid());
-
-    if (geteuid() != getuid() || getegid() != getgid()) {
-	puts("Unable to drop privileges");
-	return 3;
-    }
-
     return 0;
 }
 

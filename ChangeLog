@@ -132,9 +132,3 @@ Sat 14 Apr 2001 - 1.31
     fairly weird looking color problem.  This has been fixed :)  Minor change
     to Makefile.FreeBSD to put bubblemon in /usr/X11R6 during install.
     Released version 1.31
-    
-Mon 16 Apr 2001 - 1.32
-    Important security update for FreeBSD - previous versions did not drop
-    kmem privileges, and programs started by clicking on the dockapp were
-    started with elevated privileges.  This is a required upgrade for FreeBSD
-    users.
