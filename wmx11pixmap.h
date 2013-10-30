@@ -5,7 +5,9 @@
 
 /* Defines */
 
+#ifndef BOX_SIZE
 #define BOX_SIZE 58
+#endif
 
 /* Function Prototypes */
 

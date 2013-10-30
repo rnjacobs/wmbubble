@@ -20,7 +20,9 @@
 #define _BUBBLEMON_H_
 
 /* Terrible place for it, but must be the same as in other include file */
+#ifndef BOX_SIZE
 #define BOX_SIZE 58
+#endif
 
 /* CPU load alpha-blending: smaller values = ligher text
  * minblend = mouseout

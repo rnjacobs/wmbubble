@@ -993,12 +993,14 @@ void render_secondary(void) {
 	       BOX_SIZE * BOX_SIZE * 3);
 
 	if (bm.screen_type) {
+#if BOX_SIZE >= 55
 		for (i = 0; i < 3; i++) {
 			sprintf(number, "%2d", bm.loadavg[i].i);
-			draw_string(number, 1+(4*4+2+1)*i, 9, 0);
+			draw_string(number, ((BOX_SIZE-1)/2-27) + 19*i,      9, 0);
 			sprintf(number, "%02d", bm.loadavg[i].f);
-			draw_string(number, 1+(4*4+2+1)*i + 4*2 + 2, 9, 0);
+			draw_string(number, ((BOX_SIZE-1)/2-27) + 19*i + 10, 9, 0);
 		}
+#endif
 		/* render load average graph */
 		draw_history(BOX_SIZE-4, BOX_SIZE-4-21, bm.history, &bm.mem_buf[21*BOX_SIZE*3]);
 	} else {
@@ -1007,7 +1009,7 @@ void render_secondary(void) {
 			snprintf(number, 8, "%6lluM", bm.mem_used >> 20);
 		else
 			snprintf(number, 8, "%6lluK", bm.mem_used >> 10);
-		snprintf(percent, 4, "%03d", bm.mem_percent);
+		snprintf(percent, 4, "%+3d", bm.mem_percent);
 		draw_string(number, 3, 2, (bm.mem_percent > 90) ? 1 : 0);
 		draw_string(percent, 39, 2, (bm.mem_percent > 90) ? 1 : 0);
 
@@ -1016,7 +1018,7 @@ void render_secondary(void) {
 			snprintf(number, 8, "%6lluM", bm.swap_used >> 20);
 		else
 			snprintf(number, 8, "%6lluK", bm.swap_used >> 10);
-		snprintf(percent, 4, "%03d", bm.swap_percent);
+		snprintf(percent, 4, "%+3d", bm.swap_percent);
 		draw_string(number, 3, 11, (bm.swap_percent > 90) ? 1 : 0);
 		draw_string(percent, 39, 11, (bm.swap_percent > 90) ? 1 : 0);
 
@@ -1237,10 +1239,16 @@ void alpha_date(struct tm * mytime) {
 }
 
 void alpha_digitalclock(struct tm * mytime) {
-	draw_largedigit(mytime->tm_hour/10,&bm.rgb_buf[3*(3+BOX_SIZE*13)]);
-	draw_largedigit(mytime->tm_hour%10,&bm.rgb_buf[3*(16+BOX_SIZE*13)]);
-	draw_largedigit(mytime->tm_min/10,&bm.rgb_buf[3*(30+BOX_SIZE*13)]);
-	draw_largedigit(mytime->tm_min%10,&bm.rgb_buf[3*(43+BOX_SIZE*13)]);
+#if BOX_SIZE >= 54
+	draw_largedigit(mytime->tm_hour/10,
+	                &bm.rgb_buf[3*((BOX_SIZE/2)-26+BOX_SIZE*(BOX_SIZE/2-16))]);
+	draw_largedigit(mytime->tm_hour%10,
+	                &bm.rgb_buf[3*((BOX_SIZE/2)-13+BOX_SIZE*(BOX_SIZE/2-16))]);
+	draw_largedigit(mytime->tm_min/10,
+	                &bm.rgb_buf[3*((BOX_SIZE/2)   +BOX_SIZE*(BOX_SIZE/2-16))]);
+	draw_largedigit(mytime->tm_min%10,
+	                &bm.rgb_buf[3*((BOX_SIZE/2)+13+BOX_SIZE*(BOX_SIZE/2-16))]);
+#endif
 }
 
 void calculate_transparencies(int proximity) {
@@ -1484,19 +1492,19 @@ void build_graphs(void) {
 	              18,0,4,8,graph_digit_color); /* swap% */
 
 	/* load average */
-	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(8+2*BOX_SIZE)],BOX_SIZE,
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(((BOX_SIZE-1)/2-20)+2*BOX_SIZE)],BOX_SIZE,
 	              0,0,2,5,graph_labels); /* 1 */
-	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(27+2*BOX_SIZE)],BOX_SIZE,
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(((BOX_SIZE-1)/2- 1)+2*BOX_SIZE)],BOX_SIZE,
 	              3,0,2,5,graph_labels); /* 5 */
-	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(45+2*BOX_SIZE)],BOX_SIZE,
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(((BOX_SIZE-1)/2+17)+2*BOX_SIZE)],BOX_SIZE,
 	              0,0,2,5,graph_labels); /* 1 */
-	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(48+2*BOX_SIZE)],BOX_SIZE,
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(((BOX_SIZE-1)/2+20)+2*BOX_SIZE)],BOX_SIZE,
 	              3,0,2,5,graph_labels); /* 5 */
-	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(9+15*BOX_SIZE)],BOX_SIZE,
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(((BOX_SIZE-1)/2-19)+15*BOX_SIZE)],BOX_SIZE,
 	              18,0,1,2,graph_digit_color); /* . */
-	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(28+15*BOX_SIZE)],BOX_SIZE,
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(((BOX_SIZE-1)/2   )+15*BOX_SIZE)],BOX_SIZE,
 	              18,0,1,2,graph_digit_color); /* . */
-	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(47+15*BOX_SIZE)],BOX_SIZE,
+	draw_from_xpm(ofmspct_xpm,&empty_loadgraph[3*(((BOX_SIZE-1)/2+19)+15*BOX_SIZE)],BOX_SIZE,
 	              18,0,1,2,graph_digit_color); /* . */
 
 	r = GET_RED(graph_digit_color);
