@@ -1,0 +1,26 @@
+Description: Fix compiler flags
+ Fix Makefile so that CFLAGS is not overwritten.  Compile with
+ CPPFLAGS and LDFLAGS.
+
+Author: Doug Torrance <dtorrance@monmouthcollege.edu>
+
+--- wmbubble-1.50.orig/Makefile
++++ wmbubble-1.50/Makefile
+@@ -4,7 +4,7 @@ PREFIX = /usr/local
+ # default build flags
+ # CFLAGS = -ansi -Wall -ggdb
+ # optimization cflags
+-CFLAGS = -ansi -Wall -O3
++CFLAGS += -ansi -Wall -O3
+ # profiling cflags
+ # CFLAGS = -ansi -Wall -O3 -pg -DPRO=50000
+ # test coverage cflags
+@@ -62,7 +62,7 @@ endif
+ all: wmbubble
+ 
+ wmbubble: $(OBJS)
+-	$(CC) $(CFLAGS) -o wmbubble $(OBJS) $(LIBS)
++	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o wmbubble $(OBJS) $(LIBS)
+ 
+ bubblemon.o: bubblemon.c wmx11pixmap.h include/bubblemon.h \
+  include/sys_include.h include/numbers-2.h include/ducks.h \

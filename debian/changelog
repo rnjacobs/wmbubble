@@ -1,0 +1,166 @@
+wmbubble (1.50-1) unstable; urgency=low
+
+  * New maintainer. (Closes: #632876)
+  * New upstream release.
+    - Removed patches from debian/patches now available upstream.
+  * debian/control
+    - Added new homepage and VCS information.
+  * debian/copyright
+    - Update to copyright format 1.0.
+  * debian/watch
+    - Changed to new host.
+  * debian/rules
+    - Simplified to debhelper 7 style.
+
+ -- Doug Torrance <dtorrance@monmouthcollege.edu>  Mon, 25 Nov 2013 22:42:00 -0600
+
+wmbubble (1.46-4) unstable; urgency=low
+
+  * QA upload.
+  * Make app a child window. (Closes: #602122, #602137)
+    - Thanks to Tommaso Parisi for the patch
+  * Add patch to fix FTBFS on GNU/Hurd. (Closes: #534342)
+  * Add hardening flags.
+  * Add watch file.
+  * Bump standards version to 3.9.4.
+
+ -- Barry deFreese <bdefreese@debian.org>  Tue, 14 May 2013 08:51:52 -0400
+
+wmbubble (1.46-3) unstable; urgency=low
+
+  * QA upload.
+    - Upgrade to packaging format "3.0 quilt". (Closes: #670325)
+  * debian/control
+    - (Maintainer): Set to QA Group, see #632876.
+    - (Standards-Version) Update to 3.9.3.
+    - (Build-Depends): Update debhelper to 9.
+    - (Description): Fix spacing and remove article.
+  * debian/copyright
+    - Fix copyright-refers-to-symlink-license (Lintian).
+  * debian/rules
+    - Add required targets build-arch and build-indep.
+    - Update dh_clean -k to dh_prep.
+
+ -- Jari Aalto <jari.aalto@cante.net>  Sat, 12 May 2012 21:49:35 +0300
+
+wmbubble (1.46-2.1) unstable; urgency=low
+
+  * debian/control
+    - (Build-Depends): Add libx11-dev due to KDE_DOCKAPP.
+    - (Standards-Version): Update to 3.9.1.
+  * debian/patches
+    - (Number 04): Refresh. Enable KDE_DOCKAPP to make duck appear
+      on WindowMaker. (Closes: #549014)
+    - (Number 12): Refresh. Update to Gtk 2.x by using --cflags. Add
+      -lX11 due to KDE_DOCKAPP.
+  * debian/rules
+    - (clean): Delete binary manually. Fixes repetitive builds.
+
+ -- Jari Aalto <jari.aalto@cante.net>  Thu, 21 Oct 2010 08:59:31 +0300
+
+wmbubble (1.46-2) unstable; urgency=low
+
+  * Updated debhelper to compatibility level 7
+  * Updated Standards Version
+
+ -- John H. Robinson, IV <jaqque@debian.org>  Tue,  8 Jul 2008 13:49:13 -0700
+
+wmbubble (1.46-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Updated to debhelper compatibility level 5.
+  * Cleaned up and updated debian/rules:
+    + Added sane CFLAGS as mandated by policy
+    + Changed to using dh_install instead of cp
+    + Changed to using $(CURDIR) instead of `pwd`
+    + Removed unused rules.
+  * Added dpatch support.
+  * Splitted the .diff.gz into seven small patches.
+  * Added three extra patches:
+    + 08-makefile-cflags: modify Makefile so that it accepts external CFLAGS
+      correctly
+    + 09-upsidedown-offlimits.dpatch: fix an off-by-one mistake when
+      displaying the upsidedown duck that could trigger a SIGSEGV in certain
+      cases. (Closes: #437157)
+    + 10-gtk2-migration: migrate wmbubble to GTK2. Thanks to Julien BLACHE
+      for the patch. (Closes: #437425)
+  * Added build-dependency on libgtk-2.0-dev, for the GTK2 migration.
+  * Removed the upsidedown comment from the README.Debian, since it wasn't true.
+  * Updated menu file to the new menu structure.
+  * Updated to Standards-Version 3.7.2.  No changes needed
+
+ -- Margarita Manterola <marga@debian.org>  Sat, 01 Sep 2007 19:25:15 -0300
+
+wmbubble (1.46-1) unstable; urgency=low
+
+  * New upstream release. (Closes: #261281)
+  * Fixed attribution in man page
+  * Updated menu to actually launch useful(?) programs
+  * Fixed clumsy wording in the package description
+  * Many thanks to Romain Francoise for his NMU's
+
+ -- John H. Robinson, IV <jaqque@debian.org>  Mon, 16 Aug 2004 20:56:46 -0700
+
+wmbubble (1.41-0.2) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Change logic of the runtime kernel detection patch: default to Linux
+    2.4 format if the version doesn't match anything we know; needed for
+    people who still run 2.2 and earlier. (Closes: #250228)
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 14 Aug 2004 22:05:44 +0200
+
+wmbubble (1.41-0.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * New upstream release (Closes: #220643):
+    - Upstream support for Linux 2.6 (Closes: #207377)
+    - Apply patch from Romain Francoise <rfrancoise@debian.org> to add
+      runtime detection of the running kernel (upstream added support
+      as a compile-time option which doesn't suit Debian at all).
+  * Apply patch from Romain Francoise <rfrancoise@debian.org> to require a
+    second mouse click to unfreeze the load display. (Closes: #217455)
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 28 Mar 2004 12:30:00 +0200
+
+wmbubble (1.4-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- John H. Robinson, IV <jaqque@debian.org>  Wed,  3 Oct 2001 17:16:26 -0700
+
+wmbubble (1.3-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Fix printf-is-a-macro issue (gcc 3.0). (Closes: #103159)
+
+ -- LaMont Jones <lamont@debian.org>  Mon,  9 Jul 2001 21:39:34 -0600
+
+wmbubble (1.3-1) unstable; urgency=low
+
+  * New upstream release.
+  * First official Debian release. (Closes: #84441)
+
+ -- John H. Robinson, IV <jaqque@debian.org>  Fri, 16 Mar 2001 09:04:53 -0800
+
+wmbubble (1.2.2-1) unstable; urgency=low
+
+  * New upstream release
+  * Fixed a bug that caused a segfault under high load/high memory usage
+  * Restored -u to original meaning
+
+ -- John H. Robinson, IV <jaqque@debian.org>  Thu, 15 Mar 2001 21:00:15 -0800
+
+wmbubble (1.1-2) unstable; urgency=low
+
+  * Fixed a bug that caused a segfault when you ran out of physical RAM
+
+ -- John H. Robinson, IV <jaqque@ucsd.edu>  Fri,  2 Feb 2001 13:38:50 -0800
+
+wmbubble (1.1-1) unstable; urgency=low
+
+  * Initial release
+  * Modified Makefile to comply with Debian
+  * Changed meaning of -u flag
+
+ -- John H. Robinson, IV <jaqque@ucsd.edu>  Thu,  1 Feb 2001 22:06:04 -0800

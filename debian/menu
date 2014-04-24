@@ -1,0 +1,2 @@
+?package(wmbubble):needs="x11" section="Applications/System/Monitoring"\
+  title="wmbubble" command="wmbubble 'x-terminal-emulator -e top' '/usr/share/wmbubble/wakwak.sh'"
