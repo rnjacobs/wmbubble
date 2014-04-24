@@ -1,3 +1,10 @@
+wmbubble (1.50-2) unstable; urgency=low
+
+  * debian/install
+    - Restored misc/wak* to /usr/share/wmbubble.
+
+ -- Doug Torrance <dtorrance@monmouthcollege.edu>  Wed, 23 Apr 2014 23:37:36 -0500
+
 wmbubble (1.50-1) unstable; urgency=low
 
   * New maintainer. (Closes: #632876)
