@@ -3,7 +3,7 @@ Section: x11
 Priority: optional
 Maintainer: Doug Torrance <dtorrance@monmouthcollege.edu>
 Build-Depends: debhelper (>= 9), libx11-dev
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 Homepage: https://github.com/rnjacobs/wmbubble
 Vcs-Browser: https://github.com/rnjacobs/wmbubble
 Vcs-Git: https://github.com/rnjacobs/wmbubble.git

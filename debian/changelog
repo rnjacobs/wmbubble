@@ -1,5 +1,7 @@
 wmbubble (1.50-2) unstable; urgency=low
 
+  * debian/control
+    - Bump Standards-Version to 3.9.5, no changes required.
   * debian/install
     - Restored misc/wak* to /usr/share/wmbubble.
   * debian/watch
