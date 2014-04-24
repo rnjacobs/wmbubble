@@ -2,6 +2,8 @@ wmbubble (1.50-2) unstable; urgency=low
 
   * debian/install
     - Restored misc/wak* to /usr/share/wmbubble.
+  * debian/watch
+    - Updated watch file from sepwatch.
   * debian/wmbubble.manpages
     - Removed debian/wmbubble.1x, as manpage has been moved upstream.
 
