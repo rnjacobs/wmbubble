@@ -3,11 +3,11 @@ wmbubble (1.50-2) unstable; urgency=low
   * debian/control
     - Bump Standards-Version to 3.9.5, no changes required.
   * debian/install
-    - Restored misc/wak* to /usr/share/wmbubble.
+    - Restore misc/wak* to /usr/share/wmbubble.
   * debian/watch
-    - Updated watch file from sepwatch.
+    - Update watch file from sepwatch.
   * debian/wmbubble.manpages
-    - Removed debian/wmbubble.1x, as manpage has been moved upstream.
+    - Remove debian/wmbubble.1x, as manpage has been moved upstream.
 
  -- Doug Torrance <dtorrance@monmouthcollege.edu>  Wed, 23 Apr 2014 23:37:36 -0500
 
@@ -15,15 +15,15 @@ wmbubble (1.50-1) unstable; urgency=low
 
   * New maintainer. (Closes: #632876)
   * New upstream release.
-    - Removed patches from debian/patches now available upstream.
+    - Remove patches from debian/patches now available upstream.
   * debian/control
-    - Added new homepage and VCS information.
+    - Add new homepage and VCS information.
   * debian/copyright
     - Update to copyright format 1.0.
   * debian/watch
-    - Changed to new host.
+    - Change to new host.
   * debian/rules
-    - Simplified to debhelper 7 style.
+    - Simplifiy to debhelper 7 style.
 
  -- Doug Torrance <dtorrance@monmouthcollege.edu>  Mon, 25 Nov 2013 22:42:00 -0600
 
@@ -35,7 +35,7 @@ wmbubble (1.46-4) unstable; urgency=low
   * Add patch to fix FTBFS on GNU/Hurd. (Closes: #534342)
   * Add hardening flags.
   * Add watch file.
-  * Bump standards version to 3.9.4.
+  * Bump Standards-Version to 3.9.4.
 
  -- Barry deFreese <bdefreese@debian.org>  Tue, 14 May 2013 08:51:52 -0400
 
@@ -73,23 +73,23 @@ wmbubble (1.46-2.1) unstable; urgency=low
 
 wmbubble (1.46-2) unstable; urgency=low
 
-  * Updated debhelper to compatibility level 7
-  * Updated Standards Version
+  * Update debhelper to compatibility level 7.
+  * Update Standards-Version.
 
  -- John H. Robinson, IV <jaqque@debian.org>  Tue,  8 Jul 2008 13:49:13 -0700
 
 wmbubble (1.46-1.1) unstable; urgency=low
 
   * Non-maintainer upload.
-  * Updated to debhelper compatibility level 5.
-  * Cleaned up and updated debian/rules:
-    + Added sane CFLAGS as mandated by policy
-    + Changed to using dh_install instead of cp
-    + Changed to using $(CURDIR) instead of `pwd`
-    + Removed unused rules.
-  * Added dpatch support.
-  * Splitted the .diff.gz into seven small patches.
-  * Added three extra patches:
+  * Update to debhelper compatibility level 5.
+  * Clean up and update debian/rules:
+    + Add sane CFLAGS as mandated by policy
+    + Change to using dh_install instead of cp
+    + Change to using $(CURDIR) instead of `pwd`
+    + Remove unused rules.
+  * Add dpatch support.
+  * Split the .diff.gz into seven small patches.
+  * Add three extra patches:
     + 08-makefile-cflags: modify Makefile so that it accepts external CFLAGS
       correctly
     + 09-upsidedown-offlimits.dpatch: fix an off-by-one mistake when
@@ -97,20 +97,20 @@ wmbubble (1.46-1.1) unstable; urgency=low
       cases. (Closes: #437157)
     + 10-gtk2-migration: migrate wmbubble to GTK2. Thanks to Julien BLACHE
       for the patch. (Closes: #437425)
-  * Added build-dependency on libgtk-2.0-dev, for the GTK2 migration.
-  * Removed the upsidedown comment from the README.Debian, since it wasn't true.
-  * Updated menu file to the new menu structure.
-  * Updated to Standards-Version 3.7.2.  No changes needed
+  * Add build-dependency on libgtk-2.0-dev, for the GTK2 migration.
+  * Remove the upsidedown comment from the README.Debian, since it wasn't true.
+  * Update menu file to the new menu structure.
+  * Update to Standards-Version 3.7.2.  No changes needed
 
  -- Margarita Manterola <marga@debian.org>  Sat, 01 Sep 2007 19:25:15 -0300
 
 wmbubble (1.46-1) unstable; urgency=low
 
   * New upstream release. (Closes: #261281)
-  * Fixed attribution in man page
-  * Updated menu to actually launch useful(?) programs
-  * Fixed clumsy wording in the package description
-  * Many thanks to Romain Francoise for his NMU's
+  * Fix attribution in man page.
+  * Update menu to actually launch useful(?) programs.
+  * Fix clumsy wording in the package description.
+  * Many thanks to Romain Francoise for his NMU's.
 
  -- John H. Robinson, IV <jaqque@debian.org>  Mon, 16 Aug 2004 20:56:46 -0700
 
@@ -158,22 +158,22 @@ wmbubble (1.3-1) unstable; urgency=low
 
 wmbubble (1.2.2-1) unstable; urgency=low
 
-  * New upstream release
-  * Fixed a bug that caused a segfault under high load/high memory usage
-  * Restored -u to original meaning
+  * New upstream release.
+  * Fix a bug that caused a segfault under high load/high memory usage.
+  * Restore -u to original meaning.
 
  -- John H. Robinson, IV <jaqque@debian.org>  Thu, 15 Mar 2001 21:00:15 -0800
 
 wmbubble (1.1-2) unstable; urgency=low
 
-  * Fixed a bug that caused a segfault when you ran out of physical RAM
+  * Fix a bug that caused a segfault when you ran out of physical RAM.
 
  -- John H. Robinson, IV <jaqque@ucsd.edu>  Fri,  2 Feb 2001 13:38:50 -0800
 
 wmbubble (1.1-1) unstable; urgency=low
 
-  * Initial release
-  * Modified Makefile to comply with Debian
-  * Changed meaning of -u flag
+  * Initial release.
+  * Modifiy Makefile to comply with Debian.
+  * Change meaning of -u flag.
 
  -- John H. Robinson, IV <jaqque@ucsd.edu>  Thu,  1 Feb 2001 22:06:04 -0800
