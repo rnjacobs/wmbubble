@@ -1,0 +1,99 @@
+Description: Fixes for Debian GNU/kFreeBSD
+Author: Doug Torrance <dtorrance@monmouthcollege.edu>
+ This patch adds several fixes to make wmbubble work on Debian GNU/kFreeBSD.
+ In particular:
+ - recognize GNU/kFreeBSD as an option in the Makefile
+ - call init_stuff if __FreeBSD_kernel__ is defined instead of just __FreeBSD__
+ - use sysctl instead of kvm_read for system_cpu; inspired by FreeBSD patch for
+   wmcube-gdk by KOIE Hidetaka (http://lists.freebsd.org/pipermail/
+   freebsd-ports-bugs/2008-January/135006.html)
+Last-Update: 2014-06-21
+
+Index: wmbubble/Makefile
+===================================================================
+--- wmbubble.orig/Makefile	2014-06-21 00:23:06.000000000 -0600
++++ wmbubble/Makefile	2014-06-21 00:23:06.000000000 -0600
+@@ -28,6 +28,13 @@
+ 	INSTALL = -c -g kmem -m 2755 -o root
+ endif
+ 
++ifeq ($(OS), GNU/kFreeBSD)
++	OBJS += sys_freebsd.o
++	LIBS = -lX11 -lkvm -lm
++	INSTALL = -c -g kmem -m 2755 -o root
++	CFLAGS += -D_BSD_SOURCE
++endif
++
+ # special things for NetBSD
+ ifeq ($(OS), NetBSD)
+ 	OBJS += sys_netbsd.o
+Index: wmbubble/bubblemon.c
+===================================================================
+--- wmbubble.orig/bubblemon.c	2014-06-21 00:23:06.000000000 -0600
++++ wmbubble/bubblemon.c	2014-06-21 00:23:06.000000000 -0600
+@@ -404,7 +404,7 @@
+ 
+ 	argv++; argc--; /* Otherwise we'll make more of ourselves on a left click */
+ 
+-#ifdef __FreeBSD__
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+ 	if (init_stuff())
+ 		exit(-1);
+ #endif
+Index: wmbubble/sys_freebsd.c
+===================================================================
+--- wmbubble.orig/sys_freebsd.c	2014-06-21 00:23:06.000000000 -0600
++++ wmbubble/sys_freebsd.c	2014-06-21 00:23:06.000000000 -0600
+@@ -37,7 +37,6 @@
+ 
+ static kvm_t *kd = NULL;
+ static struct nlist nlst[] = {
+-    {"_cp_time", 0},
+     {"_cnt", 0},
+     {"_bufspace", 0},
+     {0, 0}
+@@ -67,7 +66,7 @@
+ 
+     kvm_nlist(kd, nlst);
+ 
+-    if (nlst[0].n_type == 0 || nlst[1].n_type == 0 || nlst[2].n_type == 0) {
++    if (nlst[0].n_type == 0 || nlst[1].n_type == 0) {
+ 	puts("Error extracting symbols");
+ 	return 2;
+     }
+@@ -93,9 +92,19 @@
+     unsigned long int cpu_time[CPUSTATES];
+     int i;
+ 
+-    if (kvm_read(kd, nlst[0].n_value, &cpu_time, sizeof(cpu_time))
+-	!= sizeof(cpu_time))
+-	return 0;
++    static int mib[2];
++    size_t len = 2;
++
++    size_t size;
++
++    if (sysctlnametomib("kern.cp_time", mib, &len) < 0)
++        return 0;
++
++    size = sizeof (cpu_time);
++
++
++    if (sysctl(mib, 2, &cpu_time, &size, NULL, 0) < 0)
++        return 0;
+ 
+     load = cpu_time[CP_USER] + cpu_time[CP_SYS] + cpu_time[CP_NICE];
+     total = load + cpu_time[CP_IDLE];
+@@ -133,10 +142,10 @@
+     static time_t last_time_swap = 0;
+     time_t curr_time;
+ 	
+-    if (kvm_read(kd, nlst[1].n_value, &sum, sizeof(sum)) != sizeof(sum))
++    if (kvm_read(kd, nlst[0].n_value, &sum, sizeof(sum)) != sizeof(sum))
+ 	return;		/* _cnt */
+ 
+-    if (kvm_read(kd, nlst[2].n_value, &bufspace, sizeof(bufspace)) !=
++    if (kvm_read(kd, nlst[1].n_value, &bufspace, sizeof(bufspace)) !=
+ 	sizeof(bufspace))
+ 	return;		/* _bufspace */
+ 
