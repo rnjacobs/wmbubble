@@ -1,3 +1,14 @@
+wmbubble (1.50-3) unstable; urgency=low
+
+  * debian/patches/fixes-for-kfreebsd.patch
+    - Add fixes so package works on Debian GNU/kFreeBSD.
+  * debian/patches/fix-compiler-flags
+    - Update to work with kFreeBSD patch.
+  * debian/wmbubble.manpages
+    - Remove redundant file.
+
+ -- Doug Torrance <dtorrance@monmouthcollege.edu>  Sat, 21 Jun 2014 00:29:36 -0600
+
 wmbubble (1.50-2) unstable; urgency=low
 
   * debian/control
