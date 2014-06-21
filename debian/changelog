@@ -41,8 +41,8 @@ wmbubble (1.50-1) unstable; urgency=low
 wmbubble (1.46-4) unstable; urgency=low
 
   * QA upload.
-  * Make app a child window. (Closes: #602122, #602137)
-    - Thanks to Tommaso Parisi for the patch
+  * Make app a child window. Thanks to Tommaso Parisi for the patch.
+    (Closes: #602122, #602137)
   * Add patch to fix FTBFS on GNU/Hurd. (Closes: #534342)
   * Add hardening flags.
   * Add watch file.
@@ -94,24 +94,24 @@ wmbubble (1.46-1.1) unstable; urgency=low
   * Non-maintainer upload.
   * Update to debhelper compatibility level 5.
   * Clean up and update debian/rules:
-    + Add sane CFLAGS as mandated by policy
-    + Change to using dh_install instead of cp
-    + Change to using $(CURDIR) instead of `pwd`
-    + Remove unused rules.
+    - Add sane CFLAGS as mandated by policy.
+    - Change to using dh_install instead of cp.
+    - Change to using $(CURDIR) instead of `pwd`.
+    - Remove unused rules.
   * Add dpatch support.
   * Split the .diff.gz into seven small patches.
   * Add three extra patches:
-    + 08-makefile-cflags: modify Makefile so that it accepts external CFLAGS
-      correctly
-    + 09-upsidedown-offlimits.dpatch: fix an off-by-one mistake when
+    - 08-makefile-cflags: modify Makefile so that it accepts external CFLAGS
+      correctly.
+    - 09-upsidedown-offlimits.dpatch: fix an off-by-one mistake when
       displaying the upsidedown duck that could trigger a SIGSEGV in certain
       cases. (Closes: #437157)
-    + 10-gtk2-migration: migrate wmbubble to GTK2. Thanks to Julien BLACHE
+    - 10-gtk2-migration: migrate wmbubble to GTK2. Thanks to Julien BLACHE
       for the patch. (Closes: #437425)
   * Add build-dependency on libgtk-2.0-dev, for the GTK2 migration.
   * Remove the upsidedown comment from the README.Debian, since it wasn't true.
   * Update menu file to the new menu structure.
-  * Update to Standards-Version 3.7.2.  No changes needed
+  * Update to Standards-Version 3.7.2. No changes needed.
 
  -- Margarita Manterola <marga@debian.org>  Sat, 01 Sep 2007 19:25:15 -0300
 
@@ -121,7 +121,7 @@ wmbubble (1.46-1) unstable; urgency=low
   * Fix attribution in man page.
   * Update menu to actually launch useful(?) programs.
   * Fix clumsy wording in the package description.
-  * Many thanks to Romain Francoise for his NMU's.
+  * Many thanks to Romain Francoise for his NMUs.
 
  -- John H. Robinson, IV <jaqque@debian.org>  Mon, 16 Aug 2004 20:56:46 -0700
 
@@ -149,7 +149,7 @@ wmbubble (1.41-0.1) unstable; urgency=low
 
 wmbubble (1.4-1) unstable; urgency=low
 
-  * New upstream release
+  * New upstream release.
 
  -- John H. Robinson, IV <jaqque@debian.org>  Wed,  3 Oct 2001 17:16:26 -0700
 
