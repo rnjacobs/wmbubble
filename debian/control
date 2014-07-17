@@ -5,8 +5,8 @@ Maintainer: Doug Torrance <dtorrance@monmouthcollege.edu>
 Build-Depends: debhelper (>= 9), libx11-dev, libkvm-dev [kfreebsd-any]
 Standards-Version: 3.9.5
 Homepage: https://github.com/rnjacobs/wmbubble
-Vcs-Browser: https://github.com/rnjacobs/wmbubble
-Vcs-Git: https://github.com/rnjacobs/wmbubble.git
+Vcs-Browser: https://github.com/profzoom/wmbubble/tree/debian
+Vcs-Git: https://github.com/profzoom/wmbubble.git -b debian
 
 Package: wmbubble
 Architecture: any
