@@ -2,7 +2,7 @@ Source: wmbubble
 Section: x11
 Priority: optional
 Maintainer: Doug Torrance <dtorrance@monmouthcollege.edu>
-Build-Depends: debhelper (>= 9), libx11-dev
+Build-Depends: debhelper (>= 9), libx11-dev, libkvm-dev [kfreebsd-any]
 Standards-Version: 3.9.5
 Homepage: https://github.com/rnjacobs/wmbubble
 Vcs-Browser: https://github.com/rnjacobs/wmbubble
