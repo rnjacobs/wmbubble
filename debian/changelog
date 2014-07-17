@@ -5,6 +5,8 @@ wmbubble (1.50-4) unstable; urgency=low
       <pino@debian.org> for the patch. (Closes: #753546)
     - Update Vcs-* to point to packaging repository instead of upstream.
       (Closes: #753562)
+  * debian/patches/series
+    - Add newline at end.
 
  -- Doug Torrance <dtorrance@monmouthcollege.edu>  Thu, 17 Jul 2014 15:54:02 -0500
 
