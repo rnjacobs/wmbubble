@@ -1,2 +1,3 @@
 fixes-for-kfreebsd.patch
 fix-compiler-flags.patch
+add-init_stuff-to-sys_include.h.patch

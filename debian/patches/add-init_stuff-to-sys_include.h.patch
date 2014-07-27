@@ -1,0 +1,20 @@
+Description: Add init_stuff to sys_include.h for kFreeBSD.
+ A function init_stuff() is defined in sys_freebsd.c which is not defined
+ in any of the other sys_*.c files.  It is only called from bubblemon.c when
+ the FreeBSD kernel is being used, but is not declared in sys_include.h,
+ resulting in a implicit-declaration build warning.  This patch fixes this
+ issue by adding the appropriate lines to sys_include.h.
+Author: Doug Torrance <dtorrance@monmouthcollege.edu>
+Last-Update: <2014-07-27>
+
+--- wmbubble-1.50.orig/include/sys_include.h
++++ wmbubble-1.50/include/sys_include.h
+@@ -24,4 +24,8 @@ int system_cpu(void);		/* return total C
+ void system_memory(void);	/* set memory related values in BubbleMonData */
+ void system_loadavg(void);	/* get current load average and put into
+ 				   bm->loadavg[].{i,f} */
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
++int init_stuff();
++#endif
++
+ #endif /* _SYS_INCLUDE_H_ */
