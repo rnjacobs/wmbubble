@@ -36,6 +36,13 @@ ifeq ($(OS), FreeBSD)
 	INSTALL = -c -g kmem -m 2755 -o root
 endif
 
+ifeq ($(OS), GNU/kFreeBSD)
+	OBJS += sys_freebsd.o
+	LIBS = -lX11 -lkvm -lm
+	INSTALL = -c -g kmem -m 2755 -o root
+	CFLAGS += -D_BSD_SOURCE
+endif
+
 # special things for NetBSD
 ifeq ($(OS), NetBSD)
 	OBJS += sys_netbsd.o
