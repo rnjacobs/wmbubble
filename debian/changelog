@@ -1,3 +1,12 @@
+wmbubble (1.50-5) unstable; urgency=low
+
+  * debian/control
+    - Update Vcs-*.
+  * debian/patches/add-init_stuff-to-sys_include.h.patch
+    - Prevent implicit-declaration warning when building for kfreebsd.
+
+ -- Doug Torrance <dtorrance@monmouthcollege.edu>  Mon, 28 Jul 2014 00:35:13 -0500
+
 wmbubble (1.50-4) unstable; urgency=low
 
   * debian/control
