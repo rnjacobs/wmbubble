@@ -404,7 +404,7 @@ int main(int argc, char **argv) {
 
 	argv++; argc--; /* Otherwise we'll make more of ourselves on a left click */
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 	if (init_stuff())
 		exit(-1);
 #endif
