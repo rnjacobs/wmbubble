@@ -37,7 +37,6 @@ extern BubbleMonData bm;
 
 static kvm_t *kd = NULL;
 static struct nlist nlst[] = {
-    {"_cp_time", 0},
     {"_cnt", 0},
     {"_bufspace", 0},
     {0, 0}
@@ -67,7 +66,7 @@ int init_stuff()
 
     kvm_nlist(kd, nlst);
 
-    if (nlst[0].n_type == 0 || nlst[1].n_type == 0 || nlst[2].n_type == 0) {
+    if (nlst[0].n_type == 0 || nlst[1].n_type == 0) {
 	puts("Error extracting symbols");
 	return 2;
     }
@@ -93,9 +92,19 @@ int system_cpu(void)
     unsigned long int cpu_time[CPUSTATES];
     int i;
 
-    if (kvm_read(kd, nlst[0].n_value, &cpu_time, sizeof(cpu_time))
-	!= sizeof(cpu_time))
-	return 0;
+    static int mib[2];
+    size_t len = 2;
+
+    size_t size;
+
+    if (sysctlnametomib("kern.cp_time", mib, &len) < 0)
+        return 0;
+
+    size = sizeof (cpu_time);
+
+
+    if (sysctl(mib, 2, &cpu_time, &size, NULL, 0) < 0)
+        return 0;
 
     load = cpu_time[CP_USER] + cpu_time[CP_SYS] + cpu_time[CP_NICE];
     total = load + cpu_time[CP_IDLE];
@@ -133,10 +142,10 @@ void system_memory(void)
     static time_t last_time_swap = 0;
     time_t curr_time;
 	
-    if (kvm_read(kd, nlst[1].n_value, &sum, sizeof(sum)) != sizeof(sum))
+    if (kvm_read(kd, nlst[0].n_value, &sum, sizeof(sum)) != sizeof(sum))
 	return;		/* _cnt */
 
-    if (kvm_read(kd, nlst[2].n_value, &bufspace, sizeof(bufspace)) !=
+    if (kvm_read(kd, nlst[1].n_value, &bufspace, sizeof(bufspace)) !=
 	sizeof(bufspace))
 	return;		/* _bufspace */
 
