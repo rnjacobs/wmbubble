@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/utsname.h>
+#include <inttypes.h>
 #include "include/bubblemon.h"
 #include "include/sys_include.h"
 
@@ -34,7 +35,8 @@ int system_cpu(void) {
 	FILE *stat;
 
 	stat = fopen("/proc/stat", "r");
-	fscanf(stat, "%*s %Ld %Ld %Ld %Ld", &ab, &ac, &ad, &ae);
+	fscanf(stat, "%*s %"PRIu64" %"PRIu64" %"PRIu64" %"PRIu64,
+	       &ab, &ac, &ad, &ae);
 	fclose(stat);
 
 	/* Find out the CPU load */
@@ -82,22 +84,23 @@ void system_memory(void) {
 	fread(shit, 2048, 1, mem);
 	p = strstr(shit, "MemTotal");
 	if (p) {
-		sscanf(p, "MemTotal:%Ld", &bm.mem_max);
+		sscanf(p, "MemTotal:%"PRIu64, &bm.mem_max);
 		bm.mem_max <<= 10;
 
 		p = strstr(p, "Active");
 		if (p) {
-			sscanf(p, "Active:%Ld", &bm.mem_used);
+			sscanf(p, "Active:%"PRIu64, &bm.mem_used);
 			bm.mem_used <<= 10;
 
 			p = strstr(p, "SwapTotal");
 			if (p) {
-				sscanf(p, "SwapTotal:%Ld", &bm.swap_max);
+				sscanf(p, "SwapTotal:%"PRIu64, &bm.swap_max);
 				bm.swap_max <<= 10;
 
 				p = strstr(p, "SwapFree");
 				if (p) {
-					sscanf(p, "SwapFree:%Ld", &bm.swap_used);
+					sscanf(p, "SwapFree:%"PRIu64,
+					       &bm.swap_used);
 					bm.swap_used = bm.swap_max - (bm.swap_used << 10);
 				}
 			}

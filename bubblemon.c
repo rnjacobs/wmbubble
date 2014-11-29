@@ -57,6 +57,7 @@
 #include <locale.h>
 #include <ctype.h> /* I know tolower isn't i18n, I'm sorry */
 #include <math.h>
+#include <inttypes.h>
 
 /* x11 includes */
 #include "wmx11pixmap.h"
@@ -616,7 +617,7 @@ void make_new_bubblemon_dockapp(void) {
 
 	build_graphs();
 
-	sscanf(datefont_xpm[0],"%u %u %u %u",&maxwidth,&yy,&datefont_offset,&cc);
+	sscanf(datefont_xpm[0],"%d %d %d %d",&maxwidth,&yy,&datefont_offset,&cc);
 	if (cc != 1) abort(); /* fuck that */
 
 	datefont_offset++; /* include header line */
@@ -876,7 +877,7 @@ void draw_from_xpm(char **xpm, unsigned char *whither, unsigned int targetw,
 	char * from;
 	char transparent=0;
 
-	sscanf(xpm[0],"%u %u %u %u",&xx,&yy,&ncolors,&cpp);
+	sscanf(xpm[0],"%d %d %d %d",&xx,&yy,&ncolors,&cpp);
 	if (cpp != 1) abort(); /* fuck that */
 	if (xpmx+xpmw > xx || xpmy+xpmh > yy) return;
 
@@ -1006,18 +1007,18 @@ void render_secondary(void) {
 	} else {
 		/* draw memory */
 		if (memscreen_megabytes || bm.mem_used > (999999<<10))
-			snprintf(number, 8, "%6lluM", bm.mem_used >> 20);
+			snprintf(number, 8, "%6"PRIu64"M", bm.mem_used >> 20);
 		else
-			snprintf(number, 8, "%6lluK", bm.mem_used >> 10);
+			snprintf(number, 8, "%"PRIu64"K", bm.mem_used >> 10);
 		snprintf(percent, 4, "%+3d", bm.mem_percent);
 		draw_string(number, 3, 2, (bm.mem_percent > 90) ? 1 : 0);
 		draw_string(percent, 39, 2, (bm.mem_percent > 90) ? 1 : 0);
 
 		/* draw swap */
 		if (memscreen_megabytes || bm.swap_used > (999999<<10))
-			snprintf(number, 8, "%6lluM", bm.swap_used >> 20);
+			snprintf(number, 8, "%6"PRIu64"M", bm.swap_used >> 20);
 		else
-			snprintf(number, 8, "%6lluK", bm.swap_used >> 10);
+			snprintf(number, 8, "%6"PRIu64"K", bm.swap_used >> 10);
 		snprintf(percent, 4, "%+3d", bm.swap_percent);
 		draw_string(number, 3, 11, (bm.swap_percent > 90) ? 1 : 0);
 		draw_string(percent, 39, 11, (bm.swap_percent > 90) ? 1 : 0);
