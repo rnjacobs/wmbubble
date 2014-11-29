@@ -549,19 +549,26 @@ int main(int argc, char **argv) {
 #endif /*FPS*/
 
 		/* drawing borders: 1.136us/frame */
-		int xx,yy;
-		unsigned char * from;
+		{
+			int xx,yy;
+			unsigned char * from;
 
-		for (from=bm.rgb_buf,xx=0;xx<BOX_SIZE*3-3;from++,xx++) {
-			from[0]/=4;
-			from[BOX_SIZE*(BOX_SIZE-1)*3+3]=(255+from[BOX_SIZE*(BOX_SIZE-1)*3+3])/2;
-		}
+			for (from=bm.rgb_buf,xx=0;xx<BOX_SIZE*3-3;from++,xx++) {
+				from[0]/=4;
+				from[BOX_SIZE*(BOX_SIZE-1)*3+3]=
+					(255+from[BOX_SIZE*(BOX_SIZE-1)*3+3])/2;
+			}
 
-		for (from=bm.rgb_buf,yy=0;yy<BOX_SIZE-1;yy++,from+=BOX_SIZE*3) {
-			from[0]/=4; from[1]/=4; from[2]/=4;
-			from[(2*BOX_SIZE-1)*3  ]=(255+from[(2*BOX_SIZE-1)*3  ])/2;
-			from[(2*BOX_SIZE-1)*3+1]=(255+from[(2*BOX_SIZE-1)*3+1])/2;
-			from[(2*BOX_SIZE-1)*3+2]=(255+from[(2*BOX_SIZE-1)*3+2])/2;
+			for (from=bm.rgb_buf,yy=0;yy<BOX_SIZE-1;yy++,
+				     from+=BOX_SIZE*3) {
+				from[0]/=4; from[1]/=4; from[2]/=4;
+				from[(2*BOX_SIZE-1)*3  ]=
+					(255+from[(2*BOX_SIZE-1)*3  ])/2;
+				from[(2*BOX_SIZE-1)*3+1]=
+					(255+from[(2*BOX_SIZE-1)*3+1])/2;
+				from[(2*BOX_SIZE-1)*3+2]=
+					(255+from[(2*BOX_SIZE-1)*3+2])/2;
+			}
 		}
 
 		/* Our colorspace conversion: 18.17us/frame */

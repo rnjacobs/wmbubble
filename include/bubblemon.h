@@ -81,7 +81,7 @@ typedef struct {
 
     /* bubble stuff */
     int samples;
-    unsigned char bubblebuf[BOX_SIZE * (BOX_SIZE+4)];;
+    unsigned char bubblebuf[BOX_SIZE * (BOX_SIZE+4)];
 
     int waterlevels[BOX_SIZE];
     int waterlevels_dy[BOX_SIZE];
