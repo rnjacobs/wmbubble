@@ -444,7 +444,10 @@ int main(int argc, char **argv) {
 				if (event.xbutton.button <= argc) {
 					snprintf(execute, 250, "%s &",
 					         argv[event.xbutton.button - 1]);
-					system(execute);
+					if (system(execute) == -1) {
+						fprintf(stderr, "execute failed\n");
+						exit(-1);
+					}
 				}
 				break;
 			case EnterNotify:

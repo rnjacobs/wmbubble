@@ -35,8 +35,11 @@ int system_cpu(void) {
 	FILE *stat;
 
 	stat = fopen("/proc/stat", "r");
-	fscanf(stat, "%*s %"PRIu64" %"PRIu64" %"PRIu64" %"PRIu64,
-	       &ab, &ac, &ad, &ae);
+	if (fscanf(stat, "%*s %"PRIu64" %"PRIu64" %"PRIu64" %"PRIu64,
+		   &ab, &ac, &ad, &ae) == EOF) {
+		fprintf(stderr, "EOF when reading /proc/stat\n");
+		return -1;
+	}
 	fclose(stat);
 
 	/* Find out the CPU load */
@@ -81,7 +84,12 @@ void system_memory(void) {
 	 * sure beats opening the same file twice */
 	mem = fopen("/proc/meminfo", "r");
 	memset(shit, 0, sizeof(shit));
-	fread(shit, 2048, 1, mem);
+	if (fread(shit, 2048, 1, mem) < 2048) {
+		if (ferror(mem)) {
+			fprintf(stderr, "error reading /proc/meminfo\n");
+			return;
+		}
+	}
 	p = strstr(shit, "MemTotal");
 	if (p) {
 		sscanf(p, "MemTotal:%"PRIu64, &bm.mem_max);
@@ -112,8 +120,11 @@ void system_memory(void) {
 void system_loadavg(void) {
 	FILE *avg;
 	avg = fopen("/proc/loadavg", "r");
-	fscanf(avg, "%d.%d %d.%d %d.%d", &bm.loadavg[0].i, &bm.loadavg[0].f,
-	       &bm.loadavg[1].i, &bm.loadavg[1].f,
-	       &bm.loadavg[2].i, &bm.loadavg[2].f);
+	if (fscanf(avg, "%d.%d %d.%d %d.%d", &bm.loadavg[0].i, &bm.loadavg[0].f,
+		   &bm.loadavg[1].i, &bm.loadavg[1].f,
+		   &bm.loadavg[2].i, &bm.loadavg[2].f) == EOF) {
+		fprintf(stderr, "EOF when reading /proc/loadavg\n");
+		return;
+	}
 	fclose(avg);
 }
