@@ -32,14 +32,12 @@ endif
 # special things for FreeBSD
 ifeq ($(OS), FreeBSD)
 	OBJS += sys_freebsd.o
-	LIBS = -lX11 -lkvm -lm
-	INSTALL = -c -g kmem -m 2755 -o root
+	LIBS = -lX11 -lm
 endif
 
 ifeq ($(OS), GNU/kFreeBSD)
 	OBJS += sys_freebsd.o
-	LIBS = -lX11 -lkvm -lm
-	INSTALL = -c -g kmem -m 2755 -o root
+	LIBS = -lX11 -lm
 	CFLAGS += -D_BSD_SOURCE
 endif
 

@@ -124,9 +124,6 @@ int animate_correctly(void);
 void draw_duck(int x, int y, int frame_no, int flipx, int flipy);
 void duck_swimmer(void);
 
-#ifdef __FreeBSD__
-extern int init_stuff();	/* defined in sys_{freebsd,linux}.c */
-#endif
 /* local prototypes end *INDENT-ON* */
 
 extern char * optarg;
@@ -404,11 +401,6 @@ int main(int argc, char **argv) {
 	}
 
 	argv++; argc--; /* Otherwise we'll make more of ourselves on a left click */
-
-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-	if (init_stuff())
-		exit(-1);
-#endif
 
 	make_new_bubblemon_dockapp();
 
