@@ -610,7 +610,8 @@ int get_screen_selection(void) {
 }
 
 void make_new_bubblemon_dockapp(void) {
-	unsigned int cc, xx, yy, maxwidth;
+	unsigned int cc, yy, maxwidth;
+	int xx;
 	/* We begin with zero bubbles */
 	bm.n_bubbles = 0;
 
