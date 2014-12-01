@@ -172,7 +172,7 @@ unsigned char cpu_gauge[25*9*3];
 
 int datefont_widths[256];
 char datefont_transparent;
-int datefont_offset;
+unsigned int datefont_offset;
 
 const struct XrmUnified {
 	char * const option;
@@ -610,7 +610,7 @@ int get_screen_selection(void) {
 }
 
 void make_new_bubblemon_dockapp(void) {
-	int cc, xx, yy, maxwidth;
+	unsigned int cc, xx, yy, maxwidth;
 	/* We begin with zero bubbles */
 	bm.n_bubbles = 0;
 
@@ -619,7 +619,7 @@ void make_new_bubblemon_dockapp(void) {
 
 	build_graphs();
 
-	sscanf(datefont_xpm[0],"%d %d %d %d",&maxwidth,&yy,&datefont_offset,&cc);
+	sscanf(datefont_xpm[0],"%u %u %u %u",&maxwidth,&yy,&datefont_offset,&cc);
 	if (cc != 1) abort(); /* fuck that */
 
 	datefont_offset++; /* include header line */
@@ -874,12 +874,12 @@ void draw_from_xpm(char **xpm, unsigned char *whither, unsigned int targetw,
                    unsigned int xpmx, unsigned int xpmy, unsigned int xpmw, 
                    unsigned int xpmh, unsigned int color) {
 	unsigned char r=GET_RED(color),g=GET_GRN(color),b=GET_BLU(color);
-	int yy,xx,ncolors,cpp;
+	unsigned int yy,xx,ncolors,cpp;
 	unsigned char * to;
 	char * from;
 	char transparent=0;
 
-	sscanf(xpm[0],"%d %d %d %d",&xx,&yy,&ncolors,&cpp);
+	sscanf(xpm[0],"%u %u %u %u",&xx,&yy,&ncolors,&cpp);
 	if (cpp != 1) abort(); /* fuck that */
 	if (xpmx+xpmw > xx || xpmy+xpmh > yy) return;
 
