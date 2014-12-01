@@ -174,6 +174,8 @@ int datefont_widths[256];
 char datefont_transparent;
 unsigned int datefont_offset;
 
+int duck_blink = 0;
+
 const struct XrmUnified {
 	char * const option;
 	char * const specifier;
@@ -436,10 +438,8 @@ int main(int argc, char **argv) {
 				if (event.xbutton.button <= argc) {
 					snprintf(execute, 250, "%s &",
 					         argv[event.xbutton.button - 1]);
-					if (system(execute) == -1) {
-						fprintf(stderr, "execute failed\n");
-						exit(-1);
-					}
+					if (system(execute) == -1)
+						duck_blink += 60;
 				}
 				break;
 			case EnterNotify:
@@ -1346,6 +1346,11 @@ void draw_duck(int x, int y, int frame_no, int flipx, int flipy) {
 	duck_left = 0;
 	if (x < 0)
 		duck_left = -(x);
+	if (duck_blink > 0) {
+		if (duck_blink % 10 == 0)
+			duck_colors[1] = 0xFFFFFF - duck_colors[1];
+		duck_blink--;
+	}
 	for (yy = duck_top; yy < duck_bottom; yy++) {
 		/* calculate this only once */
 		int ypos = (yy + y) * BOX_SIZE;
