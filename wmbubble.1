@@ -1,4 +1,4 @@
-.TH WMBUBBLE 1 "February 9, 2012"
+.TH WMBUBBLE 1 "December 1, 2014"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -15,7 +15,7 @@
 wmbubble \- system load monitor
 .SH SYNOPSIS
 .B wmbubble
-.RI [ options ] " " [ program1 ] " " [ program2 ]
+.RI [ options ] " " [ program1 ] " " [ program2 ] " " [ ... ] " " [ programN ]
 .br
 .SH DESCRIPTION
 This manual page documents briefly the
@@ -39,11 +39,15 @@ usage. If you press the right mouse button, the window will freeze in
 that state. You can unfreeze the display by pressing the right mouse
 button again.
 .PP
-.B program1
-and
-.B program2
-are the programs to spawn when either the left or middle mouse button
-is pressed, respectively.
+\fBprogram1\fP, \fBprogram2\fP, and so on are the programs to spawn when
+various buttons on the mouse are pressed while the pointer is over the
+dockapp. For the vast majority of users, there can be up to 9 of those
+buttons, and in order they are: the left(1), middle(2), and right(3) mouse
+buttons; up(4), down(5), left(6), and right(7) on the mouse wheels; and
+the backwards(8) and forwards(9) mouse buttons.
+.PP
+Additionally, the right mouse button (\fBprogram3\fP) will only be executed
+if the graphs are disabled (otherwise that argument is ignored).
 .\"
 .SH OPTIONS
 .TP

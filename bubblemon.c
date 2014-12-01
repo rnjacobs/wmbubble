@@ -321,7 +321,7 @@ void print_usage(void) {
 	char preformat[32];
 	int i;
 	printf("WMBubble version "VERSION"\n"
-	       "Usage: "NAME" [switches] [program_1] [program_2]\n\n"
+	       "Usage: "NAME" [switches] [program1] [program2] [...] [program(# of mouse buttons)]\n\n"
 	       "Permitted options are:\n");
 	for (i=0; i < sizeof(x_resource_unified) / sizeof(x_resource_unified[0]); i++) {
 		strncpy(preformat,x_resource_unified[i].option,32);
@@ -436,7 +436,7 @@ int main(int argc, char **argv) {
 			XNextEvent(wmxp_display,&event);
 			switch (event.type) {
 			case ButtonPress:
-				if (event.xbutton.button == 3) {
+				if (memscreen_enabled && event.xbutton.button == 3) {
 					bm.picture_lock = !bm.picture_lock;
 					break;
 				}
