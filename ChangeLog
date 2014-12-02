@@ -132,7 +132,7 @@ Sat 14 Apr 2001 - 1.31
     fairly weird looking color problem.  This has been fixed :)  Minor change
     to Makefile.FreeBSD to put bubblemon in /usr/X11R6 during install.
     Released version 1.31
-    
+
 Mon 16 Apr 2001 - 1.32
     Important security update for FreeBSD - previous versions did not drop
     kmem privileges, and programs started by clicking on the dockapp were
@@ -151,7 +151,7 @@ Thu 13 May 2004 - 1.45
     This support is untested, use Makefile.NetBSD to compile.
 
 Sat 15 May 2004 - 1.46
-    Compile fix for FreeBSD-5.x, forgotten include. 
+    Compile fix for FreeBSD-5.x, forgotten include.
 
 Sat 03 Sep 2011 - 1.50
     Add calendar, digital and analog clocks. Dropped gdk for Ximage. Make
@@ -162,3 +162,10 @@ Sat 03 Sep 2011 - 1.50
 Mon 28 Jul 2014 - 1.51
     Fixes from Doug Torrance for working on modern FreeBSD, and add Makefile
     rules to build on Debian GNU/kFreeBSD.
+
+Mon 1 Dec 2014 - 1.52
+    Accept patches to omit various compilation warnings; use C99 format
+    specifiers; explicitly handle system() failing (as unlikely as that
+    is); update man page.
+    Additionally, FreeBSD has long since had a way to get the memory status
+    without being setgid, so jettison that scariness.
