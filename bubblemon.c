@@ -439,7 +439,7 @@ int main(int argc, char **argv) {
 					snprintf(execute, 250, "%s &",
 					         argv[event.xbutton.button - 1]);
 					if (system(execute) == -1)
-						duck_blink += 60;
+						duck_blink += 6 * (150000 / delay_time);
 				}
 				break;
 			case EnterNotify:
@@ -1347,7 +1347,7 @@ void draw_duck(int x, int y, int frame_no, int flipx, int flipy) {
 	if (x < 0)
 		duck_left = -(x);
 	if (duck_blink > 0) {
-		if (duck_blink % 10 == 0)
+		if (duck_blink % (150000 / delay_time) == 0)
 			duck_colors[1] = 0xFFFFFF - duck_colors[1];
 		duck_blink--;
 	}
