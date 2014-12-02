@@ -12,7 +12,7 @@ PREFIX = /usr/local
 # default build flags
 # CFLAGS = -ansi -Wall -ggdb
 # optimization cflags
-CFLAGS = -ansi -Wall -O3
+CFLAGS += -ansi -Wall -O3
 # profiling cflags
 # CFLAGS = -ansi -Wall -O3 -pg -DPRO=50000
 # test coverage cflags
@@ -32,14 +32,12 @@ endif
 # special things for FreeBSD
 ifeq ($(OS), FreeBSD)
 	OBJS += sys_freebsd.o
-	LIBS = -lX11 -lkvm -lm
-	INSTALL = -c -g kmem -m 2755 -o root
+	LIBS = -lX11 -lm
 endif
 
 ifeq ($(OS), GNU/kFreeBSD)
 	OBJS += sys_freebsd.o
-	LIBS = -lX11 -lkvm -lm
-	INSTALL = -c -g kmem -m 2755 -o root
+	LIBS = -lX11 -lm
 	CFLAGS += -D_BSD_SOURCE
 endif
 
@@ -77,7 +75,7 @@ endif
 all: wmbubble
 
 wmbubble: $(OBJS)
-	$(CC) $(CFLAGS) -o wmbubble $(OBJS) $(LIBS)
+	$(CC) $(LDFLAGS) -o wmbubble $(OBJS) $(LIBS)
 
 bubblemon.o: bubblemon.c wmx11pixmap.h include/bubblemon.h \
  include/sys_include.h include/numbers-2.h include/ducks.h \

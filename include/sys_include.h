@@ -24,8 +24,5 @@ int system_cpu(void);		/* return total CPU load in percent */
 void system_memory(void);	/* set memory related values in BubbleMonData */
 void system_loadavg(void);	/* get current load average and put into
 				   bm->loadavg[].{i,f} */
-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-int init_stuff();
-#endif
 
 #endif /* _SYS_INCLUDE_H_ */

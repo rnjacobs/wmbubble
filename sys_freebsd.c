@@ -17,70 +17,35 @@
  *
  */
 
-#include <kvm.h>
-#include <fcntl.h>
 #include <sys/types.h>
-#include <sys/dkstat.h>
-#include <sys/vmmeter.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/sysctl.h>
-#include <vm/vm_param.h>
 #include <time.h>
+#include <sys/errno.h>
+#include <string.h>
 #include "include/bubblemon.h"
 #include "include/sys_include.h"
 
 extern BubbleMonData bm;
 
-static kvm_t *kd = NULL;
-static struct nlist nlst[] = {
-    {"_cnt", 0},
-    {"_bufspace", 0},
-    {0, 0}
-};
-static int pageshift;
+#define GETSYSCTL(name, var) getsysctl(name, &(var), sizeof(var))
 
-#define pagetob(size) ((size) << pageshift)
-
-int init_stuff()
+static void getsysctl(const char *name, void *ptr, size_t len)
 {
-    /* calculate page shift to convert pages into kilobytes */
-    int pagesize = getpagesize();
-    pageshift = 0;
+    size_t nlen = len;
 
-    while (pagesize > 1) {
-	pageshift++;
-	pagesize >>= 1;
+    if (sysctlbyname(name, ptr, &nlen, NULL, 0) == -1) {
+        fprintf(stderr, "sysctl(%s...) failed: %s\n", name,
+	        strerror(errno));
+	exit(1);
     }
-
-    /* open kernel memory */
-    kd = kvm_open(NULL, NULL, NULL, O_RDONLY, "kvm_open");
-
-    if (kd == NULL) {
-	puts("Could not open kernel virtual memory");
-	return 1;
+    if (nlen != len) {
+	fprintf(stderr, "sysctl(%s...) expected %lu, got %lu\n",
+	        name, (unsigned long)len, (unsigned long)nlen);
+	exit(1);
     }
-
-    kvm_nlist(kd, nlst);
-
-    if (nlst[0].n_type == 0 || nlst[1].n_type == 0) {
-	puts("Error extracting symbols");
-	return 2;
-    }
-
-    /* drop setgid & setuid (the latter should not be there really) */
-    seteuid(getuid());
-    setegid(getgid());
-
-    if (geteuid() != getuid() || getegid() != getgid()) {
-	puts("Unable to drop privileges");
-	return 3;
-    }
-
-    return 0;
 }
 
 /* Returns the current CPU load in percent */
@@ -92,19 +57,7 @@ int system_cpu(void)
     unsigned long int cpu_time[CPUSTATES];
     int i;
 
-    static int mib[2];
-    size_t len = 2;
-
-    size_t size;
-
-    if (sysctlnametomib("kern.cp_time", mib, &len) < 0)
-        return 0;
-
-    size = sizeof (cpu_time);
-
-
-    if (sysctl(mib, 2, &cpu_time, &size, NULL, 0) < 0)
-        return 0;
+    GETSYSCTL("kern.cp_time", cpu_time);
 
     load = cpu_time[CP_USER] + cpu_time[CP_SYS] + cpu_time[CP_NICE];
     total = load + cpu_time[CP_IDLE];
@@ -131,62 +84,70 @@ int system_cpu(void)
 
 void system_memory(void)
 {
-    u_int64_t my_mem_used, my_mem_max;
-    u_int64_t my_swap_used, my_swap_max;
-    struct vmmeter sum;
-    int bufspace;
+    u_int new_swappgsin, new_swappgsout;
+    u_int my_mem_used, my_mem_max;
+    u_int pagesize;
     static int swappgsin = -1;
     static int swappgsout = -1;
     static int swap_firsttime = 1;
     static int swapavail = 0, swapused = 0;
     static time_t last_time_swap = 0;
     time_t curr_time;
-	
-    if (kvm_read(kd, nlst[0].n_value, &sum, sizeof(sum)) != sizeof(sum))
-	return;		/* _cnt */
 
-    if (kvm_read(kd, nlst[1].n_value, &bufspace, sizeof(bufspace)) !=
-	sizeof(bufspace))
-	return;		/* _bufspace */
-
-    my_mem_max = pagetob((u_int64_t) sum.v_page_count);
-    my_mem_used = pagetob((u_int64_t) sum.v_active_count);
+    GETSYSCTL("vm.stats.vm.v_page_count", my_mem_max);
+    GETSYSCTL("vm.stats.vm.v_active_count", my_mem_used);
+    GETSYSCTL("hw.pagesize", pagesize);
 
     /* only calculate when first time or when changes took place */
     /* do not call it more than 1 time per 2 seconds */
     /* otherwise it can eat up to 50% of CPU time on heavy swap activity */
     curr_time = time(NULL);
-    
+
+    GETSYSCTL("vm.stats.vm.v_swappgsin", new_swappgsin);
+    GETSYSCTL("vm.stats.vm.v_swappgsout", new_swappgsout);
+
     if (swap_firsttime ||
-	(((sum.v_swappgsin > swappgsin) || (sum.v_swappgsout > swappgsout)) &&
-	curr_time > last_time_swap + 1)) {
-	
-	struct kvm_swap swap;
-	int n;
+        (((new_swappgsin > swappgsin) || (new_swappgsout > swappgsout)) &&
+        curr_time > last_time_swap + 1)) {
+        int mib[2], n;
+        size_t mibsize, size;
+        struct xswdev xsw;
 
-	swapavail = 0;
-	swapused = 0;
+        mibsize = sizeof(mib) / sizeof(mib[0]);
+        if (sysctlnametomib("vm.swap_info", mib, &mibsize) == -1) {
+            fprintf(stderr, "sysctlnametomib() failed %s\n",
+                    strerror(errno));
+            return;
+        }
 
-	n = kvm_getswapinfo(kd, &swap, 1, 0);
-	if (n >= 0 && swap.ksw_total != 0) {
-	    swapavail = pagetob(swap.ksw_total);
-	    swapused = pagetob(swap.ksw_used);
-	}
+        swapavail = 0;
+        swapused = 0;
 
-	swap_firsttime = 0;
-	last_time_swap = curr_time;
+        for (n = 0; ; n++) {
+            mib[mibsize] = n;
+            size = sizeof(xsw);
+            if (sysctl(mib, mibsize + 1, &xsw, &size, NULL, 0) == -1) {
+                if (errno == ENOENT)
+                    break;
+                fprintf(stderr, "sysctl() failed: %s\n",
+                        strerror(errno));
+                return;
+            }
+            swapavail += xsw.xsw_nblks;
+            swapused += xsw.xsw_used;
+        }
+
+        swap_firsttime = 0;
+        last_time_swap = curr_time;
     }
 
-    my_swap_used = swapused;
-    my_swap_max = swapavail;
+    swappgsin = new_swappgsin;
+    swappgsout = new_swappgsout;
 
-    swappgsin = sum.v_swappgsin;
-    swappgsout = sum.v_swappgsout;
-
-    bm.mem_used = my_mem_used;
-    bm.mem_max = my_mem_max;
-    bm.swap_used = my_swap_used;
-    bm.swap_max = my_swap_max;
+    bm.mem_used = my_mem_used * pagesize;
+    bm.mem_max = my_mem_max * pagesize;
+    bm.swap_used = swapused * pagesize;
+    bm.swap_max = swapavail * pagesize;
 }
 
 void system_loadavg(void)

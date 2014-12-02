@@ -31,7 +31,6 @@ static int flush_expose(Window w) {
 void RGBtoXIm(const unsigned char * from, XImage * ximout) {
 	unsigned long * p32 = (unsigned long *)ximout->data;
 	unsigned short * p16 = (unsigned short *)ximout->data;
-	unsigned char * p8 = (unsigned char *)ximout->data;
 	unsigned long pxl;
 	int i, yy;
 	/* violatin' the abstractions! */
