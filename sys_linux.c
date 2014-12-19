@@ -35,6 +35,18 @@ int system_cpu(void) {
 	FILE *stat;
 
 	stat = fopen("/proc/stat", "r");
+	/* first row: across all cores; first columns: "cpu"
+	   subsequent columns:
+    user: normal processes executing in user mode
+    nice: niced processes executing in user mode
+    system: processes executing in kernel mode
+    idle: twiddling thumbs
+    iowait: waiting for I/O to complete
+    irq: servicing interrupts
+    softirq: servicing softirqs
+
+    for some reason we ignore iowait, irq, and softirq. is that reasonable?
+ */
 	if (fscanf(stat, "%*s %"PRIu64" %"PRIu64" %"PRIu64" %"PRIu64,
 		   &ab, &ac, &ad, &ae) == EOF) {
 		fprintf(stderr, "EOF when reading /proc/stat\n");
@@ -48,7 +60,7 @@ int system_cpu(void) {
 	load = ab + ac + ad;	/* cpu.user + cpu.sys; */
 	total = ab + ac + ad + ae;	/* cpu.total; */
 
-	/* "i" is an index into a load history */
+	/* circular buffer; "i" is an index into a load history */
 	i = bm.loadIndex;
 	oload = bm.load[i];
 	ototal = bm.total[i];
@@ -58,10 +70,11 @@ int system_cpu(void) {
 	bm.loadIndex = (i + 1) % bm.samples;
 
 	/*
-	  Because the load returned from libgtop is a value accumulated
-	  over time, and not the current load, the current load percentage
-	  is calculated as the extra amount of work that has been performed
-	  since the last sample. yah, right, what the fuck does that mean?
+	  Because the load above is an accumulated value over time, and not the
+	  current load, the current load percentage is calculated as the extra
+	  amount of work that has been performed since the last sample.
+
+	  In this case, we compare the current numbers to "bm.samples" ago.
 	*/
 	if (ototal == 0)		/* ototal == 0 means that this is the first time we get here */
 		cpuload = 0;
@@ -78,19 +91,19 @@ void system_memory(void) {
 	FILE *mem;
 
 	/* put this in permanent storage instead of stack */
-	static char shit[2048];
+	static char meminfo[2048];
 
 	/* we might as well get both swap and memory at the same time.
 	 * sure beats opening the same file twice */
 	mem = fopen("/proc/meminfo", "r");
-	memset(shit, 0, sizeof(shit));
-	if (fread(shit, 2048, 1, mem) < 2048) {
+	memset(meminfo, 0, sizeof(meminfo));
+	if (fread(meminfo, 2048, 1, mem) < 2048) {
 		if (ferror(mem)) {
 			fprintf(stderr, "error reading /proc/meminfo\n");
 			return;
 		}
 	}
-	p = strstr(shit, "MemTotal");
+	p = strstr(meminfo, "MemTotal");
 	if (p) {
 		sscanf(p, "MemTotal:%"PRIu64, &bm.mem_max);
 		bm.mem_max <<= 10;

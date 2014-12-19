@@ -625,7 +625,7 @@ void make_new_bubblemon_dockapp(void) {
 	build_graphs();
 
 	sscanf(datefont_xpm[0],"%u %u %u %u",&maxwidth,&yy,&datefont_offset,&cc);
-	if (cc != 1) abort(); /* fuck that */
+	if (cc != 1) abort(); /* wat */
 
 	datefont_offset++; /* include header line */
 
@@ -885,7 +885,7 @@ void draw_from_xpm(char **xpm, unsigned char *whither, unsigned int targetw,
 	char transparent=0;
 
 	sscanf(xpm[0],"%u %u %u %u",&xx,&yy,&ncolors,&cpp);
-	if (cpp != 1) abort(); /* fuck that */
+	if (cpp != 1) abort(); /* wat */
 	if (xpmx+xpmw > xx || xpmy+xpmh > yy) return;
 
 	for (yy=1;yy<=ncolors;yy++) {
@@ -1049,7 +1049,7 @@ void roll_history(void)  {
 void draw_cpudigit(int what, unsigned char *whither) {
 	unsigned int y;
 	unsigned char *from = digits + what * 3 * 6;;
-	for (y = 0; y < 9; y++) { /* magic numbers suck. */
+	for (y = 0; y < 9; y++) { /* magic numbers :( */
 		memcpy(whither,from,21);
 		whither += 3*25;
 		from += 3*95;
