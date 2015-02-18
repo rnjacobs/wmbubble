@@ -1,4 +1,4 @@
-/*  WMBubble dockapp 1.52
+/*  WMBubble dockapp 1.53
  *
  * Todo: merge in wmfishtime/bubblefishymon, reduce number of
  * compilation-time settings, make more things configurable via xresources.
@@ -44,7 +44,7 @@
  */
 #define _GNU_SOURCE
 
-#define VERSION "1.52"
+#define VERSION "1.53"
 
 /* general includes */
 #include <stdio.h>
