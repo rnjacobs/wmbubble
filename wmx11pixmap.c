@@ -141,7 +141,8 @@ XImage * initwmX11pixmap(int argc, char *argv[]) {
 	/* Select acceptable input events */
 	InterestingEvents |= KeyPressMask | KeyReleaseMask |
 		ButtonPressMask | ButtonReleaseMask |
-		EnterWindowMask | LeaveWindowMask | ExposureMask;
+		EnterWindowMask | LeaveWindowMask | ExposureMask |
+		VisibilityChangeMask;
 	
 	XSelectInput(wmxp_display, wmxp_win, InterestingEvents);
 	XSelectInput(wmxp_display, wmxp_iconwin, InterestingEvents);

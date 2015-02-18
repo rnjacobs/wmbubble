@@ -353,6 +353,9 @@ int main(int argc, char **argv) {
 	int proximity = 0;
 	time_t mytt;
 	int ii;
+	int i_am_visible = 1;
+	int iconwin_visible = 1;
+	int win_visible = 1;
 	struct tm * mytime;
 	int mday=0, hours=0;
 #ifdef FPS
@@ -454,6 +457,15 @@ int main(int argc, char **argv) {
 				if (!bm.picture_lock)
 					bm.screen_type = get_screen_selection();
 				break;
+			case VisibilityNotify:
+				if (event.xvisibility.window == wmxp_iconwin) {
+					iconwin_visible = !(event.xvisibility.state == VisibilityFullyObscured);
+				}
+				if (event.xvisibility.window == wmxp_win) {
+					win_visible = !(event.xvisibility.state == VisibilityFullyObscured);
+				}
+				i_am_visible = iconwin_visible || win_visible;
+				break;
 			case LeaveNotify:
 				/* mouse out: back to light */
 				proximity = 0;
@@ -481,18 +493,20 @@ int main(int argc, char **argv) {
 			graphdelay = 0;
 		}
 
-		/* bubblemon_update: 2.207us/frame */
-		do_water_sim(loadPercentage);
-		draw_watertank();
-		/* 18.68us/frame */
-		bubblebuf_colorspace();
+		if (i_am_visible) {
+			/* bubblemon_update: 2.207us/frame */
+			do_water_sim(loadPercentage);
+			draw_watertank();
+			/* 18.68us/frame */
+			bubblebuf_colorspace();
+		}
 
 		/* 1.785us/frame */
-		if (duck_enabled) {
+		if (duck_enabled && i_am_visible) {
 			duck_swimmer();
 		}
 
-		if (cpu_enabled && gaugedelay == 0)
+		if (i_am_visible && cpu_enabled && gaugedelay == 0)
 			/* we don't want to redraw changing digits every update because that
 			 * doesn't look so good. we throttle it above because system_cpu is
 			 * expensive on linux. */
@@ -506,13 +520,13 @@ int main(int argc, char **argv) {
 		   graphs are rolled every 500/66.7=7.5 s.
 
 		   For now we'll just update everything at the same rate */
-		if (memscreen_enabled && graph_alpha < GRAPHMAXBLEND && graphdelay == 0)
+		if (i_am_visible && memscreen_enabled && graph_alpha < GRAPHMAXBLEND && graphdelay == 0)
 			render_secondary();
 
-		if (cpu_enabled)
+		if (i_am_visible && cpu_enabled)
 			alpha_cpu();
 
-		if (do_analog_clock)
+		if (i_am_visible && do_analog_clock)
 			draw_clockhands();
 
 		time(&mytt);
@@ -528,13 +542,13 @@ int main(int argc, char **argv) {
 			mytime->tm_hour += hours;
 		}
 
-		if (do_digital_clock)
+		if (i_am_visible && do_digital_clock)
 			alpha_digitalclock(mytime);
 
-		if (do_date)
+		if (i_am_visible && do_date)
 			alpha_date(mytime);
 
-		if (memscreen_enabled && graph_alpha < GRAPHMAXBLEND)
+		if (i_am_visible && memscreen_enabled && graph_alpha < GRAPHMAXBLEND)
 			alpha_graph();
 
 #ifdef FPS
@@ -548,7 +562,7 @@ int main(int argc, char **argv) {
 #endif /*FPS*/
 
 		/* drawing borders: 1.136us/frame */
-		{
+		if (i_am_visible) {
 			int xx,yy;
 			unsigned char * from;
 
@@ -571,9 +585,9 @@ int main(int argc, char **argv) {
 		}
 
 		/* Our colorspace conversion: 18.17us/frame */
-		RGBtoXIm(bm.rgb_buf,bm.xim);
+		if (i_am_visible) RGBtoXIm(bm.rgb_buf,bm.xim);
 		/* X11 XImage->Pixmap->display: 148.6us/frame */
-		RedrawWindow(bm.xim);
+		if (i_am_visible) RedrawWindow(bm.xim);
 	}
 #ifdef PRO
 	gettimeofday(&end,NULL);
