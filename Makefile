@@ -15,6 +15,7 @@ PREFIX = /usr/local
 CFLAGS += -ansi -Wall -O3
 # profiling cflags
 # CFLAGS = -ansi -Wall -O3 -pg -DPRO=50000
+# LDFLAGS = -pg
 # test coverage cflags
 # CFLAGS = -ansi -Wall -ggdb -fprofile-arcs -ftest-coverage -DPRO=50000
 

@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include "wmx11pixmap.h"
 
 /* Private variables */
@@ -29,17 +30,17 @@ static int flush_expose(Window w) {
 }
 
 void RGBtoXIm(const unsigned char * from, XImage * ximout) {
-	unsigned long * p32 = (unsigned long *)ximout->data;
-	unsigned short * p16 = (unsigned short *)ximout->data;
+	u_int32_t * p32 = (u_int32_t *)ximout->data;
+	u_int16_t * p16 = (u_int16_t *)ximout->data;
 	unsigned long pxl;
 	int i, yy;
 	/* violatin' the abstractions! */
-	switch (ximout->depth | ((ximout->red_mask|ximout->green_mask)<<8)) {
-	case 0xFFFF0020: /* 24bpp RGB */
+	switch (ximout->bits_per_pixel | ((ximout->red_mask|ximout->green_mask)<<8)) {
+	case 0xFFFF0020: /* 24-in-32bpp RGB */
 		for (i=0;i<BOX_SIZE*BOX_SIZE;i++,from+=3)
 			p32[i] = (from[0]<<16) | (from[1]<<8) | (from[2]);
 		break;
-	case 0x00FFFF20: /* 24bpp BGR */
+	case 0x00FFFF20: /* 24-in-32bpp BGR */
 		for (i=0;i<BOX_SIZE*BOX_SIZE;i++,from+=3)
 			p32[i] = (from[2]<<16) | (from[1]<<8) | (from[0]);
 		break;
