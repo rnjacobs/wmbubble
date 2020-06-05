@@ -26,7 +26,7 @@ void RGBtoXIm(const unsigned char * from, XImage * ximout);
 }
 
 /* Global variables necessary for the event handlers */
-Display *wmxp_display;
-Window  wmxp_iconwin, wmxp_win;
+extern Display *wmxp_display;
+extern Window  wmxp_iconwin, wmxp_win;
 
 #endif

@@ -13,6 +13,10 @@
 #include <sys/types.h>
 #include "wmx11pixmap.h"
 
+/* Global variables necessary for the event handlers */
+Display *wmxp_display;
+Window  wmxp_iconwin, wmxp_win;
+
 /* Private variables */
 GC      NormalGC;
 Pixmap  wmgen;
