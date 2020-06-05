@@ -2,7 +2,8 @@ ifneq (,)
 This makefile requires GNU Make.
 endif
 
-INSTALL = -m 755
+INSTALL = install
+INSTFLAGS = -m 755
 VERSION = $(shell git describe --tags)
 
 # where to install this program
@@ -46,7 +47,7 @@ endif
 ifeq ($(OS), NetBSD)
 	OBJS += sys_netbsd.o
 	LIBS = -lX11 -lkvm -lm
-	INSTALL = -c -g kmem -m 2755 -o root
+	INSTFLAGS = -c -g kmem -m 2755 -o root
 endif
 
 # special things for OpenBSD
@@ -90,10 +91,10 @@ clean:
 	rm -f wmbubble *.o *.bb* *.gcov gmon.* *.da *~
 
 install: wmbubble wmbubble.1
-	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
-	install $(INSTALL) wmbubble $(DESTDIR)$(PREFIX)/bin
-	install -m 755 -d $(DESTDIR)$(PREFIX)/share/man/man1
-	install -m 644 wmbubble.1 $(DESTDIR)$(PREFIX)/share/man/man1
+	$(INSTALL) -m 755 -d $(DESTDIR)$(PREFIX)/bin
+	$(INSTALL) $(INSTFLAGS) wmbubble $(DESTDIR)$(PREFIX)/bin
+	$(INSTALL) -m 755 -d $(DESTDIR)$(PREFIX)/share/man/man1
+	$(INSTALL) -m 644 wmbubble.1 $(DESTDIR)$(PREFIX)/share/man/man1
 
 dist-tar:
 	git archive -v -9 --prefix=wmbubble-$(VERSION)/ master \
