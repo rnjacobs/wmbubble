@@ -319,7 +319,7 @@ void bubblemon_session_defaults(XrmDatabase x_resource_database)
 }
 
 void print_usage(void) {
-	char preformat[32];
+	char preformat[33];
 	int i;
 	printf("WMBubble version "VERSION"\n"
 	       "Usage: "NAME" [switches] [program1] [program2] [...] [program(# of mouse buttons)]\n\n"
